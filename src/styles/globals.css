@@ -1,44 +1,46 @@
 @import url("https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Amiri:wght@400;700&family=Poppins:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap");
 
+@custom-variant dark (&:is(.dark *));
+
 :root {
   --font-size: 16px;
-  --background: #FAF9F6;
-  --foreground: #1B1B1B;
-  --card: #FFFDF8;
-  --card-foreground: #1B1B1B;
-  --popover: #FFFDF8;
-  --popover-foreground: #1B1B1B;
-  --primary: #0E7C7B;
-  --primary-foreground: #FFFDF8;
-  --secondary: #E9D8A6;
-  --secondary-foreground: #1B1B1B;
-  --muted: #F5F1E8;
-  --muted-foreground: #6B6B6B;
-  --accent: #E9D8A6;
-  --accent-foreground: #1B1B1B;
+  --background: #faf9f6;
+  --foreground: #1b1b1b;
+  --card: #fffdf8;
+  --card-foreground: #1b1b1b;
+  --popover: #fffdf8;
+  --popover-foreground: #1b1b1b;
+  --primary: #0e7c7b;
+  --primary-foreground: #fffdf8;
+  --secondary: #e9d8a6;
+  --secondary-foreground: #1b1b1b;
+  --muted: #f5f1e8;
+  --muted-foreground: #6b6b6b;
+  --accent: #e9d8a6;
+  --accent-foreground: #1b1b1b;
   --destructive: #d4183d;
   --destructive-foreground: #ffffff;
   --border: rgba(14, 124, 123, 0.15);
   --input: transparent;
-  --input-background: #FFFDF8;
+  --input-background: #fffdf8;
   --switch-background: #cbced4;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --ring: #0E7C7B;
-  --chart-1: #0E7C7B;
-  --chart-2: #E9D8A6;
-  --chart-3: #B08968;
-  --chart-4: #7F5539;
-  --chart-5: #9C6644;
+  --ring: #0e7c7b;
+  --chart-1: #0e7c7b;
+  --chart-2: #e9d8a6;
+  --chart-3: #b08968;
+  --chart-4: #7f5539;
+  --chart-5: #9c6644;
   --radius: 1.25rem;
-  --sidebar: #FFFDF8;
-  --sidebar-foreground: #1B1B1B;
-  --sidebar-primary: #0E7C7B;
-  --sidebar-primary-foreground: #FFFDF8;
-  --sidebar-accent: #E9D8A6;
-  --sidebar-accent-foreground: #1B1B1B;
+  --sidebar: #fffdf8;
+  --sidebar-foreground: #1b1b1b;
+  --sidebar-primary: #0e7c7b;
+  --sidebar-primary-foreground: #fffdf8;
+  --sidebar-accent: #e9d8a6;
+  --sidebar-accent-foreground: #1b1b1b;
   --sidebar-border: rgba(14, 124, 123, 0.15);
-  --sidebar-ring: #0E7C7B;
+  --sidebar-ring: #0e7c7b;
 }
 
 .dark {
@@ -112,242 +114,106 @@
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary-foreground: var(
+    --sidebar-primary-foreground
+  );
   --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent-foreground: var(
+    --sidebar-accent-foreground
+  );
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
 
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Poppins", "Cairo", sans-serif;
+  }
 
-body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: "Poppins", "Cairo", sans-serif;
-  margin: 0;
-  padding: 0;
+  .font-cairo {
+    font-family: "Cairo", sans-serif;
+  }
+
+  .font-amiri {
+    font-family: "Amiri", serif;
+  }
+
+  .font-poppins {
+    font-family: "Poppins", sans-serif;
+  }
+
+  .font-inter {
+    font-family: "Inter", sans-serif;
+  }
+
+  .arabic-text {
+    font-family: "Cairo", "Amiri", sans-serif;
+    direction: rtl;
+  }
 }
 
-.heading-1 {
-  font-size: 2.25rem; /* 36px */
-  font-weight: 600;
-  color: var(--primary);
-  margin-bottom: 1rem;
+/**
+ * Base typography. This is not applied to elements which have an ancestor with a Tailwind text class.
+ */
+@layer base {
+  :where(
+    :not(:has([class*=" text-"]), :not(:has([class^="text-"])))
+  ) {
+    h1 {
+      font-size: var(--text-2xl);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    h2 {
+      font-size: var(--text-xl);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    h3 {
+      font-size: var(--text-lg);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    h4 {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    p {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-normal);
+      line-height: 1.5;
+    }
+
+    label {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    button {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    input {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-normal);
+      line-height: 1.5;
+    }
+  }
 }
 
-.paragraph {
-  font-size: 1rem; /* 16px */
-  line-height: 1.6;
-  color: var(--foreground);
-}
-
-.arabic-text {
-  font-family: "Cairo", "Amiri", sans-serif;
-  direction: rtl;
-}
-
-.navbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  background-color: #fff;
-  z-index: 40;
-  padding: 10px 30px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.navbar-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
-.logo-section {
-  display: flex;
-  align-items: center;
-}
-
-.logo {
-  width: 32px;
-  height: 32px;
-  color: var(--primary);
-}
-
-.logo-text {
-  margin-left: 10px;
-}
-
-.nav-links {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-}
-
-.nav-item {
-  cursor: pointer;
-  color: var(--foreground);
-  transition: color 0.3s;
-}
-
-.nav-item:hover {
-  color: var(--primary);
-}
-
-.nav-item.active {
-  color: var(--primary);
-}
-
-.auth-buttons {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.btn-primary {
-  background-color: var(--primary);
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius);
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.btn-primary:hover {
-  background-color: var(--primary);
-  opacity: 0.9;
-}
-
-.btn-secondary {
-  background-color: var(--background);
-  /* color: black; */
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius);
-  border: 1px solid #DBE9E5;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.btn-secondary:hover {
-  background-color: var(--secondary);
-  color: black;
-  opacity: 0.9;
-}
-
-/* sidebar.css */
-.sidebar {
-  width: 250px;
-  height: calc(100vh - 60px);
-  background-color: var(--sidebar); 
-  color: var(--sidebar-foreground);
-  border-right: 1px solid #DBE9E5;
-  z-index: 20;
-  position: fixed;
-  top: 70px;
-  left: 0;
-  padding: 20px;
-  box-sizing: border-box;
-  overflow-y: auto;
-  transition: all 0.3s ease-in-out;
-}
-
-.sidebar-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 30px;
-}
-
-.sidebar-logo {
-  color: var(--sidebar-primary-foreground);
-  font-size: 24px;
-  margin-right: 10px;
-}
-
-.sidebar-links {
-  display: flex;
-  flex-direction: column;
-}
-
-.sidebar-item {
-  display: flex;
-  align-items: center;
-  padding: 12px;
-  font-size: 16px;
-  cursor: pointer;
-  margin-bottom: 10px;
-  border-radius: 15px;
-  color: var(--sidebar-foreground);
-  background-color: transparent;
-  transition: background-color 0.3s ease;
-}
-
-.sidebar-item:hover {
-  background-color: #E9D8A6;
-}
-
-.sidebar-item.active {
-  background-color: var(--sidebar-primary);
-  color: var(--sidebar-primary-foreground);
-}
-
-.sidebar-icon {
-  margin-right: 10px;
-  font-size: 20px;
-}
-
-.page-content {
-  margin-left: 250px;
-  background-color: #FAF9F6;
-  padding: 20px;
-  min-height: 100vh;
-  box-sizing: border-box;
-}
-
-.card {
-  display: inline-block;
-  background-color: #ffffff;
-  border-radius: 22px;
-  border: 1px solid #DBE9E5; 
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  margin: 5px;
-  transition: all 0.3s ease;
-  vertical-align: top;
-  width: auto;
-  max-width: 100%;
-}
-
-.card:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.card-content {
-  font-size: 14px;
-  color: #333333;
-  margin-bottom: 15px;
-}
-
-.card-stats {
-  margin-bottom: 15px;
-}
-
-input {
-  background-color: #F5F3ED;
-  width: 100%;
-  border: none;
-  border-radius: 20px;
-  padding: 8px 12px;
-  outline: none;
-  transition: box-shadow 0.3s ease;
-}
-
-input:focus {
-  outline: black;
-  box-shadow: 0 0 0 4px rgba(14, 124, 123, 0.5);
+html {
+  font-size: var(--font-size);
 }
