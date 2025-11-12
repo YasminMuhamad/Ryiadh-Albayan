@@ -1,0 +1,359 @@
+@import url("https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Amiri:wght@400;700&family=Poppins:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap");
+
+:root {
+  --font-size: 16px;
+  --background: #FAF9F6;
+  --foreground: #1B1B1B;
+  --card: #FFFDF8;
+  --card-foreground: #1B1B1B;
+  --popover: #FFFDF8;
+  --popover-foreground: #1B1B1B;
+  --primary: #0E7C7B;
+  --primary-foreground: #FFFDF8;
+  --secondary: #E9D8A6;
+  --secondary-foreground: #1B1B1B;
+  --muted: #F5F1E8;
+  --muted-foreground: #6B6B6B;
+  --accent: #E9D8A6;
+  --accent-foreground: #1B1B1B;
+  --destructive: #d4183d;
+  --destructive-foreground: #ffffff;
+  --border: rgba(14, 124, 123, 0.15);
+  --input: transparent;
+  --input-background: #FFFDF8;
+  --switch-background: #cbced4;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: #0E7C7B;
+  --chart-1: #0E7C7B;
+  --chart-2: #E9D8A6;
+  --chart-3: #B08968;
+  --chart-4: #7F5539;
+  --chart-5: #9C6644;
+  --radius: 1.25rem;
+  --sidebar: #FFFDF8;
+  --sidebar-foreground: #1B1B1B;
+  --sidebar-primary: #0E7C7B;
+  --sidebar-primary-foreground: #FFFDF8;
+  --sidebar-accent: #E9D8A6;
+  --sidebar-accent-foreground: #1B1B1B;
+  --sidebar-border: rgba(14, 124, 123, 0.15);
+  --sidebar-ring: #0E7C7B;
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.145 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.637 0.237 25.331);
+  --border: oklch(0.269 0 0);
+  --input: oklch(0.269 0 0);
+  --ring: oklch(0.439 0 0);
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(0.269 0 0);
+  --sidebar-ring: oklch(0.439 0 0);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: "Poppins", "Cairo", sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.heading-1 {
+  font-size: 2.25rem; /* 36px */
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 1rem;
+}
+
+.paragraph {
+  font-size: 1rem; /* 16px */
+  line-height: 1.6;
+  color: var(--foreground);
+}
+
+.arabic-text {
+  font-family: "Cairo", "Amiri", sans-serif;
+  direction: rtl;
+}
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  z-index: 1000;
+  padding: 10px 30px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.navbar-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  width: 32px;
+  height: 32px;
+  color: var(--primary);
+}
+
+.logo-text {
+  margin-left: 10px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.nav-item {
+  cursor: pointer;
+  color: var(--foreground);
+  transition: color 0.3s;
+}
+
+.nav-item:hover {
+  color: var(--primary);
+}
+
+.nav-item.active {
+  color: var(--primary);
+}
+
+.auth-buttons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn-secondary {
+  background-color: var(--background);
+  color: black;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  border: 1px solid #DBE9E5;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary);
+  opacity: 0.9;
+}
+
+/* sidebar.css */
+.sidebar {
+  width: 250px;
+  height: calc(100vh - 60px);
+  background-color: var(--sidebar); 
+  color: var(--sidebar-foreground);
+  border-right: 1px solid #DBE9E5;
+  position: fixed;
+  top: 60px;
+  left: 0;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  transition: all 0.3s ease-in-out;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.sidebar-logo {
+  color: var(--sidebar-primary-foreground);
+  font-size: 24px;
+  margin-right: 10px;
+}
+
+.sidebar-links {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-bottom: 10px;
+  border-radius: 15px;
+  color: var(--sidebar-foreground);
+  background-color: transparent;
+  transition: background-color 0.3s ease;
+}
+
+.sidebar-item:hover {
+  background-color: #E9D8A6;
+}
+
+.sidebar-item.active {
+  background-color: var(--sidebar-primary);
+  color: var(--sidebar-primary-foreground);
+}
+
+.sidebar-icon {
+  margin-right: 10px;
+  font-size: 20px;
+}
+
+.page-content {
+  margin-left: 250px;
+  background-color: #FAF9F6;
+  padding: 20px;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.card {
+  display: inline-block;
+  background-color: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #DBE9E5; 
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin: 5px;
+  transition: all 0.3s ease;
+  vertical-align: top;
+  width: auto;
+  max-width: 100%;
+}
+
+.card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.card-title {
+  color: #1B1B1B;
+  margin-bottom: 10px;
+}
+
+.card-subtitle {
+  font-size: 16px;
+  color: #6B6B6B;
+  margin-bottom: 15px;
+}
+
+.card-content {
+  font-size: 14px;
+  color: #333333;
+  margin-bottom: 15px;
+}
+
+.card-stats {
+  margin-bottom: 15px;
+}
+
+.card-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.card-button {
+  padding: 8px 15px;
+  border: 1px solid #DBE9E5;
+  border-radius: 18px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.card-button:hover {
+  background-color: #E9D8A6 !important;
+}

@@ -1,0 +1,121 @@
+{
+  "users": {
+    "U001": {
+      "uid": "U001",
+      "name": "Ali Hassan",
+      "email": "ali@student.com",
+      "role": "student",
+      "year": "2025",
+      "term": "First",
+      "enrolled_courses": [
+        "C001"
+      ],
+      "createdAt": "2025-11-12T10:00:00Z"
+    },
+    "U002": {
+      "uid": "U002",
+      "name": "Dr. Ahmed Youssef",
+      "email": "ahmed@riyadalbayan.com",
+      "role": "teacher",
+      "createdAt": "2025-11-12T09:00:00Z"
+    },
+    "U003": {
+      "uid": "U003",
+      "name": "Admin User",
+      "email": "admin@riyadalbayan.com",
+      "role": "admin",
+      "createdAt": "2025-11-12T08:00:00Z"
+    }
+  },
+  "teachers": {
+    "T001": {
+      "teacherId": "T001",
+      "name": "Dr. Ahmed Youssef",
+      "email": "ahmed@riyadalbayan.com",
+      "bio": "Experienced Math Teacher with 10 years of teaching.",
+      "zoomLink": "https://zoom.us/j/123456789",
+      "courses": [
+        "C001"
+      ],
+      "phone": "+201001234567"
+    }
+  },
+  "courses": {
+    "C001": {
+      "courseId": "C001",
+      "title": "Mathematics - Grade 10",
+      "description": "A comprehensive math course for grade 10 students.",
+      "price": 400,
+      "type": "semester",
+      "teacherId": "T001",
+      "termId": "S001",
+      "videos": [
+        {
+          "title": "Algebra Basics",
+          "url": "https://firebasestorage.googleapis.com/demo-video"
+        }
+      ],
+      "materials": [
+        {
+          "title": "Math Book PDF",
+          "file": "https://firebasestorage.googleapis.com/demo-pdf"
+        }
+      ],
+      "createdAt": "2025-11-12T10:00:00Z"
+    }
+  },
+  "academic_schedules": {
+    "S001": {
+      "scheduleId": "S001",
+      "year": "2025",
+      "term": "First",
+      "startDate": "2025-10-01",
+      "endDate": "2026-01-31"
+    }
+  },
+  "live_sessions": {
+    "L001": {
+      "sessionId": "L001",
+      "courseId": "C001",
+      "teacherId": "T001",
+      "title": "Algebra Live Session 1",
+      "date": "2025-11-20T18:00:00Z",
+      "duration": 90,
+      "zoomLink": "https://zoom.us/j/987654321",
+      "status": "upcoming"
+    }
+  },
+  "payments": {
+    "P001": {
+      "paymentId": "P001",
+      "studentId": "U001",
+      "amount": 400,
+      "method": "Vodafone Cash",
+      "type": "course",
+      "courseId": "C001",
+      "status": "paid",
+      "date": "2025-11-12T11:00:00Z"
+    }
+  },
+  "reviews": {
+    "R001": {
+      "reviewId": "R001",
+      "studentId": "U001",
+      "courseId": "C001",
+      "rating": 5,
+      "comment": "The course was excellent and easy to follow!",
+      "createdAt": "2025-11-12T12:00:00Z"
+    }
+  },
+  "notifications": {
+    "N001": {
+      "notificationId": "N001",
+      "userId": "U001",
+      "title": "New Live Session",
+      "message": "Algebra Live Session 1 is scheduled for Nov 20.",
+      "type": "session",
+      "read": false,
+      "createdAt": "2025-11-12T13:00:00Z"
+    }
+  }
+}
