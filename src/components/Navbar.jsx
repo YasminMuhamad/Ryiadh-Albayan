@@ -62,10 +62,16 @@ export function Navbar() {
               Login
             </span>
             <Button
-              onClick={() => handleNavigation('/signup')}
+              onClick={() => handleNavigation('/register')}
               className="btn-primary"
             >
               Sign Up
+            </Button>
+            <Button
+              onClick={() => handleNavigation('/student/profile')}
+              className="btn-primary"
+            >
+              Profile
             </Button>
           </div>
         </div>
