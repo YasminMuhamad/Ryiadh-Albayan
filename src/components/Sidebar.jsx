@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, BarChart, DollarSign, BookOpen, Settings } from 'lucide-react'; // إضافة الأيقونات
-import "../styles/globals.css"; // التأكد من أنك استخدمت ملف الـ CSS المرفق
+import { Users, BarChart, DollarSign, BookOpen, Settings } from 'lucide-react';
+import "../styles/globals.css";
 
 export function Sidebar({ userRole }) {
   const navigate = useNavigate();
@@ -13,7 +13,6 @@ export function Sidebar({ userRole }) {
   return (
     <div className="sidebar">
       <div className="sidebar-links">
-        {/* روابط للصفحات المختلفة */}
         <span
           onClick={() => handleNavigation('/teachers')}
           className="sidebar-item"
