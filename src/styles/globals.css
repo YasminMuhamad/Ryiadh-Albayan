@@ -156,7 +156,7 @@ body {
   left: 0;
   right: 0;
   background-color: #fff;
-  z-index: 1000;
+  z-index: 40;
   padding: 10px 30px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
@@ -219,9 +219,14 @@ body {
   transition: background-color 0.3s;
 }
 
+.btn-primary:hover {
+  background-color: var(--primary);
+  opacity: 0.9;
+}
+
 .btn-secondary {
   background-color: var(--background);
-  color: black;
+  /* color: black; */
   padding: 0.5rem 1rem;
   border-radius: var(--radius);
   border: 1px solid #DBE9E5;
@@ -229,8 +234,9 @@ body {
   transition: background-color 0.3s;
 }
 
-.btn-primary:hover {
-  background-color: var(--primary);
+.btn-secondary:hover {
+  background-color: var(--secondary);
+  color: black;
   opacity: 0.9;
 }
 
@@ -241,8 +247,9 @@ body {
   background-color: var(--sidebar); 
   color: var(--sidebar-foreground);
   border-right: 1px solid #DBE9E5;
+  z-index: 20;
   position: fixed;
-  top: 60px;
+  top: 70px;
   left: 0;
   padding: 20px;
   box-sizing: border-box;
@@ -305,7 +312,7 @@ body {
 .card {
   display: inline-block;
   background-color: #ffffff;
-  border-radius: 16px;
+  border-radius: 22px;
   border: 1px solid #DBE9E5; 
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   padding: 20px;
@@ -320,17 +327,6 @@ body {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.card-title {
-  color: #1B1B1B;
-  margin-bottom: 10px;
-}
-
-.card-subtitle {
-  font-size: 16px;
-  color: #6B6B6B;
-  margin-bottom: 15px;
-}
-
 .card-content {
   font-size: 14px;
   color: #333333;
@@ -341,19 +337,17 @@ body {
   margin-bottom: 15px;
 }
 
-.card-buttons {
-  display: flex;
-  gap: 10px;
+input {
+  background-color: #F5F3ED;
+  width: 100%;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 12px;
+  outline: none;
+  transition: box-shadow 0.3s ease;
 }
 
-.card-button {
-  padding: 8px 15px;
-  border: 1px solid #DBE9E5;
-  border-radius: 18px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.card-button:hover {
-  background-color: #E9D8A6 !important;
+input:focus {
+  outline: black;
+  box-shadow: 0 0 0 4px rgba(14, 124, 123, 0.5);
 }
