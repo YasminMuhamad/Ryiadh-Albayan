@@ -4,7 +4,7 @@ import { Button } from './Button';
 import { BookOpen } from 'lucide-react';
 import "../styles/globals.css";
 
-export function Navbar() {
+export default function Navbar() {
   const navigate = useNavigate(); 
   const location = useLocation(); 
 
