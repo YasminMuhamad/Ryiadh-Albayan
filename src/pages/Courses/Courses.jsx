@@ -15,7 +15,7 @@ export default function Courses() {
   useEffect(() => {
     
     
-    axios.get("import.meta.env.VITE_COURSES_API_URL")
+    axios.get(import.meta.env.VITE_COURSES_API_URL)
       .then(res => {
         
           setCourses(res.data.data);
