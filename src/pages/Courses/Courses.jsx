@@ -1,16 +1,4 @@
 import React from "react";
-<<<<<<< HEAD
-
-export default function Courses() {
-  return (
-    <div className="card">
-      <h1 className="heading-1">Courses</h1>
-      <p className="paragraph">Test Paragraph.</p>
-      <button className="btn-primary">Click Me</button>
-    </div>
-  );
-}
-=======
 import CategoryDropdown from "../../components/categorydropdown";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -212,4 +200,3 @@ export default function Courses() {
     </>
   );
 }
->>>>>>> origin/dev
