@@ -6,22 +6,39 @@ import Contact from "../src/pages/Contact/Contact.jsx";
 import Login from "../src/pages/Auth/Login.jsx";
 import Register from "../src/pages/Auth/RegisterStudent.jsx";
 import StudentProfile from "../src/pages/Student/Profile.jsx";
+
+import ProtectedRoute from "../src/router.jsx";
+import { AuthProvider } from "../src/context/AuthContext.jsx";
+
 import './styles/globals.css'; 
 
 export default function App() {
   return (
-    <Router>
-      <Navbar />
-      <div className="pt-16">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/courses" element={<Courses />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/login" element={<Login />} />
+    <AuthProvider>
+      <Router>
+         
+        <Navbar />
+        <div className="pt-16">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/courses" element={<Courses />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/student/profile" element={<StudentProfile/>} />
-        </Routes>
-      </div>
-    </Router>
+
+            {/* صفحة الطالب محمية */}
+            <Route
+              path="/student/profile"
+              element={
+                <ProtectedRoute role="student">
+                  <StudentProfile />
+                </ProtectedRoute>
+              }
+            />
+            
+          </Routes>
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
