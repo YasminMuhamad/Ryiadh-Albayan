@@ -301,14 +301,6 @@ body {
   font-size: 20px;
 }
 
-.page-content {
-  margin-left: 250px;
-  background-color: #FAF9F6;
-  padding: 20px;
-  min-height: 100vh;
-  box-sizing: border-box;
-}
-
 .card {
   display: inline-block;
   background-color: #ffffff;
@@ -339,7 +331,7 @@ body {
 
 input {
   background-color: #F5F3ED;
-  width: 100%;
+  width: 50%;
   border: none;
   border-radius: 20px;
   padding: 8px 12px;
@@ -350,4 +342,13 @@ input {
 input:focus {
   outline: black;
   box-shadow: 0 0 0 4px rgba(14, 124, 123, 0.5);
+}
+
+@keyframes slide-in {
+  0% { transform: translateX(100%); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out forwards;
 }

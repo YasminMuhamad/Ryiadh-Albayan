@@ -1,68 +1,76 @@
+// src/components/Sidebar.jsx
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Users, BarChart, DollarSign, BookOpen, Settings } from 'lucide-react';
 import "../styles/globals.css";
 
-export function Sidebar({ userRole }) {
-  const navigate = useNavigate();
-
-  const handleNavigation = (path) => {
-    navigate(path);
-  };
+export function Sidebar({ userRole = 'admin', onNavigate }) {
+  // onNavigate: function expected (e.g. setActiveTab)
 
   return (
     <div className="sidebar">
       <div className="sidebar-links">
-        <span
-          onClick={() => handleNavigation('/teachers')}
+        <button
+          type="button"
+          onClick={() => onNavigate('dashboard')}
+          className="sidebar-item"
+        >
+          <BarChart className="sidebar-icon" />
+          Dashboard
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onNavigate('teachers')}
           className="sidebar-item"
         >
           <Users className="sidebar-icon" />
           Teachers Management
-        </span>
+        </button>
 
-        <span
-          onClick={() => handleNavigation('/courses')}
+        <button
+          type="button"
+          onClick={() => onNavigate('courses')}
           className="sidebar-item"
         >
           <BookOpen className="sidebar-icon" />
           Courses Management
-        </span>
+        </button>
 
-        <span
-          onClick={() => handleNavigation('/users')}
+        <button
+          type="button"
+          onClick={() => onNavigate('users')}
           className="sidebar-item"
         >
           <Users className="sidebar-icon" />
           Users Management
-        </span>
+        </button>
 
-        <span
-          onClick={() => handleNavigation('/analytics')}
+        <button
+          type="button"
+          onClick={() => onNavigate('analytics')}
           className="sidebar-item"
         >
           <BarChart className="sidebar-icon" />
           Analytics & Statistics
-        </span>
+        </button>
 
-        <span
-          onClick={() => handleNavigation('/revenue')}
+        <button
+          type="button"
+          onClick={() => onNavigate('revenue')}
           className="sidebar-item"
         >
           <DollarSign className="sidebar-icon" />
           Revenue Overview
-        </span>
+        </button>
 
-        {/* روابط الإعدادات تظهر للأدمن فقط */}
-        {userRole === 'admin' && (
-          <span
-            onClick={() => handleNavigation('/settings')}
+          <button
+            type="button"
+            onClick={() => onNavigate('settings')}
             className="sidebar-item"
           >
             <Settings className="sidebar-icon" />
             Settings
-          </span>
-        )}
+          </button>
       </div>
     </div>
   );

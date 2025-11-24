@@ -3,8 +3,6 @@ import { Button } from "./Button";
 import { X } from "lucide-react";
 import { db } from "../../firebase.config";
 import { collection, addDoc } from "firebase/firestore";
-// import { storage } from "../../firebase.config"; // لو عندك firebase.storage
-// import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { CustomSelect } from "./CustomSelect";
 
 export function AddCourseModal({ isOpen, onClose, teachers = [], terms = [] }) {
@@ -13,25 +11,24 @@ export function AddCourseModal({ isOpen, onClose, teachers = [], terms = [] }) {
     const [description, setDescription] = useState("");
     const [price, setPrice] = useState("");
     const [teacherId, setTeacherId] = useState("");
-    const [termId, setTermId] = useState("");
-    const [type, setType] = useState("");
-    const [materialsFiles, setMaterialsFiles] = useState([]);
-    const [videoFiles, setVideoFiles] = useState([]);
+    const [materials, setMaterials] = useState([]);
+    const [videos, setVideos] = useState([]);
+    const [thumbnail, setThumbnail] = useState(""); // جديد
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
 
     if (!isOpen) return null;
 
-    const courseTypes = [
-        { value: "semester", label: "Semester" },
-        { value: "year", label: "Year" },
-        { value: "short", label: "Short Course" },
-    ];
-
     const resetState = () => {
-        setTitle(""); setTitleAr(""); setDescription(""); setPrice("");
-        setTeacherId(""); setTermId(""); setType(""); setMaterialsFiles([]);
-        setVideoFiles([]); setErrors({});
+        setTitle("");
+        setTitleAr("");
+        setDescription("");
+        setPrice("");
+        setTeacherId("");
+        setMaterials([]);
+        setVideos([]);
+        setThumbnail("");
+        setErrors({});
     };
 
     const handleClose = () => {
@@ -52,24 +49,7 @@ export function AddCourseModal({ isOpen, onClose, teachers = [], terms = [] }) {
         const v3 = validateField("description", description);
         const v4 = validateField("price", price);
         const v5 = validateField("teacherId", teacherId);
-        const v6 = validateField("termId", termId);
-        const v7 = validateField("type", type);
-        return v1 && v2 && v3 && v4 && v5 && v6 && v7;
-    };
-
-    // Upload file to Firebase Storage and return URL
-    const uploadFile = (file, folder) => {
-        return new Promise((resolve, reject) => {
-            const storageRef = ref(storage, `${folder}/${Date.now()}-${file.name}`);
-            const uploadTask = uploadBytesResumable(storageRef, file);
-
-            uploadTask.on(
-                "state_changed",
-                null,
-                (error) => reject(error),
-                () => getDownloadURL(uploadTask.snapshot.ref).then(resolve)
-            );
-        });
+        return v1 && v2 && v3 && v4 && v5;
     };
 
     const handleSubmit = async (e) => {
@@ -77,35 +57,16 @@ export function AddCourseModal({ isOpen, onClose, teachers = [], terms = [] }) {
         if (!validateAll()) return;
 
         setLoading(true);
-
         try {
-            // Upload materials
-            const materials = await Promise.all(
-                Array.from(materialsFiles).map(async (file) => ({
-                    title: file.name,
-                    file: await uploadFile(file, "materials")
-                }))
-            );
-
-            // Upload videos
-            const videos = await Promise.all(
-                Array.from(videoFiles).map(async (file) => ({
-                    title: file.name,
-                    url: await uploadFile(file, "videos")
-                }))
-            );
-
-            // Add course to Firestore
             await addDoc(collection(db, "courses"), {
                 title: title.trim(),
                 title_ar: titleAr.trim(),
                 description: description.trim(),
-                price: Number(price),
+                price: Number(price) || 0,
                 teacherId,
-                // termId,
-                // type,
                 materials,
                 videos,
+                thumbnail, // حفظ الـ thumbnail
                 createdAt: new Date()
             });
 
@@ -113,7 +74,7 @@ export function AddCourseModal({ isOpen, onClose, teachers = [], terms = [] }) {
             onClose();
         } catch (err) {
             console.error("Error adding course:", err);
-            alert("Failed to add course. Try again.");
+            alert("Failed to add course. Check console for details.");
         } finally {
             setLoading(false);
         }
@@ -130,6 +91,7 @@ export function AddCourseModal({ isOpen, onClose, teachers = [], terms = [] }) {
                 <p className="text-gray-500 pb-6">إضافة كورس</p>
 
                 <form className="space-y-4" onSubmit={handleSubmit}>
+                    {/* Course Title */}
                     <div>
                         <label>Course Title</label>
                         <input
@@ -189,51 +151,109 @@ export function AddCourseModal({ isOpen, onClose, teachers = [], terms = [] }) {
                         {errors.teacherId && <p className="text-red-500 text-sm">{errors.teacherId}</p>}
                     </div>
 
-                    {/* <div>
-                        <label>Term</label>
-                        <CustomSelect
-                            options={terms.map(t => ({ value: t.id, label: t.name }))}
-                            value={termId}
-                            onChange={(val) => { setTermId(val); validateField("termId", val); }}
-                            placeholder="Select term"
+                    {/* Thumbnail */}
+                    <div>
+                        <label>Course Thumbnail URL</label>
+                        <input
+                            type="text"
+                            placeholder="https://example.com/thumbnail.jpg"
+                            value={thumbnail}
+                            onChange={(e) => setThumbnail(e.target.value)}
+                            className="w-full p-2 border border-[#DBE9E5] rounded-xl"
                         />
-                        {errors.termId && <p className="text-red-500 text-sm">{errors.termId}</p>}
-                    </div> */}
-
-                    {/* <div>
-                        <label>Type</label>
-                        <CustomSelect
-                            options={courseTypes}
-                            value={type}
-                            onChange={(val) => { setType(val); validateField("type", val); }}
-                            placeholder="Select type"
-                        />
-                        {errors.type && <p className="text-red-500 text-sm">{errors.type}</p>}
-                    </div> */}
+                    </div>
 
                     {/* Materials */}
                     <div>
-                        <label>Materials (PDF URLs, comma separated)</label>
-                        <input
-                            type="text"
-                            placeholder="https://example.com/file1.pdf, https://example.com/file2.pdf"
-                            // value={materials}
-                            onChange={(e) => setMaterials(e.target.value)}
-                        />
+                        <label>Materials</label>
+                        {materials.map((m, idx) => (
+                            <div key={idx} className="flex gap-2 mb-2 items-center">
+                                <input
+                                    type="text"
+                                    placeholder="Title"
+                                    value={m.title}
+                                    onChange={(e) => {
+                                        const newMaterials = [...materials];
+                                        newMaterials[idx].title = e.target.value;
+                                        setMaterials(newMaterials);
+                                    }}
+                                    className="flex-1 p-2 border border-[#DBE9E5] rounded-xl"
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="URL"
+                                    value={m.file}
+                                    onChange={(e) => {
+                                        const newMaterials = [...materials];
+                                        newMaterials[idx].file = e.target.value;
+                                        setMaterials(newMaterials);
+                                    }}
+                                    className="flex-2 p-2 border border-[#DBE9E5] rounded-xl"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setMaterials(materials.filter((_, i) => i !== idx))}
+                                    className="text-red-500 px-2"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                        ))}
+                        <button
+                            type="button"
+                            onClick={() => setMaterials([...materials, { title: "", file: "" }])}
+                            className="btn-primary px-4 py-1"
+                        >
+                            + Add Material
+                        </button>
                     </div>
 
                     {/* Videos */}
                     <div>
-                        <label>Videos (URLs, comma separated)</label>
-                        <input
-                            type="text"
-                            placeholder="https://example.com/video1.mp4, https://example.com/video2.mp4"
-                            // value={videos}
-                            onChange={(e) => setVideos(e.target.value)}
-                        />
+                        <label>Videos</label>
+                        {videos.map((v, idx) => (
+                            <div key={idx} className="flex gap-2 mb-2 items-center">
+                                <input
+                                    type="text"
+                                    placeholder="Title"
+                                    value={v.title}
+                                    onChange={(e) => {
+                                        const newVideos = [...videos];
+                                        newVideos[idx].title = e.target.value;
+                                        setVideos(newVideos);
+                                    }}
+                                    className="flex-1 p-2 border border-[#DBE9E5] rounded-xl"
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="URL"
+                                    value={v.file}
+                                    onChange={(e) => {
+                                        const newVideos = [...videos];
+                                        newVideos[idx].file = e.target.value;
+                                        setVideos(newVideos);
+                                    }}
+                                    className="flex-2 p-2 border border-[#DBE9E5] rounded-xl"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setVideos(videos.filter((_, i) => i !== idx))}
+                                    className="text-red-500 px-2"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                        ))}
+                        <button
+                            type="button"
+                            onClick={() => setVideos([...videos, { title: "", file: "" }])}
+                            className="btn-primary px-4 py-1"
+                        >
+                            + Add Video
+                        </button>
                     </div>
 
-
+                    {/* Buttons */}
                     <div className="flex justify-end gap-2 mt-2">
                         <Button type="button" onClick={handleClose} className="btn-secondary" disabled={loading}>Cancel</Button>
                         <Button type="submit" onClick={handleSubmit} className="btn-primary" disabled={loading}>
