@@ -4,6 +4,7 @@ import Home from "../src/pages/Home/Home.jsx";
 import Courses from "../src/pages/Courses/Courses.jsx";
 import Contact from "../src/pages/Contact/Contact.jsx";
 import './styles/globals.css'; 
+import { Footer } from "./components/Footer.jsx";
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
           <Route path="/contact" element={<Contact />} />
         </Routes>
       </div>
+      <Footer />
     </Router>
   );
 }
