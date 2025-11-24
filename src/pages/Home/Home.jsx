@@ -1,4 +1,5 @@
 
+
 import React from "react";
 import photo1 from "../../assets/images/photo1.jpg";
 import photo2 from "../../assets/images/photo2.jpg";
@@ -523,3 +524,4 @@ const Home = () => {
 };
 
 export default Home;
+

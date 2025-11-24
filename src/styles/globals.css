@@ -127,3 +127,132 @@ body {
   background-color: var(--primary);
   opacity: 0.9;
 }
+
+.btn-secondary {
+  background-color: var(--background);
+  /* color: black; */
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  border: 1px solid #DBE9E5;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn-secondary:hover {
+  background-color: var(--secondary);
+  color: black;
+  opacity: 0.9;
+}
+
+/* sidebar.css */
+.sidebar {
+  width: 250px;
+  height: calc(100vh - 60px);
+  background-color: var(--sidebar); 
+  color: var(--sidebar-foreground);
+  border-right: 1px solid #DBE9E5;
+  z-index: 20;
+  position: fixed;
+  top: 70px;
+  left: 0;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  transition: all 0.3s ease-in-out;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.sidebar-logo {
+  color: var(--sidebar-primary-foreground);
+  font-size: 24px;
+  margin-right: 10px;
+}
+
+.sidebar-links {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-bottom: 10px;
+  border-radius: 15px;
+  color: var(--sidebar-foreground);
+  background-color: transparent;
+  transition: background-color 0.3s ease;
+}
+
+.sidebar-item:hover {
+  background-color: #E9D8A6;
+}
+
+.sidebar-item.active {
+  background-color: var(--sidebar-primary);
+  color: var(--sidebar-primary-foreground);
+}
+
+.sidebar-icon {
+  margin-right: 10px;
+  font-size: 20px;
+}
+
+.card {
+  display: inline-block;
+  background-color: #ffffff;
+  border-radius: 22px;
+  border: 1px solid #DBE9E5; 
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin: 5px;
+  transition: all 0.3s ease;
+  vertical-align: top;
+  width: auto;
+  max-width: 100%;
+}
+
+.card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.card-content {
+  font-size: 14px;
+  color: #333333;
+  margin-bottom: 15px;
+}
+
+.card-stats {
+  margin-bottom: 15px;
+}
+
+input {
+  background-color: #F5F3ED;
+  width: 50%;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 12px;
+  outline: none;
+  transition: box-shadow 0.3s ease;
+}
+
+input:focus {
+  outline: black;
+  box-shadow: 0 0 0 4px rgba(14, 124, 123, 0.5);
+}
+
+@keyframes slide-in {
+  0% { transform: translateX(100%); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out forwards;
+}

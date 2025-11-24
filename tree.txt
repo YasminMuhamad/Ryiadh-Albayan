@@ -1,0 +1,105 @@
+users (collection)                  ← كل الطلاب
+ └─ userId (document)
+     ├─ name
+     ├─ email
+     ├─ role          // student
+     ├─ status        // active | deactivated
+     ├─ year
+     ├─ term
+     ├─ profile_pic
+     ├─ createdAt
+     └─ enrollments (subcollection)     ← progress الطالب لكل كورس
+         └─ courseId (document)
+             ├─ enrolledAt
+             ├─ completedLessons: [ lessonId, lessonId ... ]
+             ├─ completedLessonsCount
+             ├─ percent
+             ├─ lastUpdated
+             ├─ timeSpentSeconds
+             ├─ status        // in-progress, completed
+             └─ lastLessonId
+
+teachers (collection)
+ └─ teacherId (document)
+     ├─ name_en
+     ├─ name_ar
+     ├─ email
+     ├─ specialization: "Math" (optional)
+     ├─ status: "active" | "deactivated"
+     ├─ role: "teacher"
+     ├─ profile_pic
+     ├─ coursesCount
+     └─ createdAt
+
+admins (collection)
+ └─ adminId (document)
+     ├─ name
+     ├─ email
+     ├─ role: "admin"
+     ├─ profile_pic
+     └─ createdAt
+
+courses (collection)
+ └─ courseId (document)
+     ├─ title_en
+     ├─ title_ar
+     ├─ description
+     ├─ price
+     ├─ thumbnail
+     ├─ teacherId
+     ├─ termId
+     ├─ type: "term" | "yearly"
+     ├─ totalLessons
+     ├─ totalModules
+     ├─ studentsCount
+     └─ modules (subcollection)
+         └─ moduleId (document)
+             ├─ title
+             └─ lessons (subcollection)
+                 └─ lessonId (document)
+                     ├─ title
+                     ├─ materials: [ { title, file } ]      ← array
+                     ├─ videos: [ { title, file } ]         ← array, مسجلة
+                     ├─ liveSessions: [                     ← array، لايف
+                             { title, dateTime, duration, link, status: scheduled | completed | cancelled } 
+                       ]
+                     ├─ quizzes: [ { id, title, totalMarks } ]
+                     ├─ schedule: dateTime (optional)
+                     └─ reviews: [                         ← array
+                             { studentId, rating, comment, createdAt } 
+                       ]
+
+payments (collection)                     ← مستقل، لكل الدفعيات
+ └─ paymentId (document)
+     ├─ studentId
+     ├─ courseId
+     ├─ amount
+     ├─ method
+     ├─ status: "paid" | "pending"
+     └─ date
+
+notifications (collection)                ← مستقل، لكل الإشعارات
+ └─ notificationId (document)
+     ├─ userId
+     ├─ title
+     ├─ message
+     ├─ type: "session" | "general"
+     ├─ read: true | false
+     └─ createdAt
+
+academic_schedules (collection)          ← مستقل، لكل السنة الدراسية
+ └─ scheduleId (document)
+     ├─ year
+     ├─ term
+     ├─ startDate
+     └─ endDate
+
+live_sessions (collection)               ← مستقل إذا عايزة تقرير شامل للجلسات
+ └─ sessionId (document)
+     ├─ courseId
+     ├─ teacherId
+     ├─ title
+     ├─ dateTime
+     ├─ duration
+     ├─ zoomLink
+     └─ status: "upcoming" | "completed" | "cancelled"
