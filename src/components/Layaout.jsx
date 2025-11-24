@@ -1,3 +1,4 @@
+// src/components/Layaout.jsx
 import React from 'react';
 
 export function Layout({ children }) {

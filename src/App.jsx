@@ -5,7 +5,7 @@ import Courses from "../src/pages/Courses/Courses.jsx";
 import CourseDetails from "../src/pages/Courses/CourseDetails.jsx";
 import Contact from "../src/pages/Contact/Contact.jsx";
 import './styles/globals.css'; 
-import { Dashboard } from "./pages/Admin/Dashboard.jsx";
+import { AdminShell } from "./components/AdminShell.jsx";
 
 export default function App() {
   return (
@@ -17,7 +17,7 @@ export default function App() {
           <Route path="/courses" element={<Courses />} />
           <Route path="/courses/:id" element={<CourseDetails />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/admin" element={<Dashboard />} />
+          <Route path="/admin" element={<AdminShell />} />
         </Routes>
       </div>
     </Router>
