@@ -1,0 +1,114 @@
+[
+  {
+    "title": "Complete Quran Recitation for Beginners",
+    "title_ar": "تلاوة القرآن للمبتدئين",
+    "description": "Learn proper Quran recitation with Tajweed rules, focusing on correct pronunciation and fluent reading for absolute beginners.",
+    "price": 49.99,
+    "thumbnail": "https://wallpapersworld.org/wp-content/uploads/2023/03/%D8%AE%D9%84%D9%81%D9%8A%D8%A7%D8%AA-%D9%88%D8%A7%D8%AA%D8%B3-%D8%A7%D8%A8-%D8%A7%D8%B3%D9%84%D8%A7%D9%85%D9%8A%D8%A9-18-scaled.jpg",
+    "teacherId": "3qR4eqcssXiSDdKyYqgU",
+    "termId": "term1",
+    "type": "term",
+    "totalLessons": 6,
+    "totalModules": 2,
+    "studentsCount": 0,
+    "modules": [
+      {
+        "title": "Introduction & Basics",
+        "lessons": [
+          { "title": "Why Learn Tajweed?" },
+          { "title": "Arabic Letters & Sounds" },
+          { "title": "Correct Pronunciation Basics" }
+        ]
+      },
+      {
+        "title": "Beginner Recitation Practice",
+        "lessons": [
+          { "title": "Short Surahs Reading" },
+          { "title": "Fluency Techniques" },
+          { "title": "Common Mistakes Correction" }
+        ]
+      }
+    ],
+    "reviews": []
+  },
+  {
+    "title": "Tajweed Mastery Program",
+    "title_ar": "برنامج إتقان التجويد",
+    "description": "An in-depth Tajweed course covering Makharij, Sifaat, rules of Noon Saakin, Meem Saakin, Madd, and advanced recitation techniques.",
+    "price": 79,
+    "thumbnail": "https://wallpapersworld.org/wp-content/uploads/2023/03/%D8%AE%D9%84%D9%81%D9%8A%D8%A7%D8%AA-%D9%88%D8%A7%D8%AA%D8%B3-%D8%A7%D8%A8-%D8%A7%D8%B3%D9%84%D8%A7%D9%85%D9%8A%D8%A9-8.jpeg",
+    "teacherId": "LCrhF5JYJ6VimBY0WOi7",
+    "termId": "term1",
+    "type": "term",
+    "totalLessons": 9,
+    "totalModules": 3,
+    "studentsCount": 0,
+    "modules": [
+      {
+        "title": "Makharij & Sifaat",
+        "lessons": [
+          { "title": "Makharij Overview" },
+          { "title": "Sifaat Classification" },
+          { "title": "Light & Heavy Letters" }
+        ]
+      },
+      {
+        "title": "Rules of Tajweed",
+        "lessons": [
+          { "title": "Noon Saakin Rules" },
+          { "title": "Meem Saakin Rules" },
+          { "title": "Madd Rules Explained" }
+        ]
+      },
+      {
+        "title": "Advanced Application",
+        "lessons": [
+          { "title": "Stopping Rules" },
+          { "title": "Recitation Accuracy" },
+          { "title": "Practical Sessions" }
+        ]
+      }
+    ],
+    "reviews": []
+  },
+  {
+    "title": "Arabic Language for Understanding the Quran",
+    "title_ar": "اللغة العربية لفهم القرآن",
+    "description": "Build a strong foundation in Arabic grammar and vocabulary to understand Quranic verses directly without translation.",
+    "price": 59.99,
+    "thumbnail": "https://cdn.arabsstock.com/uploads/images/172770/holy-places-for-obedience-and-preview-172770.jpg",
+    "teacherId": "YJgmaTNAyWSAwf7tput5",
+    "termId": "term1",
+    "type": "term",
+    "totalLessons": 9,
+    "totalModules": 3,
+    "studentsCount": 0,
+    "modules": [
+      {
+        "title": "Arabic Foundations",
+        "lessons": [
+          { "title": "Arabic Alphabet Review" },
+          { "title": "Nouns & Verbs Basics" },
+          { "title": "Simple Sentences" }
+        ]
+      },
+      {
+        "title": "Quranic Grammar",
+        "lessons": [
+          { "title": "Nahu Essentials" },
+          { "title": "Sarf Basics" },
+          { "title": "Parsing Quranic Words" }
+        ]
+      },
+      {
+        "title": "Understanding Verses",
+        "lessons": [
+          { "title": "Vocabulary Extraction" },
+          { "title": "Context Analysis" },
+          { "title": "Meaning Without Translation" }
+        ]
+      }
+    ],
+    "reviews": []
+  }
+]
