@@ -65,9 +65,9 @@ courses (collection)
                        ]
                      ├─ quizzes: [ { id, title, totalMarks } ]
                      ├─ schedule: dateTime (optional)
-                     └─ reviews: [                         ← array
-                             { studentId, rating, comment, createdAt } 
-                       ]
+    └─ reviews: [                         ← array
+            { studentId, rating, comment, createdAt } 
+    ]
 
 payments (collection)                     ← مستقل، لكل الدفعيات
  └─ paymentId (document)

@@ -56,9 +56,9 @@ export function AdminDashboard() {
                     title={'Teachers'}
                     subtitle="إدارة المعلمين"
                     actions={[
-                        <Button key="add_teacher" className="btn-primary" icon={PlusCircle} title="Add" onClick={() => onButtonClick('add_teacher')} />,
-                        <Button key="edit_teacher" className="btn-secondary" icon={Edit} title="Edit" onClick={() => onButtonClick('edit_teacher')} />,
-                        <Button key="delete_teacher" className="btn-secondary text-red-500" icon={Trash} title="Delete" onClick={() => onButtonClick('delete_teacher')} />,
+                        // <Button key="add_teacher" className="btn-primary" icon={PlusCircle} title="Add" onClick={() => onButtonClick('add_teacher')} />,
+                        // <Button key="edit_teacher" className="btn-secondary" icon={Edit} title="Edit" onClick={() => onButtonClick('edit_teacher')} />,
+                        // <Button key="delete_teacher" className="btn-secondary text-red-500" icon={Trash} title="Delete" onClick={() => onButtonClick('delete_teacher')} />,
                     ]}
                 >
                     <div className="space-y-1">
@@ -73,9 +73,9 @@ export function AdminDashboard() {
                     title={'Courses'}
                     subtitle="إدارة الدورات"
                     actions={[
-                        <Button key="add_course" className="btn-primary" icon={PlusCircle} title="Add" onClick={() => onButtonClick('add_course')} />,
-                        <Button key="edit_course" className="btn-secondary" icon={Edit} title="Edit" onClick={() => onButtonClick('edit_course')} />,
-                        <Button key="delete_course" className="btn-secondary text-red-500" icon={Trash} title="Delete" onClick={() => onButtonClick('delete_course')} />,
+                        // <Button key="add_course" className="btn-primary" icon={PlusCircle} title="Add" onClick={() => onButtonClick('add_course')} />,
+                        // <Button key="edit_course" className="btn-secondary" icon={Edit} title="Edit" onClick={() => onButtonClick('edit_course')} />,
+                        // <Button key="delete_course" className="btn-secondary text-red-500" icon={Trash} title="Delete" onClick={() => onButtonClick('delete_course')} />,
                     ]}
                 >
                     <div className="space-y-1">
@@ -90,8 +90,8 @@ export function AdminDashboard() {
                     title={'Students'}
                     subtitle="إدارة الطلاب"
                     actions={[
-                        <Button key="activate" className="btn-primary" icon={UserCheck} title="Activate" onClick={() => onButtonClick('activate')} />,
-                        <Button key="deactivate" className="btn-secondary" icon={UserX} title="Deactivate" onClick={() => onButtonClick('deactivate')} />,
+                        // <Button key="activate" className="btn-primary" icon={UserCheck} title="Activate" onClick={() => onButtonClick('activate')} />,
+                        // <Button key="deactivate" className="btn-secondary" icon={UserX} title="Deactivate" onClick={() => onButtonClick('deactivate')} />,
                     ]}
                 >
                     <div className="space-y-1">
