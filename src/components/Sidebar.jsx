@@ -1,7 +1,8 @@
 // src/components/Sidebar.jsx
 import React from 'react';
-import { Users, BarChart, DollarSign, BookOpen, Settings } from 'lucide-react';
+import { Users, BarChart, DollarSign, BookOpen, Settings, CircleUser, ChartColumnIcon } from 'lucide-react';
 import "../styles/globals.css";
+import Title from './Title';
 
 export function Sidebar({ userRole = 'admin', onNavigate }) {
   // onNavigate: function expected (e.g. setActiveTab)
@@ -12,65 +13,65 @@ export function Sidebar({ userRole = 'admin', onNavigate }) {
         <button
           type="button"
           onClick={() => onNavigate('dashboard')}
-          className="sidebar-item"
+          className="sidebar-item justify-start text-left"
         >
           <BarChart className="sidebar-icon" />
-          Dashboard
+          <Title enTitle='Dashboard' arTitle='لوحة القيادة' />
         </button>
 
         <button
           type="button"
           onClick={() => onNavigate('teachers')}
-          className="sidebar-item"
+          className="sidebar-item justify-start text-left"
         >
-          <Users className="sidebar-icon" />
-          Teachers Management
+          <CircleUser className="sidebar-icon" />
+          <Title enTitle='Teachers Management' arTitle='إدارة المعلمين' />
         </button>
 
         <button
           type="button"
           onClick={() => onNavigate('courses')}
-          className="sidebar-item"
+          className="sidebar-item justify-start text-left"
         >
           <BookOpen className="sidebar-icon" />
-          Courses Management
+          <Title enTitle='Courses Management' arTitle='إدارة الدورات' />
         </button>
 
         <button
           type="button"
           onClick={() => onNavigate('users')}
-          className="sidebar-item"
+          className="sidebar-item justify-start text-left"
         >
           <Users className="sidebar-icon" />
-          Users Management
+          <Title enTitle='Users Management' arTitle='إدارة المستخدمين' />
         </button>
 
         <button
           type="button"
           onClick={() => onNavigate('analytics')}
-          className="sidebar-item"
+          className="sidebar-item justify-start text-left"
         >
-          <BarChart className="sidebar-icon" />
-          Analytics & Statistics
+          <ChartColumnIcon className="sidebar-icon" />
+          <Title enTitle='Analytics & Statistics' arTitle='التحليلات والإحصائيات' />
         </button>
 
         <button
           type="button"
           onClick={() => onNavigate('revenue')}
-          className="sidebar-item"
+          className="sidebar-item justify-start text-left"
         >
           <DollarSign className="sidebar-icon" />
-          Revenue Overview
+          <Title enTitle='Revenue Overview' arTitle='نظرة عامة على الإيرادات' />
         </button>
 
-          <button
+          {/* <button
             type="button"
             onClick={() => onNavigate('settings')}
-            className="sidebar-item"
+            className="sidebar-item justify-start text-left"
           >
             <Settings className="sidebar-icon" />
             Settings
-          </button>
+          </button> */}
       </div>
     </div>
   );

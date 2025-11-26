@@ -1,15 +1,15 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Button } from './Button'; 
+import { Button } from './Button';
 import { BookOpen } from 'lucide-react';
 import "../styles/globals.css";
 
 export function Navbar() {
-  const navigate = useNavigate(); 
-  const location = useLocation(); 
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleNavigation = (path) => {
-    navigate(path);  
+    navigate(path);
   };
 
   const currentPage = location.pathname;
@@ -18,17 +18,25 @@ export function Navbar() {
     <nav className="navbar">
       <div className="navbar-content">
         <div className="logo-section">
-          <div className="logo">
-            <BookOpen />
-          </div>
-          <div className="logo-text">
-            <span
-              onClick={() => handleNavigation('/')}
-              className="logo-link"
-            >
-              Riyad Al-Bayan
-            </span>
-            <p className="subtitle">Arabic & Islamic Studies</p>
+
+          <div className="flex items-center justify-center">
+            {/* <div className="logo"> */}
+              <div
+                className="w-12 h-12 flex items-center justify-center rounded-full"
+                style={{ backgroundColor: '#E6EFEB' }}
+              >
+                <BookOpen className="text-2xl" style={{ color: '#0E7C7B' }} />
+              </div>
+            {/* </div> */}
+            <div className="logo-text">
+              <span
+                onClick={() => handleNavigation('/')}
+                className="logo-link"
+              >
+                Riyad Al-Bayan
+              </span>
+              <p className="subtitle">Arabic & Islamic Studies</p>
+            </div>
           </div>
         </div>
 

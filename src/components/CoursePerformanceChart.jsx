@@ -35,7 +35,11 @@ export default function CoursePerformanceChart() {
         margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
       >
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="course" />
+        <XAxis
+          dataKey="course"
+          tickFormatter={(text) => text.length > 15 ? text.slice(0, 12) + "..." : text}
+        />
+
         <YAxis />
         <Tooltip formatter={(value) => `${value}%`} />
         <Legend />
