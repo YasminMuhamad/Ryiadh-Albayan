@@ -85,7 +85,7 @@ export default function AdminTeachers() {
         />
       )}
       <div className="flex items-center justify-between mb-4">
-        <Title enTitle="Teachers Management" arTitle="إدارة المعلمين" />
+        <Title className="text-lg" enTitle="Teachers Management" arTitle="إدارة المعلمين" />
         <Button
           key="add_teacher"
           className="btn-primary"

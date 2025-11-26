@@ -59,8 +59,10 @@ export default function AdminUsers() {
           onClose={() => setToast({ ...toast, show: false })}
         />
       )}
-      <div className="flex items-center justify-between mb-4"></div>
-      <Title enTitle="User Management" arTitle="إدارة المستخدمين" />
+      <div className="mb-4">
+        <Title className="text-lg" enTitle="User Management" arTitle="إدارة المستخدمين" />
+      </div>
+
       <SearchBar
         placeholder="Search users by name or email..."
         value={query}

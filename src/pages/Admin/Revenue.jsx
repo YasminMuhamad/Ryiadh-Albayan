@@ -23,7 +23,7 @@ export default function AdminRevenue() {
       // users
       const usersSnapshot = await getDocs(collection(db, "users"));
       const users = usersSnapshot.docs.map(doc => doc.data());
-      const activeStudents = users.filter(u => u.subscriptionStatus === "active").length;
+      const activeStudents = users.filter(u => u.subscriptionStatus === "Active").length;
 
       // courses
       const coursesSnapshot = await getDocs(collection(db, "courses"));
@@ -34,13 +34,17 @@ export default function AdminRevenue() {
 
       // Monthly growth
       const analyticsSnapshot = await getDocs(collection(db, "analytics"));
-      const monthly = analyticsSnapshot.docs.map(doc => doc.data());
+      const monthly = analyticsSnapshot.docs
+        .map(doc => doc.data())
+        .sort((a, b) => new Date(a.yearMonth + "-01") - new Date(b.yearMonth + "-01")); // ترتيب حسب الشهر
+
       let monthlyGrowth = 0;
-      if(monthly.length >= 2){
-        const lastMonth = monthly[monthly.length-1].revenueTotal || 0;
-        const prevMonth = monthly[monthly.length-2].revenueTotal || 1;
-        monthlyGrowth = ((lastMonth - prevMonth)/prevMonth*100).toFixed(1);
+      if (monthly.length >= 2) {
+        const lastMonth = monthly[monthly.length - 1].revenue || 0;
+        const prevMonth = monthly[monthly.length - 2].revenue || 1;
+        monthlyGrowth = ((lastMonth - prevMonth) / prevMonth * 100).toFixed(1);
       }
+
 
       // Avg per student
       const avgPerStudent = activeStudents ? (totalRevenue / activeStudents).toFixed(2) : 0;
@@ -55,11 +59,11 @@ export default function AdminRevenue() {
       // Category Revenue
       const categoryRevenue = {};
       courses.forEach(c => {
-        if(c.category){
+        if (c.category) {
           categoryRevenue[c.category] = (categoryRevenue[c.category] || 0) + (c.revenueTotal || 0);
         }
       });
-      setCategoryItems(Object.entries(categoryRevenue).map(([name, value], i)=>({
+      setCategoryItems(Object.entries(categoryRevenue).map(([name, value], i) => ({
         name,
         value: `USD ${value.toLocaleString()}`,
         color: COLORS[i % COLORS.length]
@@ -68,9 +72,9 @@ export default function AdminRevenue() {
       // Top Courses
       setTopCourses(
         courses
-        .sort((a,b)=> (b.revenueTotal || 0) - (a.revenueTotal || 0))
-        .slice(0,5)
-        .map(c => ({ name: c.title, value: c.revenueTotal || 0 }))
+          .sort((a, b) => (b.revenueTotal || 0) - (a.revenueTotal || 0))
+          .slice(0, 4)
+          .map(c => ({ name: c.title, value: c.revenueTotal || 0 }))
       );
     }
 
@@ -78,12 +82,13 @@ export default function AdminRevenue() {
   }, []);
 
   return (
-    <div className="p-4">
-      <Title enTitle="Revenue Management" arTitle="إدارة الإيرادات" />
-
+    <div>
+      <div className="mb-4">
+        <Title className="text-lg" enTitle="Revenue Management" arTitle="إدارة الإيرادات" />
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 mb-4">
         <RevenueKPI value={`USD ${kpis.totalRevenue?.toLocaleString()}`} title="Total Revenue" subtitle="إجمالي الإيرادات" Icon={DollarSign} />
-        <RevenueKPI value={`${kpis.monthlyGrowth >=0 ? '+' : ''}${kpis.monthlyGrowth}%`} title="Monthly Growth" subtitle="النمو الشهري" Icon={TrendingUp} />
+        <RevenueKPI value={`${kpis.monthlyGrowth >= 0 ? '+' : ''}${kpis.monthlyGrowth}%`} title="Monthly Growth" subtitle="النمو الشهري" Icon={TrendingUp} />
         <RevenueKPI value={kpis.activeStudents} title="Active Subscriptions" subtitle="الاشتراكات النشطة" Icon={Users} />
         <RevenueKPI value={`USD ${kpis.avgPerStudent}`} title="Avg. Per Student" subtitle="متوسط الربح لكل طالب" Icon={BarChart2} />
       </div>
@@ -93,11 +98,11 @@ export default function AdminRevenue() {
       </DashCard>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-        <DashCard title={'Revenue by Course Category'} subtitle={'الإيرادات حسب فئة الكورس'}>
+        <DashCard className="h-[250px]" title={'Revenue by Course Category'} subtitle={'الإيرادات حسب فئة الكورس'}>
           <CategoryListCard items={categoryItems} />
         </DashCard>
-        <DashCard title={'Top Performing Courses'} subtitle={'أفضل الكورسات أداءً'}>
-          <TopPerformingCard courses={topCourses} />
+        <DashCard className="h-[250px]" title={'Top Performing Courses'} subtitle={'أفضل الكورسات أداءً'}>
+          <TopPerformingCard courses={topCourses} totalRevenue={kpis.totalRevenue} />
         </DashCard>
       </div>
     </div>

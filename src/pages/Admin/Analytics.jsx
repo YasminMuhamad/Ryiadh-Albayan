@@ -50,7 +50,9 @@ export default function AdminAnalytics() {
 
   return (
     <div>
-      <Title enTitle="Analytics Dashboard" arTitle="لوحة تحليلات الإدارة" />
+      <div className="mb-4">
+        <Title className="text-lg" enTitle="Analytics Dashboard" arTitle="لوحة تحليلات الإدارة" />
+      </div>
       {/* <DashCard title={'Student Distribution by Course'} subtitle={'توزيع الطلاب حسب الكورس'} className='w-1 h-[500px]'><StudentDistributionChart /></DashCard> */}
       {/* <DashCard title={'Revenue & Student Growth'} subtitle={'الإيرادات ونمو الطلاب'} className='w-1 h-[500px]'><RevenueStudentGrowthChart /></DashCard> */}
       <div className="grid grid-cols-2 gap-4">

@@ -97,7 +97,7 @@ export default function AdminCourses() {
         />
       )}
       <div className="flex items-center justify-between mb-4">
-        <Title enTitle="Course Management" arTitle="إدارة الدورات" />
+        <Title className="text-lg" enTitle="Course Management" arTitle="إدارة الدورات" />
         <Button
           key="add_course"
           className="btn-primary"

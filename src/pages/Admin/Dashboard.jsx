@@ -48,7 +48,7 @@ export function AdminDashboard() {
             const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             const students = list.filter(u => u.role === "student");
             const total = students.length;
-            const active = students.filter(s => s.status === "Active").length;
+            const active = students.filter(s => s.subscriptionStatus === "Active").length;
             const inactive = total - active;
             setStudentsStats({ total, active, inactive });
 
@@ -109,9 +109,9 @@ export function AdminDashboard() {
         <>
             <AddTeacherModal isOpen={isTeacherModalOpen} onClose={() => setTeacherModalOpen(false)} />
             <AddCourseModal isOpen={isCourseModalOpen} onClose={() => setCourseModalOpen(false)} teachers={[]} terms={[]} />
-
-            <Title enTitle="Dashboard Overview" arTitle="نظرة عامة على لوحة التحكم" />
-
+            <div className="mb-4">
+                <Title className="text-lg" enTitle="Dashboard Overview" arTitle="نظرة عامة على لوحة التحكم" />
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <DashCard icon={CircleUser} title="Teachers" subtitle="إدارة المعلمين">
                     <p>Total Teachers: <strong>{teachersStats.total}</strong></p>
