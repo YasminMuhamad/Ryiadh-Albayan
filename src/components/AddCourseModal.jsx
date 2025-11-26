@@ -1,21 +1,48 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "./Button";
 import { X } from "lucide-react";
 import { db } from "../../firebase.config";
 import { collection, addDoc } from "firebase/firestore";
 import { CustomSelect } from "./CustomSelect";
 
-export function AddCourseModal({ isOpen, onClose, teachers = [], terms = [] }) {
+export function AddCourseModal({ isOpen, onClose, teachers = [], terms = [], onSave, course }) {
     const [title, setTitle] = useState("");
     const [titleAr, setTitleAr] = useState("");
     const [description, setDescription] = useState("");
     const [price, setPrice] = useState("");
     const [teacherId, setTeacherId] = useState("");
-    const [materials, setMaterials] = useState([]);
-    const [videos, setVideos] = useState([]);
-    const [thumbnail, setThumbnail] = useState(""); // جديد
+    // const [materials, setMaterials] = useState([]);
+    // const [videos, setVideos] = useState([]);
+    const [thumbnail, setThumbnail] = useState("");
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
+
+    useEffect(() => {
+        if (!isOpen) return;
+        if (course) {
+            setTitle(course.title ?? "");
+            setTitleAr(course.title_ar ?? course.titleAr ?? "");
+            setDescription(course.description ?? "");
+            setPrice(course.price != null ? String(course.price) : "");
+            setTeacherId(course.teacherId ?? course.teacher ?? "");
+            setThumbnail(course.thumbnail ?? "");
+            // optionally materials/videos if present:
+            //   setMaterials(course.materials ?? []);
+            //   setVideos(course.videos ?? []);
+            setErrors({});
+        } else {
+            // creating new course: reset fields
+            setTitle("");
+            setTitleAr("");
+            setDescription("");
+            setPrice("");
+            setTeacherId("");
+            setThumbnail("");
+            //   setMaterials([]);
+            //   setVideos([]);
+            setErrors({});
+        }
+    }, [course, isOpen]);
 
     if (!isOpen) return null;
 
@@ -25,8 +52,8 @@ export function AddCourseModal({ isOpen, onClose, teachers = [], terms = [] }) {
         setDescription("");
         setPrice("");
         setTeacherId("");
-        setMaterials([]);
-        setVideos([]);
+        // setMaterials([]);
+        // setVideos([]);
         setThumbnail("");
         setErrors({});
     };
@@ -58,20 +85,51 @@ export function AddCourseModal({ isOpen, onClose, teachers = [], terms = [] }) {
 
         setLoading(true);
         try {
-            await addDoc(collection(db, "courses"), {
+            const payload = {
+                ...(course?.id ? { id: course.id } : {}),
                 title: title.trim(),
                 title_ar: titleAr.trim(),
                 description: description.trim(),
                 price: Number(price) || 0,
                 teacherId,
-                materials,
-                videos,
-                thumbnail, // حفظ الـ thumbnail
+                status: "Published",
+                // materials,
+                // videos,
+                thumbnail,
                 createdAt: new Date()
-            });
-
+            }; if (typeof onSave === "function") {
+                await onSave(payload);
+            } else {
+                // fallback: write directly to firestore
+                if (course?.id) {
+                    await updateDoc(doc(db, "courses", course.id), {
+                        title: title.trim(),
+                        title_ar: titleAr.trim(),
+                        description: description.trim(),
+                        price: Number(price) || 0,
+                        teacherId,
+                        status: "Published",
+                        // materials,
+                        // videos,
+                        thumbnail,
+                        createdAt: new Date()
+                    });
+                } else {
+                    await addDoc(collection(db, "courses"), {
+                        title: title.trim(),
+                        title_ar: titleAr.trim(),
+                        description: description.trim(),
+                        price: Number(price) || 0,
+                        teacherId,
+                        status: "Published",
+                        // materials,
+                        // videos,
+                        thumbnail,
+                        createdAt: new Date()
+                    });
+                }
+            }
             resetState();
-            onClose();
         } catch (err) {
             console.error("Error adding course:", err);
             alert("Failed to add course. Check console for details.");
@@ -82,7 +140,7 @@ export function AddCourseModal({ isOpen, onClose, teachers = [], terms = [] }) {
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-            <div className="bg-white p-6 rounded-3xl w-[550px] relative max-h-[90vh] overflow-auto">
+            <div className="bg-white p-6 rounded-3xl w-[550px] relative max-h-[100vh]">
                 <X
                     onClick={handleClose}
                     className="absolute top-5 right-5 w-6 h-6 text-gray-500 hover:text-gray-600 cursor-pointer"
@@ -143,9 +201,14 @@ export function AddCourseModal({ isOpen, onClose, teachers = [], terms = [] }) {
                     <div>
                         <label>Teacher</label>
                         <CustomSelect
-                            options={teachers.map(t => ({ value: t.id, label: t.name_en }))}
-                            value={teacherId}
-                            onChange={(val) => { setTeacherId(val); validateField("teacherId", val); }}
+                            options={teachers.map(t => ({ value: t.id, label: t.name }))}
+                            // value={teacherId}
+                            // onChange={(val) => { setTeacherId(val); validateField("teacherId", val); }}
+                            value={teachers.find(t => t.id === teacherId)?.name || ""}
+                            onChange={(selectedName) => {
+                                const teacher = teachers.find(t => t.name === selectedName);
+                                if (teacher) setTeacherId(teacher.id);
+                            }}
                             placeholder="Select teacher"
                         />
                         {errors.teacherId && <p className="text-red-500 text-sm">{errors.teacherId}</p>}
@@ -163,101 +226,11 @@ export function AddCourseModal({ isOpen, onClose, teachers = [], terms = [] }) {
                         />
                     </div>
 
-                    {/* Materials */}
-                    <div>
-                        <label>Materials</label>
-                        {materials.map((m, idx) => (
-                            <div key={idx} className="flex gap-2 mb-2 items-center">
-                                <input
-                                    type="text"
-                                    placeholder="Title"
-                                    value={m.title}
-                                    onChange={(e) => {
-                                        const newMaterials = [...materials];
-                                        newMaterials[idx].title = e.target.value;
-                                        setMaterials(newMaterials);
-                                    }}
-                                    className="flex-1 p-2 border border-[#DBE9E5] rounded-xl"
-                                />
-                                <input
-                                    type="text"
-                                    placeholder="URL"
-                                    value={m.file}
-                                    onChange={(e) => {
-                                        const newMaterials = [...materials];
-                                        newMaterials[idx].file = e.target.value;
-                                        setMaterials(newMaterials);
-                                    }}
-                                    className="flex-2 p-2 border border-[#DBE9E5] rounded-xl"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setMaterials(materials.filter((_, i) => i !== idx))}
-                                    className="text-red-500 px-2"
-                                >
-                                    ✕
-                                </button>
-                            </div>
-                        ))}
-                        <button
-                            type="button"
-                            onClick={() => setMaterials([...materials, { title: "", file: "" }])}
-                            className="btn-primary px-4 py-1"
-                        >
-                            + Add Material
-                        </button>
-                    </div>
-
-                    {/* Videos */}
-                    <div>
-                        <label>Videos</label>
-                        {videos.map((v, idx) => (
-                            <div key={idx} className="flex gap-2 mb-2 items-center">
-                                <input
-                                    type="text"
-                                    placeholder="Title"
-                                    value={v.title}
-                                    onChange={(e) => {
-                                        const newVideos = [...videos];
-                                        newVideos[idx].title = e.target.value;
-                                        setVideos(newVideos);
-                                    }}
-                                    className="flex-1 p-2 border border-[#DBE9E5] rounded-xl"
-                                />
-                                <input
-                                    type="text"
-                                    placeholder="URL"
-                                    value={v.file}
-                                    onChange={(e) => {
-                                        const newVideos = [...videos];
-                                        newVideos[idx].file = e.target.value;
-                                        setVideos(newVideos);
-                                    }}
-                                    className="flex-2 p-2 border border-[#DBE9E5] rounded-xl"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setVideos(videos.filter((_, i) => i !== idx))}
-                                    className="text-red-500 px-2"
-                                >
-                                    ✕
-                                </button>
-                            </div>
-                        ))}
-                        <button
-                            type="button"
-                            onClick={() => setVideos([...videos, { title: "", file: "" }])}
-                            className="btn-primary px-4 py-1"
-                        >
-                            + Add Video
-                        </button>
-                    </div>
-
                     {/* Buttons */}
                     <div className="flex justify-end gap-2 mt-2">
                         <Button type="button" onClick={handleClose} className="btn-secondary" disabled={loading}>Cancel</Button>
                         <Button type="submit" onClick={handleSubmit} className="btn-primary" disabled={loading}>
-                            {loading ? "Saving..." : "Create"}
+                            {loading ? "Saving..." : (course ? "Save" : "Create")}
                         </Button>
                     </div>
                 </form>

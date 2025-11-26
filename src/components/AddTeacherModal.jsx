@@ -23,7 +23,7 @@ export function AddTeacherModal({ isOpen, onClose, teacher, onSave }) {
     useEffect(() => {
         if (!isOpen) return;
         if (teacher) {
-            setFullName(teacher.name_en || "");
+            setFullName(teacher.name || "");
             setArabicName(teacher.name_ar || "");
             setEmail(teacher.email || "");
             setSpecialization(teacher.specialization || "");
@@ -161,7 +161,7 @@ export function AddTeacherModal({ isOpen, onClose, teacher, onSave }) {
             // --- 2) Prepare payload ---
             const payload = {
                 ...(teacher?.id ? { id: teacher.id } : {}),
-                name_en: fullName.trim(),
+                name: fullName.trim(),
                 name_ar: arabicName.trim(),
                 email: trimmedEmail,
                 specialization: specialization || null,
@@ -174,14 +174,14 @@ export function AddTeacherModal({ isOpen, onClose, teacher, onSave }) {
                 // fallback: write directly to firestore
                 if (teacher?.id) {
                     await updateDoc(doc(db, "teachers", teacher.id), {
-                        name_en: fullName.trim(),
+                        name: fullName.trim(),
                         name_ar: arabicName.trim(),
                         email: trimmedEmail,
                         specialization: specialization || null,
                     });
                 } else {
                     await addDoc(collection(db, "teachers"), {
-                        name_en: fullName.trim(),
+                        name: fullName.trim(),
                         name_ar: arabicName.trim(),
                         email: trimmedEmail,
                         specialization: specialization || null,
