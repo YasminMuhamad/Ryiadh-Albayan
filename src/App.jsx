@@ -2,10 +2,12 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Navbar } from "./components/Navbar";
 import Home from "../src/pages/Home/Home.jsx";
 import Courses from "../src/pages/Courses/Courses.jsx";
+import { Footer } from "./components/Footer.jsx";
 import CourseDetails from "../src/pages/Courses/CourseDetails.jsx";
 import Contact from "../src/pages/Contact/Contact.jsx";
 import './styles/globals.css'; 
 import { AdminShell } from "./components/AdminShell.jsx";
+
 
 export default function App() {
   return (
@@ -15,11 +17,12 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/courses" element={<Courses />} />
-          <Route path="/courses/:id" element={<CourseDetails />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/courses/:id" element={<CourseDetails />} />
           <Route path="/admin" element={<AdminShell />} />
         </Routes>
       </div>
+      <Footer />
     </Router>
   );
 }
