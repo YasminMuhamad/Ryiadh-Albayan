@@ -128,7 +128,7 @@ export default function AdminCourses() {
                 description: payload.description ?? "",
                 price: Number(payload.price) || 0,
                 teacherId: payload.teacherId,
-                status: payload.status || "Active",
+                status: payload.status || "Published",
                 thumbnail: payload.thumbnail || ""
               });
             } else {
@@ -138,7 +138,7 @@ export default function AdminCourses() {
                 description: payload.description,
                 price: Number(payload.price) || 0,
                 teacherId: payload.teacherId,
-                status: payload.status || "Active",
+                status: payload.status || "Published",
                 thumbnail: payload.thumbnail || "",
                 createdAt: new Date()
               });
@@ -177,17 +177,18 @@ export default function AdminCourses() {
             <tr key={course.id}>
               <td className="p-2 whitespace-nowrap">{course.title}</td>
               <td className="p-2 whitespace-nowrap">{course.title_ar}</td>
-              <td className="p-2 whitespace-nowrap">{course.teacherId}</td>
+              <td className="p-2 whitespace-nowrap">{teachers.find(t => t.id === course.teacherId)?.name || "Unknown"}</td>
               <td className="p-2 whitespace-nowrap">{course.studentsCount || 0}</td>
               <td className="p-2 whitespace-nowrap">{course.price}</td>
               <td className="p-2 whitespace-nowrap">
                 <span
-                  className={`rounded-2xl px-3 py-1 text-xs ${course.status
-                    ? "bg-[#E2ECE7] text-[#0E7C7B]"
-                    : "bg-[#F5F3ED] text-gray-500"
+                  className={`rounded-2xl px-3 py-1 text-xs 
+                    ${course.status === "Published"
+                      ? "bg-[#E2ECE7] text-[#0E7C7B]"
+                      : "bg-[#F5F3ED] text-gray-500"
                     }`}
                 >
-                  {course.status || "Inactive"}
+                  {course.status}
                 </span>
               </td>
               <td className="p-2 whitespace-nowrap flex gap-2">

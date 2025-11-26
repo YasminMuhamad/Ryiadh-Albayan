@@ -56,7 +56,7 @@ export default function AdminTeachers() {
       setTeacherModalOpen(true);
       setSelectedTeacher({
         ...teacher,
-        fullName: teacher.name_en || "",
+        fullName: teacher.name || "",
         arabicName: teacher.name_ar || "",
         email: teacher.email || "",
         specialization: teacher.specialization || "",
@@ -70,7 +70,7 @@ export default function AdminTeachers() {
 
   const filteredTeachers = teachers.filter(
     t =>
-      t.name_en.toLowerCase().includes(query.toLowerCase()) ||
+      t.name.toLowerCase().includes(query.toLowerCase()) ||
       t.name_ar.toLowerCase().includes(query.toLowerCase()) ||
       t.email.toLowerCase().includes(query.toLowerCase())
   );
@@ -147,7 +147,7 @@ export default function AdminTeachers() {
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredTeachers.map((teacher) => (
               <tr key={teacher.id}>
-                <td className="p-2 whitespace-nowrap">{teacher.name_en}</td>
+                <td className="p-2 whitespace-nowrap">{teacher.name}</td>
                 <td className="p-2 whitespace-nowrap">{teacher.name_ar}</td>
                 <td className="p-2 whitespace-nowrap">{teacher.email}</td>
                 <td className="p-2 whitespace-nowrap">{teacher.coursesCount || 0}</td>

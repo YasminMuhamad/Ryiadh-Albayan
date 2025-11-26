@@ -11,8 +11,8 @@ export function AddCourseModal({ isOpen, onClose, teachers = [], terms = [], onS
     const [description, setDescription] = useState("");
     const [price, setPrice] = useState("");
     const [teacherId, setTeacherId] = useState("");
-    const [materials, setMaterials] = useState([]);
-    const [videos, setVideos] = useState([]);
+    // const [materials, setMaterials] = useState([]);
+    // const [videos, setVideos] = useState([]);
     const [thumbnail, setThumbnail] = useState("");
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
@@ -92,7 +92,7 @@ export function AddCourseModal({ isOpen, onClose, teachers = [], terms = [], onS
                 description: description.trim(),
                 price: Number(price) || 0,
                 teacherId,
-                status: "Active",
+                status: "Published",
                 // materials,
                 // videos,
                 thumbnail,
@@ -108,7 +108,7 @@ export function AddCourseModal({ isOpen, onClose, teachers = [], terms = [], onS
                         description: description.trim(),
                         price: Number(price) || 0,
                         teacherId,
-                        status: "Active",
+                        status: "Published",
                         // materials,
                         // videos,
                         thumbnail,
@@ -121,7 +121,7 @@ export function AddCourseModal({ isOpen, onClose, teachers = [], terms = [], onS
                         description: description.trim(),
                         price: Number(price) || 0,
                         teacherId,
-                        status: "Active",
+                        status: "Published",
                         // materials,
                         // videos,
                         thumbnail,
@@ -201,9 +201,14 @@ export function AddCourseModal({ isOpen, onClose, teachers = [], terms = [], onS
                     <div>
                         <label>Teacher</label>
                         <CustomSelect
-                            options={teachers.map(t => ({ value: t.id, label: t.name_en }))}
-                            value={teacherId}
-                            onChange={(val) => { setTeacherId(val); validateField("teacherId", val); }}
+                            options={teachers.map(t => ({ value: t.id, label: t.name }))}
+                            // value={teacherId}
+                            // onChange={(val) => { setTeacherId(val); validateField("teacherId", val); }}
+                            value={teachers.find(t => t.id === teacherId)?.name || ""}
+                            onChange={(selectedName) => {
+                                const teacher = teachers.find(t => t.name === selectedName);
+                                if (teacher) setTeacherId(teacher.id);
+                            }}
                             placeholder="Select teacher"
                         />
                         {errors.teacherId && <p className="text-red-500 text-sm">{errors.teacherId}</p>}
