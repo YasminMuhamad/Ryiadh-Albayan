@@ -1,23 +1,23 @@
 users (collection)                  ← كل الطلاب
  └─ userId (document)
      ├─ name
+     ├─ name_ar
      ├─ email
      ├─ role          // student
-     ├─ status        // active | deactivated
+     ├─ subscriptionStatus        // active | cancelled
      ├─ year
      ├─ term
      ├─ profile_pic
      ├─ createdAt
+     ├─ coursesCount
      └─ enrollments (subcollection)     ← progress الطالب لكل كورس
          └─ courseId (document)
              ├─ enrolledAt
              ├─ completedLessons: [ lessonId, lessonId ... ]
              ├─ completedLessonsCount
+             ├─ quizzesTaken
              ├─ percent
-             ├─ lastUpdated
-             ├─ timeSpentSeconds
              ├─ status        // in-progress, completed
-             └─ lastLessonId
 
 teachers (collection)
  └─ teacherId (document)
@@ -49,9 +49,13 @@ courses (collection)
      ├─ teacherId
      ├─ termId
      ├─ type: "term" | "yearly"
+     ├─ category
      ├─ totalLessons
      ├─ totalModules
      ├─ studentsCount
+     ├─ revenueTotal
+     ├─ avgCompletion
+     ├─ avgSatisfaction
      └─ modules (subcollection)
          └─ moduleId (document)
              ├─ title
@@ -63,7 +67,7 @@ courses (collection)
                      ├─ liveSessions: [                     ← array، لايف
                              { title, dateTime, duration, link, status: scheduled | completed | cancelled } 
                        ]
-                     ├─ quizzes: [ { id, title, totalMarks } ]
+            ├─ quizzes: [ { id, title, totalMarks } ]
                      ├─ schedule: dateTime (optional)
     └─ reviews: [                         ← array
             { studentId, rating, comment, createdAt } 
@@ -73,9 +77,11 @@ payments (collection)                     ← مستقل، لكل الدفعيا
  └─ paymentId (document)
      ├─ studentId
      ├─ courseId
+     ├─ currency
      ├─ amount
      ├─ method
-     ├─ status: "paid" | "pending"
+     ├─ type: "one_time" | "subscription"
+     ├─ status: "paid" | "pending" | "refunded"
      └─ date
 
 notifications (collection)                ← مستقل، لكل الإشعارات
@@ -103,3 +109,11 @@ live_sessions (collection)               ← مستقل إذا عايزة تقر
      ├─ duration
      ├─ zoomLink
      └─ status: "upcoming" | "completed" | "cancelled"
+
+
+analytics (collection)
+└─ monthly_revenue (document)
+     ├─ yearMonth
+     ├─ revenue
+     ├─ newStudents
+     └─ activeStudents

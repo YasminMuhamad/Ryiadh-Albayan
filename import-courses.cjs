@@ -1,56 +1,31 @@
+// import-analytics-sample.cjs
 const admin = require("firebase-admin");
-const fs = require("fs");
-const path = require("path");
 
-// ---------------------
-// 1. Firebase Initialization
-// ---------------------
-const serviceAccount = require("./serviceAccountKey.json"); // لازم يكون موجود في نفس الفولدر
+// استيراد الـ service account
+const serviceAccount = require("./serviceAccountKey.json");
 
+// تهيئة Firebase Admin
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
 
 const db = admin.firestore();
 
-// ---------------------
-// 2. Load courses JSON
-// ---------------------
-const coursesPath = path.join(__dirname, 'teachers-courses.json');
-const coursesData = JSON.parse(fs.readFileSync(coursesPath, 'utf8'));
+// إنشاء عينة monthly_revenue
+async function addMonthlyRevenueSample() {
+  const sampleData = {
+    yearMonth: "2025-11",       // الشهر والسنة
+    revenue: 1250,              // إجمالي الإيرادات لهذا الشهر
+    newStudents: 3,             // عدد الطلاب الجدد
+    activeStudents: 5           // عدد الطلاب النشطين
+  };
 
-// ---------------------
-// 3. Import function
-// ---------------------
-async function importCourses() {
   try {
-    for (const course of coursesData) {
-      const docRef = db.collection('courses').doc(); // ID تلقائي
-      await docRef.set({
-        title: course.title,
-        title_ar: course.title_ar,
-        description: course.description,
-        price: course.price,
-        thumbnail: course.thumbnail,
-        teacherId: course.teacherId,
-        termId: course.termId,
-        type: course.type,
-        totalLessons: course.totalLessons,
-        totalModules: course.totalModules,
-        studentsCount: course.studentsCount,
-        modules: course.modules,
-        reviews: course.reviews,
-        createdAt: new Date()
-      });
-      console.log(`✅ Course uploaded: ${course.title}`);
-    }
-    console.log('🎉 All courses imported successfully!');
-  } catch (error) {
-    console.error('❌ Error importing courses:', error);
+    await db.collection("analytics").doc("2025-11").set(sampleData);
+    console.log("Monthly revenue sample added!");
+  } catch (err) {
+    console.error("Error adding sample:", err);
   }
 }
 
-// ---------------------
-// 4. Run import
-// ---------------------
-importCourses();
+addMonthlyRevenueSample();
