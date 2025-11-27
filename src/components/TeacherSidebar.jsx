@@ -1,49 +1,44 @@
-import React, { useState } from "react";
+import React from "react";
 import { NavLink } from "react-router-dom";
+import { LayoutDashboard, Users, Video, FileText, UserCircle, FileCheck } from "lucide-react";
 
-const items = [
-  { to: "/teacher", label: "Dashboard"},
-  { to: "/teacher/courses", label: "Courses"},
-  { to: "/teacher/live", label: "Live Sessions"},
-  { to: "/teacher/assignments", label: "Assignments",},
-  { to: "/teacher/students", label: "Students"},
-  { to: "/teacher/reports", label: "Reports",},
-  { to: "/teacher/profile", label: "Profile", },
-];
-
-export default function TeacherSidebar() {
-  const [collapsed, setCollapsed] = useState(false);
+const Sidebar = () => {
+  const links = [
+    { to: "/teacher", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/teacher/students", label: "Students", icon: Users },
+    { to: "/teacher/live", label: "Live Sessions", icon: Video },
+    { to: "/teacher/Assignment", label: "Assignments", icon: FileCheck },
+    { to: "/teacher/report", label: "Reports", icon: FileText },
+    { to: "/teacher/profile", label: "Profile", icon: UserCircle },
+  ];
 
   return (
-    <aside className={`${collapsed ? "w-20" : "w-64"} bg-white shadow-sm border-r`} style={{ borderColor: "var(--border)" }}>
-      <div className="h-16 flex items-center justify-between px-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-md bg-[var(--primary)] text-white flex items-center justify-center font-semibold">RB</div>
-          {!collapsed && <div className="font-semibold">Riyadh Al-Bayan</div>}
-        </div>
-        <button aria-label="Toggle sidebar" onClick={()=>setCollapsed(!collapsed)} className="text-sm opacity-70">
-          {collapsed ? "»" : "«"}
-        </button>
-      </div>
+    <div className="w-60 min-h-screen bg-[var(--card)] border-r border-[var(--primary)] p-5 font-[Poppins]">
+      <h1 className="text-xl font-bold text-[var(--primary)] mb-6">Teacher Panel</h1>
 
-      <nav className="mt-4">
-        {items.map((it) => (
-          <NavLink
-            key={it.to}
-            to={it.to}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-3 hover:bg-[var(--card)] transition-colors ${isActive ? "bg-[var(--card)] border-l-4 border-[var(--primary)]" : ""}`
-            }
-          >
-            <span className="text-xl">{it.icon}</span>
-            <span className={`${collapsed ? "hidden" : "block"}`}>{it.label}</span>
-          </NavLink>
-        ))}
-      </nav>
-
-      <div className="mt-auto p-4">
-        <button className="w-full btn-primary" onClick={()=>alert("Switch role (preview)")}>Switch Role</button>
+      <div className="flex flex-col gap-3">
+        {links.map((item) => {
+          const Icon = item.icon;
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2 rounded-[var(--radius)] 
+                transition ${
+                  isActive
+                    ? "bg-[var(--primary)] text-white"
+                    : "text-[var(--foreground)] hover:bg-[var(--secondary)]"
+                }`
+              }
+            >
+              <Icon className="w-5 h-5" /> {item.label}
+            </NavLink>
+          );
+        })}
       </div>
-    </aside>
+    </div>
   );
-}
+};
+
+export default Sidebar;

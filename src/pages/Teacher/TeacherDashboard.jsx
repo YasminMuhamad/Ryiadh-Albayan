@@ -1,173 +1,233 @@
 import React from "react";
-import { BookOpen, Video, Users, TrendingUp, Plus, Calendar, Bell, FileQuestion } from 'lucide-react';
-import { KPICard } from "../../components/KPICard";
-import { Card, CardHeader, CardContent, CardTitle } from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
-import { Badge } from "../../components/ui/badge";
-import { mockActivities, uiStrings } from "../../lib/mockData";
+import { useNavigate } from "react-router-dom";
+import {
+  Users,
+  BookOpen,
+  Video,
+  FileQuestion,
+  Bell,
+  Calendar,
+  Plus,
+} from "lucide-react";
+import "../../styles/globals.css";
+import Sidebar from "../../components/TeacherSidebar.jsx"; // ← استدعاء السايد بار
 
-export default function Dashboard({ userName = "Teacher", onNavigate = () => {}, onOpenModal = () => {} }) {
+// ===== MOCK DATA =====
+const kpiData = [
+  { type: "students", title: "Students", value: 25, icon: Users, trend: "+5%" },
+  { type: "live", title: "Live Sessions", value: 8, icon: Video, trend: "+2%" },
+  { type: "quizzes", title: "Quizzes", value: 12, icon: FileQuestion, trend: "+1%" },
+];
 
-  const getActivityIcon = (type) => {
-    switch (type) {
-      case 'session_scheduled': return <Calendar className="h-4 w-4 text-[var(--primary)]" />;
-      case 'quiz_added': return <FileQuestion className="h-4 w-4 text-[var(--secondary)]" />;
-      case 'lesson_uploaded': return <BookOpen className="h-4 w-4 text-[var(--success)]" />;
-      case 'announcement': return <Bell className="h-4 w-4 text-[var(--warning)]" />;
-      default: return <BookOpen className="h-4 w-4" />;
-    }
-  };
+const recentActivities = [
+  {
+    id: 1,
+    type: "session",
+    title: "Live Session Scheduled",
+    description: "A new live session on 'Arabic Alphabet Basics' has been scheduled.",
+    timestamp: Date.now() - 2 * 60 * 60 * 1000,
+  },
+  {
+    id: 2,
+    type: "quiz",
+    title: "Quiz Added",
+    description: "A new quiz was added to 'Basic Grammar' course.",
+    timestamp: Date.now() - 5 * 60 * 60 * 1000,
+  },
+  {
+    id: 3,
+    type: "lesson",
+    title: "New Lesson Uploaded",
+    description: "Lesson 'Introduction to Tajweed' has been uploaded.",
+    timestamp: Date.now() - 1 * 24 * 60 * 60 * 1000,
+  },
+];
 
-  const formatTimestamp = (timestamp) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
-    if (diffInHours < 1) return 'Just now';
-    if (diffInHours < 24) return `${diffInHours}h ago`;
-    if (diffInHours < 48) return 'Yesterday';
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+const quickActions = [
+  { action: "createCourse", icon: BookOpen, title: "Create Course", desc: "Start a new course" },
+  { action: "scheduleLive", icon: Video, title: "Schedule Live", desc: "Schedule a live session" },
+  { action: "addAnnouncement", icon: Bell, title: "Add Announcement", desc: "Post to your courses" },
+  { action: "addQuiz", icon: FileQuestion, title: "Add Quiz", desc: "Create an assessment" },
+];
+
+const upcomingSessions = [
+  {
+    id: 1,
+    title: "Introduction to Arabic Alphabet",
+    time: "Today 4:00 PM",
+    duration: "60 min",
+    badge: "In 2 hours",
+  },
+  {
+    id: 2,
+    title: "Fiqh Discussion - Prayer Rulings",
+    time: "Tomorrow 2:00 PM",
+    duration: "90 min",
+    badge: "Tomorrow",
+  },
+];
+
+// ===== KPI CARD =====
+const KPICard = ({ title, value, icon: Icon, trend, onClick }) => (
+  <div
+    onClick={onClick}
+    className="bg-white border border-[var(--primary)] p-4 rounded-[var(--radius)] flex items-center justify-between cursor-pointer hover:bg-[var(--secondary)] transition"
+  >
+    <div className="flex items-center gap-3">
+      <div className="bg-[var(--primary)] p-2 rounded flex items-center justify-center">
+        <Icon className="h-6 w-6 text-white" />
+      </div>
+
+      <div>
+        <p className="font-bold text-lg text-[var(--foreground)]">{value}</p>
+        <p className="text-sm text-[var(--foreground)]/70">{title}</p>
+      </div>
+    </div>
+
+    <p className="text-sm text-[var(--primary)] font-medium">{trend}</p>
+  </div>
+);
+
+const TeacherDashboard = ({ userName = "Teacher" }) => {
+  const navigate = useNavigate();
+
+  const formatTime = (timestamp) => {
+    const diff = Math.floor((Date.now() - timestamp) / (1000 * 60 * 60));
+    if (diff < 1) return "Just now";
+    if (diff < 24) return `${diff}h ago`;
+    return new Date(timestamp).toLocaleDateString();
   };
 
   return (
-    <div className="space-y-6 p-6 md:p-8 lg:p-10">
-      {/* Welcome Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-semibold text-[var(--foreground)] mb-2">
-            {uiStrings.dashboard?.welcomeBack || "Welcome Back"}, {userName}! 👋
-          </h1>
-          <p className="text-[var(--muted-foreground)]">
-            Here's what's happening with your courses today
-          </p>
-        </div>
-        <div className="flex gap-3">
-          <Button
-            onClick={() => onOpenModal('createCourse')}
-            className="bg-[var(--primary)] hover:bg-[var(--primary-hover)]"
+    <div className="flex min-h-screen bg-[var(--background)]">
+
+      {/* ---- SIDEBAR ON THE LEFT ---- */}
+      <Sidebar />
+
+      {/* ---- DASHBOARD CONTENT ON THE RIGHT ---- */}
+      <div className="flex-1 p-6 space-y-6 font-[Poppins]">
+
+        {/* HEADER */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-semibold mb-2 text-[var(--foreground)]">
+              Welcome Back, {userName} 👋
+            </h1>
+            <p className="text-[var(--foreground)]/70 text-sm">
+              Here's what's happening with your courses today
+            </p>
+          </div>
+
+          <button
+            onClick={() => navigate("/create-course")}
+            className="bg-[var(--primary)] text-white px-4 py-2 rounded-[var(--radius)] flex items-center gap-2 hover:opacity-90"
           >
-            <Plus className="h-4 w-4 mr-2" />
-            {uiStrings.dashboard?.createCourse || "Create Course"}
-          </Button>
+            <Plus className="w-5 h-5" /> Create Course
+          </button>
         </div>
-      </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <KPICard title="Total Courses" value={4} icon={BookOpen} trend={{ value: 12.5, isPositive: true }} onClick={() => onNavigate('courses')} />
-        <KPICard title="Live Sessions" value={2} icon={Video} trend={{ value: 8.3, isPositive: true }} onClick={() => onNavigate('live')} />
-        <KPICard title="Students" value={105} icon={Users} trend={{ value: 15.2, isPositive: true }} onClick={() => onNavigate('students')} />
-        <KPICard title="Attendance Rate" value="87%" icon={TrendingUp} trend={{ value: 3.1, isPositive: true }} onClick={() => onNavigate('reports')} />
-      </div>
+        {/* KPI CARDS */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {kpiData.map((kpi) => (
+            <KPICard
+              key={kpi.type}
+              {...kpi}
+              onClick={() => navigate(`/kpi/${kpi.type}`)}
+            />
+          ))}
+        </div>
 
-      {/* Recent Activity & Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Activity */}
-        <Card className="lg:col-span-2 card-shadow">
-          <CardHeader className="flex justify-between items-center">
-            <CardTitle>{uiStrings.dashboard?.recentActivity || "Recent Activity"}</CardTitle>
-            <Button variant="ghost" size="sm" onClick={() => onNavigate('courses')} className="text-[var(--primary)]">
-              {uiStrings.dashboard?.viewAll || "View All"}
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {mockActivities.map((activity) => (
-                <div key={activity.id} className="flex items-start gap-4 p-4 rounded-lg hover:bg-[var(--accent)] transition-colors cursor-pointer">
-                  <div className="w-10 h-10 rounded-full bg-[var(--accent)] flex items-center justify-center flex-shrink-0">
-                    {getActivityIcon(activity.type)}
+        {/* RECENT + ACTIONS */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Recent Activity */}
+          <div>
+            <h2 className="text-2xl font-semibold mb-3 text-[var(--primary)]">Recent Activity</h2>
+
+            <div className="space-y-3">
+              {recentActivities.map((act) => (
+                <div
+                  key={act.id}
+                  className="flex items-start gap-3 p-3 bg-[var(--card)] rounded-[var(--radius)] hover:bg-[var(--secondary)] cursor-pointer"
+                >
+                  <div className="w-10 h-10 bg-[var(--secondary)] rounded-full flex items-center justify-center">
+                    {act.type === "quiz" ? (
+                      <FileQuestion className="w-5 h-5 text-[var(--primary)]" />
+                    ) : act.type === "lesson" ? (
+                      <BookOpen className="w-5 h-5 text-[var(--primary)]" />
+                    ) : (
+                      <Calendar className="w-5 h-5 text-[var(--primary)]" />
+                    )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-[var(--foreground)] mb-1">{activity.title}</p>
-                    <p className="text-sm text-[var(--muted-foreground)] line-clamp-1">{activity.description}</p>
-                    <p className="text-xs text-[var(--muted-foreground)] mt-1">{formatTimestamp(activity.timestamp)}</p>
+
+                  <div>
+                    <p className="font-medium text-[var(--foreground)]">{act.title}</p>
+                    <p className="text-[var(--foreground)]/60 text-sm">{act.description}</p>
+                    <p className="text-[var(--foreground)]/40 text-xs mt-1">
+                      {formatTime(act.timestamp)}
+                    </p>
                   </div>
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Quick Actions */}
-        <Card className="card-shadow islamic-pattern-subtle">
-          <CardHeader>
-            <CardTitle>{uiStrings.dashboard?.quickActions || "Quick Actions"}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Button onClick={() => onOpenModal('createCourse')} variant="outline" className="w-full justify-start gap-3 py-4 hover:bg-[var(--accent)] hover:border-[var(--primary)]">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[var(--primary)] to-[var(--primary-hover)] flex items-center justify-center">
-                <BookOpen className="h-5 w-5 text-white" />
+          {/* Quick Actions */}
+          <div>
+            <h2 className="text-2xl font-semibold mb-3 text-[var(--primary)]">Quick Actions</h2>
+
+            <div className="grid grid-cols-1 gap-3">
+              {quickActions.map((a) => (
+                <button
+                  key={a.action}
+                  onClick={() => navigate(`/quick-action/${a.action}`)}
+                  className="flex items-center gap-3 p-3 bg-[var(--card)] rounded-[var(--radius)] hover:bg-[var(--secondary)]"
+                >
+                  <div className="w-10 h-10 bg-[var(--primary)] text-white flex items-center justify-center rounded-[var(--radius)]">
+                    <a.icon className="w-5 h-5" />
+                  </div>
+
+                  <div>
+                    <p className="font-medium text-[var(--foreground)]">{a.title}</p>
+                    <p className="text-sm text-[var(--foreground)]/60">{a.desc}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* UPCOMING SESSIONS */}
+        <div>
+          <h2 className="text-2xl font-semibold mb-3 text-[var(--primary)]">Upcoming Live Sessions</h2>
+
+          <div className="space-y-3">
+            {upcomingSessions.map((session) => (
+              <div
+                key={session.id}
+                className="flex items-center justify-between p-3 bg-[var(--card)] rounded-[var(--radius)] hover:bg-[var(--secondary)]"
+              >
+                <div className="flex items-center gap-3">
+                  <Video className="w-6 h-6 text-[var(--primary)]" />
+
+                  <div>
+                    <p className="font-medium text-[var(--foreground)]">{session.title}</p>
+                    <p className="text-[var(--foreground)]/60 text-sm">
+                      {session.time} • {session.duration}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-[var(--secondary)] px-2 py-1 rounded text-sm">
+                  {session.badge}
+                </div>
               </div>
-              <div className="text-left">
-                <p className="font-medium">{uiStrings.dashboard?.createCourse || "Create Course"}</p>
-                <p className="text-xs text-[var(--muted-foreground)]">Start a new course</p>
-              </div>
-            </Button>
-            <Button onClick={() => onOpenModal('scheduleLive')} variant="outline" className="w-full justify-start gap-3 py-4 hover:bg-[var(--accent)] hover:border-[var(--primary)]">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[var(--primary)] to-[var(--primary-hover)] flex items-center justify-center">
-                <Video className="h-5 w-5 text-white" />
-              </div>
-              <div className="text-left">
-                <p className="font-medium">{uiStrings.dashboard?.scheduleLive || "Schedule Live"}</p>
-                <p className="text-xs text-[var(--muted-foreground)]">Schedule a live session</p>
-              </div>
-            </Button>
-            <Button onClick={() => onOpenModal('addAnnouncement')} variant="outline" className="w-full justify-start gap-3 py-4 hover:bg-[var(--accent)] hover:border-[var(--primary)]">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[var(--primary)] to-[var(--primary-hover)] flex items-center justify-center">
-                <Bell className="h-5 w-5 text-white" />
-              </div>
-              <div className="text-left">
-                <p className="font-medium">{uiStrings.dashboard?.addAnnouncement || "Add Announcement"}</p>
-                <p className="text-xs text-[var(--muted-foreground)]">Post to your courses</p>
-              </div>
-            </Button>
-            <Button onClick={() => onOpenModal('addQuiz')} variant="outline" className="w-full justify-start gap-3 py-4 hover:bg-[var(--accent)] hover:border-[var(--primary)]">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[var(--primary)] to-[var(--primary-hover)] flex items-center justify-center">
-                <FileQuestion className="h-5 w-5 text-white" />
-              </div>
-              <div className="text-left">
-                <p className="font-medium">{uiStrings.dashboard?.addQuiz || "Add Quiz"}</p>
-                <p className="text-xs text-[var(--muted-foreground)]">Create an assessment</p>
-              </div>
-            </Button>
-          </CardContent>
-        </Card>
+            ))}
+          </div>
+        </div>
+
       </div>
-
-      {/* Upcoming Sessions */}
-      <Card className="card-shadow">
-        <CardHeader className="flex justify-between items-center">
-          <CardTitle>Upcoming Live Sessions</CardTitle>
-          <Button variant="ghost" size="sm" onClick={() => onNavigate('live')} className="text-[var(--primary)]">
-            View All →
-          </Button>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-center justify-between p-4 border border-[var(--border)] rounded-lg hover:bg-[var(--accent)] transition-colors">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-lg bg-[var(--primary)] bg-opacity-10 flex items-center justify-center">
-                <Video className="h-6 w-6 text-[var(--primary)]" />
-              </div>
-              <div>
-                <p className="font-medium">Introduction to Arabic Alphabet</p>
-                <p className="text-sm text-[var(--muted-foreground)]">Today at 4:00 PM • 60 minutes</p>
-              </div>
-            </div>
-            <Badge className="bg-[var(--secondary)] text-[var(--foreground)]">In 2 hours</Badge>
-          </div>
-          <div className="flex items-center justify-between p-4 border border-[var(--border)] rounded-lg hover:bg-[var(--accent)] transition-colors">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-lg bg-[var(--primary)] bg-opacity-10 flex items-center justify-center">
-                <Video className="h-6 w-6 text-[var(--primary)]" />
-              </div>
-              <div>
-                <p className="font-medium">Fiqh Discussion - Prayer Rulings</p>
-                <p className="text-sm text-[var(--muted-foreground)]">Tomorrow at 2:00 PM • 90 minutes</p>
-              </div>
-            </div>
-            <Badge variant="outline">Tomorrow</Badge>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
-}
+};
+
+export default TeacherDashboard;

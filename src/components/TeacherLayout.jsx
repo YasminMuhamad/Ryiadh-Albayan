@@ -1,17 +1,13 @@
 import React from "react";
-import TeacherSidebar from "./TeacherSidebar";
-import Navbar from "./Navbar"; 
+import { Sidebar } from "./TeacherSidebar.jsx";
 
-export default function TeacherLayout({ children }) {
+
+export default function TeacherLayout({ children, userRole = "teacher" }) {
   return (
-    <div className="min-h-screen flex bg-[var(--background)] text-[var(--foreground)]">
-      <TeacherSidebar />
-      <div className="flex-1 flex flex-col">
-        <Navbar />
-        <main className="p-6 md:p-8 lg:p-10">
-          {children}
-        </main>
-      </div>
+    <div className="flex min-h-screen bg-gray-50">
+      <Sidebar userRole={userRole} />
+      <main className="flex-1 p-6">{children}</main>
     </div>
   );
 }
+

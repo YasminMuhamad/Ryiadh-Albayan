@@ -1,119 +1,192 @@
-import React, { useState, useEffect } from "react";
-import TeacherLayout from "../../components/TeacherLayout";
-import Modal from "../../components/Modal";
-import { mockSessions, mockCourses } from "../../data/teacherMock";
+import React, { useState } from "react";
+import { Video, Calendar, Clock, Plus, Play } from "lucide-react";
+import "../../styles/globals.css";
+import Sidebar from "../../components/TeacherSidebar.jsx"; // ← استدعاء السايد بار
 
-function formatAbs(iso) {
-  const d = new Date(iso);
-  return d.toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Cairo" });
-}
-
-function relative(iso) {
-  const diff = new Date(iso) - new Date();
-  if (diff > 0) {
-    const mins = Math.round(diff/60000);
-    if (mins < 60) return `Starts in ${mins}m`;
-    const hrs = Math.round(mins/60);
-    return `Starts in ${hrs}h`;
-  } else {
-    const mins = Math.round(-diff/60000);
-    if (mins < 60) return `${mins}m ago`;
-    return `${Math.round(mins/60)}h ago`;
-  }
-}
-
-export default function LiveSessions(){
-  const [sessions, setSessions] = useState(mockSessions);
-  const [openSched, setOpenSched] = useState(false);
-  const [form, setForm] = useState({ title: "", courseId: mockCourses[0]?.id || "", startAt: "" });
-
-  useEffect(()=> {
-    // update statuses by time
-    const t = setInterval(()=> {
-      setSessions(prev => prev.map(s => {
-        const start = new Date(s.startAt);
-        const end = new Date(start.getTime() + s.durationMin*60000);
-        const now = new Date();
-        if(now >= start && now <= end) return {...s, status: "live"};
-        if(now < start) return {...s, status: "upcoming"};
-        return {...s, status: "finished"};
-      }));
-    }, 1000*30);
-    return ()=> clearInterval(t);
-  }, []);
-
-  function schedule(e){
-    e.preventDefault();
-    if(!form.title || !form.startAt) return alert("Please fill fields");
-    const newS = { id: "s-"+Date.now(), title: form.title, courseId: form.courseId, startAt: new Date(form.startAt).toISOString(), durationMin: 60, status: "upcoming" };
-    setSessions([newS, ...sessions]);
-    setOpenSched(false);
-    setForm({ title: "", courseId: mockCourses[0]?.id || "", startAt: "" });
-    alert("Scheduled");
-  }
-
-  function canJoin(s){
-    const start = new Date(s.startAt);
-    const now = new Date();
-    const diff = start - now; // ms
-    return s.status === "live" || (diff <= 1000*60*5 && diff >= -1000*60*60); // within 5 minutes before or live
-  }
-
+// ---------------- Button ----------------
+function Button({ variant = "default", size = "md", children, ...props }) {
+  const base = "rounded-md font-medium transition-all flex items-center justify-center";
+  const variants = {
+    default: "bg-[var(--primary)] text-white hover:opacity-90",
+    outline: "border border-gray-300 text-gray-700 hover:bg-gray-100",
+  };
+  const sizes = {
+    sm: "px-2 py-1 text-sm",
+    md: "px-4 py-2 text-md",
+  };
   return (
-    <TeacherLayout>
-      <div className="max-w-[1000px] mx-auto">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Live Sessions</h2>
-          <div className="flex gap-2">
-            <button onClick={()=>setOpenSched(true)} className="bg-[var(--primary)] text-white px-4 py-2 rounded">Schedule Live Session</button>
+    <button className={`${base} ${variants[variant]} ${sizes[size]}`} {...props}>
+      {children}
+    </button>
+  );
+}
+
+// ---------------- Badge ----------------
+function Badge({ children, className = "" }) {
+  return (
+    <span className={`px-2 py-1 rounded-full text-xs font-medium ${className}`}>{children}</span>
+  );
+}
+
+// ---------------- Card ----------------
+function Card({ children, className = "" }) {
+  return (
+    <div className={`bg-[var(--card)] rounded-[var(--radius)] shadow-md p-4 ${className}`}>
+      {children}
+    </div>
+  );
+}
+
+// ---------------- MOCK DATA ----------------
+const mockLiveSessions = [
+  {
+    id: "1",
+    title: "Math Live Class",
+    dateTime: new Date(Date.now() + 3600 * 1000).toISOString(),
+    duration: 60,
+    status: "Upcoming",
+  },
+  {
+    id: "2",
+    title: "Science Live Class",
+    dateTime: new Date(Date.now() - 1800 * 1000).toISOString(),
+    duration: 45,
+    status: "Live",
+  },
+  {
+    id: "3",
+    title: "History Recorded Class",
+    dateTime: new Date(Date.now() - 3600 * 1000 * 24).toISOString(),
+    duration: 50,
+    status: "Finished",
+    attendanceMarked: true,
+  },
+];
+
+const uiStrings = {
+  liveSession: {
+    liveSessions: "Live Sessions",
+    scheduleNew: "Schedule New",
+    minutes: "minutes",
+  },
+};
+
+export default function LiveSessionsPage() {
+  const [view, setView] = useState("upcoming");
+
+  const upcomingSessions = mockLiveSessions.filter((s) => s.status === "Upcoming");
+  const liveSessions = mockLiveSessions.filter((s) => s.status === "Live");
+  const finishedSessions = mockLiveSessions.filter((s) => s.status === "Finished");
+
+  const formatDateTime = (dateTime) => {
+    const date = new Date(dateTime);
+    return date.toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const renderSessionCard = (session) => (
+    <Card key={session.id} className="hover:shadow-lg transition">
+      <div className="flex justify-between items-start gap-4">
+        <div className="flex-1">
+          <h3 className="text-lg font-semibold">{session.title}</h3>
+          <p className="arabic-text">{session.courseTitleArabic}</p>
+
+          <div className="flex gap-4 mt-2 text-sm text-[var(--foreground)]">
+            <span className="flex items-center gap-1">
+              <Calendar className="w-4 h-4" /> {formatDateTime(session.dateTime)}
+            </span>
+            <span className="flex items-center gap-1">
+              <Clock className="w-4 h-4" /> {session.duration} {uiStrings.liveSession.minutes}
+            </span>
+          </div>
+
+          <div className="mt-2">
+            {session.status === "Upcoming" && (
+              <Badge className="bg-[var(--secondary)] text-[var(--foreground)]">Upcoming</Badge>
+            )}
+            {session.status === "Live" && (
+              <Badge className="bg-red-500 text-white animate-pulse">Live Now</Badge>
+            )}
+            {session.status === "Finished" && (
+              <Badge className="bg-gray-200 text-gray-700">Finished</Badge>
+            )}
           </div>
         </div>
 
-        <div className="mt-4 space-y-3">
-          {sessions.map(s => (
-            <div key={s.id} className="flex items-center justify-between bg-[var(--card)] p-4 rounded-lg">
-              <div>
-                <div className="font-semibold">{s.title}</div>
-                <div className="text-sm text-gray-600">{formatAbs(s.startAt)} • {s.durationMin} min</div>
-                <div className="text-xs text-gray-500">{relative(s.startAt)}</div>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className={`px-2 py-1 rounded text-sm ${s.status==="live" ? "bg-green-100 text-green-700" : s.status==="upcoming" ? "bg-yellow-100 text-yellow-800" : "bg-gray-100 text-gray-700"}`}>
-                  {s.status}
-                </div>
-                <button disabled={!canJoin(s)} onClick={()=>alert("Joining session...")} className={`px-3 py-1 rounded ${canJoin(s) ? "bg-[var(--primary)] text-white" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}>
-                  {s.status==="live" ? "Join Session" : canJoin(s) ? "Join (Starting soon)" : "Join"}
-                </button>
-                <button onClick={()=>alert("Attendance modal")} className="px-3 py-1 rounded border">Mark Attendance</button>
-              </div>
-            </div>
-          ))}
+        <div className="flex flex-col gap-2">
+          {(session.status === "Live" || session.status === "Upcoming") && (
+            <Button className="flex items-center gap-2">
+              <Play className="w-4 h-4" /> Join Session
+            </Button>
+          )}
+          {session.status === "Finished" && (
+            <Button variant="outline" size="sm">
+              View Attendance
+            </Button>
+          )}
         </div>
       </div>
+    </Card>
+  );
 
-      <Modal open={openSched} onClose={()=>setOpenSched(false)} title="Schedule Live Session">
-        <form className="space-y-4" onSubmit={schedule}>
+  return (
+    <div className="flex min-h-screen bg-[var(--background)]">
+
+      {/* ---- SIDEBAR ---- */}
+      <Sidebar />
+
+      {/* ---- MAIN CONTENT ---- */}
+      <div className="flex-1 p-6 flex flex-col space-y-6">
+
+        {/* Header */}
+        <div className="flex justify-between items-center">
           <div>
-            <label className="text-sm">Title</label>
-            <input className="w-full border p-2 rounded mt-1" value={form.title} onChange={(e)=>setForm({...form, title: e.target.value})} />
-          </div>
-          <div>
-            <label className="text-sm">Course</label>
-            <select className="w-full border p-2 rounded mt-1" value={form.courseId} onChange={(e)=>setForm({...form, courseId: e.target.value})}>
-              {mockCourses.map(c=> <option key={c.id} value={c.id}>{c.title_en}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="text-sm">Start (Egypt time)</label>
-            <input type="datetime-local" className="w-full border p-2 rounded mt-1" value={form.startAt} onChange={(e)=>setForm({...form, startAt: e.target.value})} />
+            <h1 className="heading-1">{uiStrings.liveSession.liveSessions}</h1>
+            <p className="paragraph">Manage your live teaching sessions</p>
           </div>
 
-          <div className="flex justify-end gap-2">
-            <button type="button" onClick={()=>setOpenSched(false)} className="px-4 py-2 rounded border">Cancel</button>
-            <button type="submit" className="px-4 py-2 rounded bg-[var(--primary)] text-white">Schedule</button>
+          <Button className="flex items-center gap-2">
+            <Plus className="w-4 h-4" /> {uiStrings.liveSession.scheduleNew}
+          </Button>
+        </div>
+
+        {/* Tabs */}
+        <div>
+          <div className="flex border-b border-[var(--border)]">
+            <button
+              onClick={() => setView("upcoming")}
+              className={`px-4 py-2 ${view === "upcoming" ? "border-b-2 border-[var(--primary)] font-semibold" : ""}`}
+            >
+              Upcoming ({upcomingSessions.length})
+            </button>
+
+            <button
+              onClick={() => setView("live")}
+              className={`px-4 py-2 ${view === "live" ? "border-b-2 border-[var(--primary)] font-semibold" : ""}`}
+            >
+              Live Now ({liveSessions.length})
+            </button>
+
+            <button
+              onClick={() => setView("finished")}
+              className={`px-4 py-2 ${view === "finished" ? "border-b-2 border-[var(--primary)] font-semibold" : ""}`}
+            >
+              Finished ({finishedSessions.length})
+            </button>
           </div>
-        </form>
-      </Modal>
-    </TeacherLayout>
+
+          <div className="mt-4 space-y-4">
+            {view === "upcoming" && upcomingSessions.map(renderSessionCard)}
+            {view === "live" && liveSessions.map(renderSessionCard)}
+            {view === "finished" && finishedSessions.map(renderSessionCard)}
+          </div>
+        </div>
+
+      </div>
+    </div>
   );
 }
