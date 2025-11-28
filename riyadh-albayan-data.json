@@ -1,16 +1,27 @@
 {
   "users": {
     "U001": {
-      "uid": "U001",
-      "name": "Ali Hassan",
+      "name_en": "Ali Hassan",
+      "name_ar": "علي حسن",
       "email": "ali@student.com",
       "role": "student",
       "year": "2025",
       "term": "First",
-      "enrolled_courses": [
-        "C001"
-      ],
-      "createdAt": "2025-11-12T10:00:00Z"
+      "createdAt": "2025-11-12T10:00:00Z",
+      "enrollments": {
+        "course_math101": {
+          "enrolledAt": "2025-11-17T11:12:00Z",
+          "completedLessons": [
+            "lesson_1"
+          ],
+          "completedLessonsCount": 1,
+          "percent": 25,
+          "lastUpdated": "2025-11-17T11:30:00Z",
+          "timeSpentSeconds": 600,
+          "status": "in-progress",
+          "lastLessonId": "lesson_1"
+        }
+      }
     },
     "U002": {
       "uid": "U002",

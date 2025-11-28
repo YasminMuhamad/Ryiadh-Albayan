@@ -14,9 +14,9 @@ import Sidebar from "../../components/TeacherSidebar.jsx"; // ← استدعاء
 
 // ===== MOCK DATA =====
 const kpiData = [
-  { type: "students", title: "Students", value: 25, icon: Users, trend: "+5%" },
-  { type: "live", title: "Live Sessions", value: 8, icon: Video, trend: "+2%" },
-  { type: "quizzes", title: "Quizzes", value: 12, icon: FileQuestion, trend: "+1%" },
+  { type: "students", title: "Students", value: 25, icon: Users, trend: "+5%", link: "/Teacher/Students" },
+  { type: "live", title: "Live Sessions", value: 8, icon: Video, trend: "+2%", link: "/Teacher/Link" },
+  { type: "quizzes", title: "Quizzes", value: 12, icon: FileQuestion, trend: "+1%", link: "/Teacher/Assignment" },
 ];
 
 const recentActivities = [

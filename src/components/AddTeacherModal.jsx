@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "./Button";
 import { X } from 'lucide-react';
 import { db } from "../../firebase.config";
-import { collection, addDoc, query, where, getDocs } from "firebase/firestore";
+import { collection, addDoc, query, where, getDocs, updateDoc, doc } from "firebase/firestore";
 import { CustomSelect } from "./CustomSelect";
 
-export function AddTeacherModal({ isOpen, onClose }) {
+export function AddTeacherModal({ isOpen, onClose, teacher, onSave }) {
     const [specialization, setSpecialization] = useState("");
     const [isOpenDropdown, setIsOpenDropdown] = useState(false);
     const [fullName, setFullName] = useState("");
@@ -19,6 +19,21 @@ export function AddTeacherModal({ isOpen, onClose }) {
         email: "",
         specialization: ""
     });
+
+    useEffect(() => {
+        if (!isOpen) return;
+        if (teacher) {
+            setFullName(teacher.name || "");
+            setArabicName(teacher.name_ar || "");
+            setEmail(teacher.email || "");
+            setSpecialization(teacher.specialization || "");
+        } else {
+            setFullName("");
+            setArabicName("");
+            setEmail("");
+            setSpecialization("");
+        }
+    }, [teacher, isOpen]);
 
     if (!isOpen) return null;
 
@@ -41,6 +56,7 @@ export function AddTeacherModal({ isOpen, onClose }) {
         setErrors({ fullName: "", arabicName: "", email: "", specialization: "" });
     };
 
+
     const handleClose = () => {
         resetState();
         onClose();
@@ -50,22 +66,30 @@ export function AddTeacherModal({ isOpen, onClose }) {
     const validateField = (name, value) => {
         let message = "";
 
+        // make sure we treat non-string values safely (CustomSelect may return object)
+        const safeValue = (typeof value === "string")
+            ? value
+            : (value && typeof value === "object")
+                ? (value.value ?? value.label ?? "")
+                : "";
+
         switch (name) {
             case "fullName":
-                if (!value || !value.trim()) message = "This field is required";
+                if (!safeValue || !safeValue.trim()) message = "This field is required";
                 break;
             case "arabicName":
-                if (!value || !value.trim()) message = "This field is required";
+                if (!safeValue || !safeValue.trim()) message = "This field is required";
                 break;
             case "email":
-                if (!value || !value.trim()) {
+                if (!safeValue || !safeValue.trim()) {
                     message = "This field is required";
-                } else if (!emailRegex.test(value.trim())) {
+                } else if (!emailRegex.test(safeValue.trim())) {
                     message = "Invalid email format";
                 }
                 break;
             case "specialization":
-                if (!value || !value.trim()) message = "This field is required";
+                // keep specialization required? if you want it optional, remove this block
+                if (!safeValue || !safeValue.trim()) message = "This field is required";
                 break;
             default:
                 break;
@@ -91,10 +115,16 @@ export function AddTeacherModal({ isOpen, onClose }) {
         if (errors.email) validateField("email", e.target.value);
     };
 
-    const handleSpecializationSelect = (label) => {
-        setSpecialization(label);
+    // IMPORTANT: CustomSelect might return an object {value,label} or string.
+    // Normalize it here to always store a string in specialization.
+    const handleSpecializationSelect = (val) => {
+        const normalized =
+            typeof val === "string" ? val
+                : val && typeof val === "object" ? (val.value ?? val.label ?? "")
+                    : "";
+        setSpecialization(normalized);
         setIsOpenDropdown(false);
-        validateField("specialization", label);
+        validateField("specialization", normalized);
     };
 
     const validateAll = () => {
@@ -111,33 +141,63 @@ export function AddTeacherModal({ isOpen, onClose }) {
         if (!validateAll()) return;
 
         const trimmedEmail = email.trim().toLowerCase();
-
         setLoading(true);
+
         try {
-            // 1) Check if email exists
+            // --- 1) Check for duplicate email ---
             const q = query(collection(db, "teachers"), where("email", "==", trimmedEmail));
             const snapshot = await getDocs(q);
+
             if (!snapshot.empty) {
-                setErrors(prev => ({ ...prev, email: "Email already exists" }));
-                setLoading(false);
-                return;
+                const emailOwnerId = snapshot.docs[0].id;
+
+                if (!teacher?.id || teacher.id !== emailOwnerId) {
+                    setErrors((prev) => ({ ...prev, email: "Email already exists" }));
+                    setLoading(false);
+                    return;
+                }
             }
 
-            // 2) Add Teacher
-            await addDoc(collection(db, "teachers"), {
-                name_en: fullName.trim(),
+            // --- 2) Prepare payload ---
+            const payload = {
+                ...(teacher?.id ? { id: teacher.id } : {}),
+                name: fullName.trim(),
                 name_ar: arabicName.trim(),
                 email: trimmedEmail,
                 specialization: specialization || null,
-                status: "deactivated",
-                createdAt: new Date()
-            });
+            };
 
+            // --- 3) Call onSave from parent (if provided) ---
+            if (typeof onSave === "function") {
+                await onSave(payload);
+            } else {
+                // fallback: write directly to firestore
+                if (teacher?.id) {
+                    await updateDoc(doc(db, "teachers", teacher.id), {
+                        name: fullName.trim(),
+                        name_ar: arabicName.trim(),
+                        email: trimmedEmail,
+                        specialization: specialization || null,
+                    });
+                } else {
+                    await addDoc(collection(db, "teachers"), {
+                        name: fullName.trim(),
+                        name_ar: arabicName.trim(),
+                        email: trimmedEmail,
+                        specialization: specialization || null,
+                        status: "Inactive",
+                        role: "teacher",
+                        profile_pic: "",
+                        createdAt: new Date(),
+                    });
+                }
+            }
+
+            // --- 4) Reset internal state ---
             resetState();
-            onClose();
         } catch (err) {
-            console.error("Error adding teacher:", err);
-            alert("Failed to add teacher. Try again.");
+            console.error("Error in modal handleSubmit:", err);
+            alert("Failed to save teacher. Try again.");
         } finally {
             setLoading(false);
         }
@@ -209,10 +269,7 @@ export function AddTeacherModal({ isOpen, onClose }) {
                         <CustomSelect
                             options={options}
                             value={specialization}
-                            onChange={(val) => {
-                                setSpecialization(val);
-                                validateField("specialization", val);
-                            }}
+                            onChange={handleSpecializationSelect}
                             placeholder="Select specialization"
                         />
                         {errors.specialization && (
@@ -223,7 +280,7 @@ export function AddTeacherModal({ isOpen, onClose }) {
                     <div className="flex justify-end gap-2 mt-2">
                         <Button type="button" onClick={handleClose} className="btn-secondary" disabled={loading}>Cancel</Button>
                         <Button type="submit" onClick={handleSubmit} className="btn-primary" disabled={loading}>
-                            {loading ? "Saving..." : "Create"}
+                            {loading ? "Saving..." : teacher ? "Save" : "Create"}
                         </Button>
                     </div>
                 </form>
