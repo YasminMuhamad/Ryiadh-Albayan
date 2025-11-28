@@ -1,8 +1,8 @@
-import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Button } from './Button';
-import { BookOpen } from 'lucide-react';
-import "../styles/globals.css";
+import React from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { BookOpen, UserCircle, LogOut } from "lucide-react";
+import { Button } from "./Button";
+import { useAuth } from "../context/AuthContext";
 
 export function Navbar() {
   const navigate = useNavigate();
@@ -11,12 +11,14 @@ export function Navbar() {
   const handleNavigation = (path) => {
     navigate(path);
   };
+  const { user, logout } = useAuth();
 
   const currentPage = location.pathname;
 
   return (
     <nav className="navbar">
       <div className="navbar-content">
+
         <div className="logo-section">
 
           <div className="flex items-center justify-center">
@@ -41,40 +43,45 @@ export function Navbar() {
         </div>
 
         <div className="nav-links">
-          <span
-            onClick={() => handleNavigation('/')}
-            className={`nav-item ${currentPage === '/' ? 'active' : ''}`}
-          >
+          <span onClick={() => navigate("/")} className={`nav-item ${currentPage === "/" ? "active" : ""}`}>
             Home
           </span>
 
-          <span
-            onClick={() => handleNavigation('/courses')}
-            className={`nav-item ${currentPage === '/courses' ? 'active' : ''}`}
-          >
+          <span onClick={() => navigate("/courses")} className={`nav-item ${currentPage === "/courses" ? "active" : ""}`}>
             Courses
           </span>
 
-          <span
-            onClick={() => handleNavigation('/contact')}
-            className={`nav-item ${currentPage === '/contact' ? 'active' : ''}`}
-          >
+          <span onClick={() => navigate("/contact")} className={`nav-item ${currentPage === "/contact" ? "active" : ""}`}>
             Contact
           </span>
 
           <div className="auth-buttons">
-            <span
-              onClick={() => handleNavigation('/login')}
-              className={`nav-item ${currentPage === '/login' ? 'active' : ''}`}
-            >
-              Login
-            </span>
-            <Button
-              onClick={() => handleNavigation('/signup')}
-              className="btn-primary"
-            >
-              Sign Up
-            </Button>
+
+            {!user ? (
+              <>
+                <span onClick={() => navigate("/login")} className="nav-item">
+                  Login
+                </span>
+                <Button onClick={() => navigate("/register")} className="btn-primary">
+                  Sign Up
+                </Button>
+              </>
+            ) : (
+              <>
+                <div
+                  onClick={() => navigate("/profile")}
+                  className="w-10 h-10 rounded-full bg-teal-600 text-white flex items-center justify-center cursor-pointer"
+                >
+                  <UserCircle size={22} />
+                </div>
+
+                <button onClick={logout} className="ml-3 text-teal-700 flex items-center">
+                  <LogOut size={18} />
+                  Logout
+                </button>
+              </>
+            )}
+
           </div>
         </div>
       </div>
