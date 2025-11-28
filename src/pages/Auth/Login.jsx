@@ -1,40 +1,75 @@
+// pages/Auth/Login.jsx
 import React, { useState } from "react";
 import AuthLayout from "../../components/AuthLayout";
 import AuthCard from "../../components/AuthCard";
-import AuthInput from "../../components/AuthInput";
-import PasswordInput from "../../components/PasswordInput";
-import PrimaryButton from "../../components/PrimaryButton";
 import { Link, useNavigate } from "react-router-dom";
 import { BookOpen } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { Button } from "../../components/Button";
+import PasswordInput from "../../components/PasswordInput";
 import toast from "react-hot-toast";
+
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
   const [loading, setLoading] = useState(false);
+  const [role, setRole] = useState("student");
+  const [errors, setErrors] = useState({ email: "", pass: "" });
 
   const { login } = useAuth();
   const navigate = useNavigate();
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const validateField = (name, value) => {
+    let message = "";
+    switch (name) {
+      case "email":
+        if (!value || !value.trim()) message = "Email is required";
+        else if (!emailRegex.test(value.trim())) message = "Invalid email format";
+        break;
+      case "pass":
+        if (!value || !value.trim()) message = "Password is required";
+        break;
+      default:
+        break;
+    }
+    setErrors((prev) => ({ ...prev, [name]: message }));
+    return message === "";
+  };
+
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
+    if (errors.email) validateField("email", e.target.value);
+  };
+
+  const handlePassChange = (e) => {
+    setPass(e.target.value);
+    if (errors.pass) validateField("pass", e.target.value);
+  };
+
+  const handleBlur = (field) => {
+    if (field === "email") validateField("email", email);
+    if (field === "pass") validateField("pass", pass);
+  };
 
   const handleLogin = async () => {
-    if (!email || !pass) {
-      toast.error("Please enter email and password");
-      return;
-    }
+    if (!validateField("email", email) || !validateField("pass", pass)) return;
 
     try {
       setLoading(true);
+      const userData = await login(email.trim().toLowerCase(), pass, role);
 
-      const userData = await login(email.trim().toLowerCase(), pass);
-      toast.success("Signed in successfully");
-
-      if (userData.role === "admin") navigate("/admin/dashboard");
-      else if (userData.role === "student") navigate("/student/profile");
-      else navigate("/teacher");
-
+      if (role === "teacher") {
+        toast.success("Teacher login successful");
+        navigate("/teacher/dashboard"); // ممكن تغيري لو عايزة
+      } else {
+        toast.success("Student login successful");
+        navigate("/student/profile");
+      }
     } catch (err) {
-      toast.error(err.message || "Login failed");
+      console.error("Login failed:", err);
+      toast.error(err.message || "Email or password is incorrect");
     } finally {
       setLoading(false);
     }
@@ -52,10 +87,61 @@ const Login = () => {
           <p className="text-gray-600 mb-6">Sign in to continue your learning journey</p>
         </div>
 
-        <AuthInput label="Email" placeholder="your.email@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <PasswordInput label="Password" placeholder="Enter your password" value={pass} onChange={(e) => setPass(e.target.value)} />
+        <label htmlFor="email">Email</label>
+        <input
+          id="email"
+          type="email"
+          placeholder="your.email@example.com"
+          value={email}
+          onChange={handleEmailChange}
+          onBlur={() => handleBlur("email")}
+          className={`${errors.email ? "border-red-500 border-2" : "border border-gray-300"} px-3 py-2 mb-1 w-full`}
+        />
+        {errors.email && <p className="text-red-500 text-sm mb-2">{errors.email}</p>}
 
-        <PrimaryButton text={loading ? "Signing In..." : "Sign In"} onClick={handleLogin} disabled={loading} />
+        <label htmlFor="password">Password</label>
+        <PasswordInput
+          id="password"
+          placeholder="Enter your password"
+          value={pass}
+          onChange={handlePassChange}
+          onBlur={() => handleBlur("pass")}
+          className={`${errors.pass ? "border-red-500 border-2" : "border border-gray-300"} px-3 py-2 mb-1 w-full`}
+        />
+        {errors.pass && <p className="text-red-500 text-sm mb-2">{errors.pass}</p>}
+
+        <div className="flex gap-4 mb-4">
+          <label className="flex items-center gap-2">
+            <input
+              type="radio"
+              name="role"
+              value="student"
+              checked={role === "student"}
+              onChange={() => setRole("student")}
+              className="form-radio"
+            />
+            Student
+          </label>
+
+          <label className="flex items-center gap-2">
+            <input
+              type="radio"
+              name="role"
+              value="teacher"
+              checked={role === "teacher"}
+              onChange={() => setRole("teacher")}
+              className="form-radio"
+            />
+            Teacher
+          </label>
+        </div>
+
+        <Button
+          className="btn-primary w-full mt-4"
+          title={loading ? "Signing In..." : "Sign In"}
+          onClick={handleLogin}
+          disabled={loading}
+        />
 
         <p className="text-center mt-3 text-sm">
           Don't have an account? <Link to="/register" className="text-[var(--primary)] font-medium">Sign up here</Link>

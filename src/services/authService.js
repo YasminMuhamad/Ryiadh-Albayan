@@ -1,72 +1,37 @@
 import { auth, db } from "./firebase";
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-} from "firebase/auth";
-import {
-  doc,
-  setDoc,
-  getDoc,
-  serverTimestamp,
-} from "firebase/firestore";
-
-// استخراج الرول من الإيميل
-export const getRoleFromEmail = (email) => {
-  if (email.includes("student")) return "student";
-  if (email.includes("admin")) return "admin";
-  return "teacher";
-};
-
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import { query, collection, where, getDocs } from "firebase/firestore";
 // تسجيل مستخدم جديد
-export const registerUser = async (fullname, email, password) => {
-  try {
-    const result = await createUserWithEmailAndPassword(auth, email, password);
-    const user = result.user;
+export const registerUser = async (fullname, email, password, role = "student") => {
+  const res = await createUserWithEmailAndPassword(auth, email, password);
 
-    const role = getRoleFromEmail(email);
+  const collectionName = role === "teacher" ? "teachers" : "users";
 
-    const userRef = doc(db, "users", user.uid);
+  await setDoc(doc(db, collectionName, res.user.uid), {
+    fullname,
+    email,
+    role,
+    createdAt: new Date()
+  });
 
-    await setDoc(userRef, {
-      uid: user.uid,
-      fullname,
-      email,
-      role,
-      createdAt: serverTimestamp(),
-    });
+  return { uid: res.user.uid, fullname, email, role };
+};
 
-    const savedDoc = await getDoc(userRef);
-    return savedDoc.data();
-  } catch (error) {
-    console.error(" Register Error:", error.code, error.message);
-    throw error;
+// تسجيل الدخول
+export const loginUser = async (email, password, role = "student") => {
+  const res = await signInWithEmailAndPassword(auth, email, password);
+
+  if (role === "teacher") {
+    const q = query(collection(db, "teachers"), where("email", "==", email));
+    const querySnap = await getDocs(q);
+    if (querySnap.empty) throw new Error("teacher not found in the database");
+
+    return querySnap.docs[0].data();
+  } else {
+    const docRef = doc(db, "users", res.user.uid);
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) throw new Error("student not found in the database");
+    return docSnap.data();
   }
 };
-
-
-// تسجيل دخول
-export const loginUser = async (email, password) => {
-  try {
-    const result = await signInWithEmailAndPassword(auth, email, password);
-    const user = result.user;
-
-    const userRef = doc(db, "users", user.uid);
-    const savedDoc = await getDoc(userRef);
-
-    return savedDoc.data();
-  } catch (error) {
-    console.error(" Login Error:", error.code, error.message);
-    throw error;
-  }
-};
-
-// جلب بيانات بروفايل
-export const getUserProfile = async (uid) => {
-  const userRef = doc(db, "users", uid);
-  const snap = await getDoc(userRef);
-  return snap.exists() ? snap.data() : null;
-};
-
-// تسجيل خروج
-export const logoutUser = () => signOut(auth);

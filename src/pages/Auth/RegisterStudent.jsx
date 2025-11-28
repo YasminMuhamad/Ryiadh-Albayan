@@ -1,53 +1,74 @@
 import React, { useState } from "react";
 import AuthLayout from "../../components/AuthLayout";
 import AuthCard from "../../components/AuthCard";
-import AuthInput from "../../components/AuthInput";
 import PasswordInput from "../../components/PasswordInput";
-import PrimaryButton from "../../components/PrimaryButton";
 import { Link, useNavigate } from "react-router-dom";
 import { BookOpen } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { Button } from "../../components/Button";
 import toast from "react-hot-toast";
 
-const RegisterStudent = () => {
+const Register = () => {
   const [fullname, setFullname] = useState("");
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
+  const [errors, setErrors] = useState({ fullname: "", email: "", pass: "", confirmPass: "" });
   const [loading, setLoading] = useState(false);
 
   const { register } = useAuth();
   const navigate = useNavigate();
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const validateField = (name, value) => {
+    let message = "";
+    switch (name) {
+      case "fullname":
+        if (!value.trim()) message = "Full name is required";
+        break;
+      case "email":
+        if (!value.trim()) message = "Email is required";
+        else if (!emailRegex.test(value.trim())) message = "Invalid email format";
+        break;
+      case "pass":
+        if (!value.trim()) message = "Password is required";
+        break;
+      case "confirmPass":
+        if (value !== pass) message = "Passwords do not match";
+        break;
+      default:
+        break;
+    }
+    setErrors(prev => ({ ...prev, [name]: message }));
+    return message === "";
+  };
+
+  const handleBlur = (field) => {
+    if (field === "fullname") validateField("fullname", fullname);
+    if (field === "email") validateField("email", email);
+    if (field === "pass") validateField("pass", pass);
+    if (field === "confirmPass") validateField("confirmPass", confirmPass);
+  };
 
   const handleRegister = async () => {
-    const cleanEmail = email.trim().toLowerCase();
-
-    if (!fullname || !cleanEmail || !pass || !confirmPass) {
-      toast.error("Please fill all fields");
-      return;
-    }
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
-      toast.error("Invalid email format");
-      return;
-    }
-
-    if (pass !== confirmPass) {
-      toast.error("Passwords do not match");
-      return;
-    }
+    let hasError = false;
+    if (!validateField("fullname", fullname)) hasError = true;
+    if (!validateField("email", email)) hasError = true;
+    if (!validateField("pass", pass)) hasError = true;
+    if (!validateField("confirmPass", confirmPass)) hasError = true;
+    if (hasError) return;
 
     try {
-      setLoading(true);
-      const userData = await register(fullname, cleanEmail, pass);
-      toast.success("Account created successfully");
-
-      if (userData.role === "admin") navigate("/admin/dashboard");
-      else if (userData.role === "student") navigate("/student/profile");
-      else navigate("/teacher");
-
+      const userData = await register(fullname, email.trim().toLowerCase(), pass, "student");
+      toast.success("Account created successfully!");
+      navigate("/student/profile");
     } catch (err) {
-      toast.error(err.message || "Registration failed");
+      if (err.code === "auth/email-already-in-use") {
+        toast.error("This email is already registered. Try logging in.");
+      } else {
+        toast.error(err.message || "Registration failed!");
+      }
+      console.error("Registration failed:", err);
     } finally {
       setLoading(false);
     }
@@ -60,25 +81,65 @@ const RegisterStudent = () => {
           <div className="w-12 h-12 bg-[var(--primary)] rounded-full flex items-center justify-center mb-4 text-white text-xl">
             <BookOpen />
           </div>
-
           <h2 className="text-xl font-semibold">Create an Account</h2>
           <p className="text-gray-600 mb-6">Join the learning platform now!</p>
         </div>
 
-        <AuthInput label="Full Name" placeholder="Enter your full name" value={fullname} onChange={(e) => setFullname(e.target.value)} />
-        <AuthInput label="Email" placeholder="your.email@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <PasswordInput label="Password" placeholder="Create your password" value={pass} onChange={(e) => setPass(e.target.value)} />
-        <PasswordInput label="Confirm Password" placeholder="Confirm your password" value={confirmPass} onChange={(e) => setConfirmPass(e.target.value)} />
+        <label>Full Name</label>
+        <input
+          type="text"
+          placeholder="Enter your full name"
+          value={fullname}
+          onChange={(e) => setFullname(e.target.value)}
+          onBlur={() => handleBlur("fullname")}
+          className={`${errors.fullname ? "border-red-500 border-2" : "border border-gray-300"} px-3 py-2 mb-1 w-full`}
+        />
+        {errors.fullname && <p className="text-red-500 text-sm mb-2">{errors.fullname}</p>}
 
-        <PrimaryButton text={loading ? "Creating account..." : "Sign Up"} onClick={handleRegister} disabled={loading} />
+        <label>Email</label>
+        <input
+          type="email"
+          placeholder="your.email@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          onBlur={() => handleBlur("email")}
+          className={`${errors.email ? "border-red-500 border-2" : "border border-gray-300"} px-3 py-2 mb-1 w-full`}
+        />
+        {errors.email && <p className="text-red-500 text-sm mb-2">{errors.email}</p>}
+
+        <label>Password</label>
+        <PasswordInput
+          placeholder="Enter your password"
+          value={pass}
+          onChange={(e) => setPass(e.target.value)}
+          onBlur={() => handleBlur("pass")}
+          className={`${errors.pass ? "border-red-500 border-2" : "border border-gray-300"} px-3 py-2 mb-1 w-full`}
+        />
+        {errors.pass && <p className="text-red-500 text-sm mb-2">{errors.pass}</p>}
+
+        <label>Confirm Password</label>
+        <PasswordInput
+          placeholder="Confirm your password"
+          value={confirmPass}
+          onChange={(e) => setConfirmPass(e.target.value)}
+          onBlur={() => handleBlur("confirmPass")}
+          className={`${errors.confirmPass ? "border-red-500 border-2" : "border border-gray-300"} px-3 py-2 mb-1 w-full`}
+        />
+        {errors.confirmPass && <p className="text-red-500 text-sm mb-2">{errors.confirmPass}</p>}
+
+        <Button
+          className="btn-primary w-full mt-4"
+          title={loading ? "Creating account..." : "Sign Up"}
+          onClick={handleRegister}
+          disabled={loading}
+        />
 
         <p className="text-center mt-3 text-sm">
-          Already have an account?{" "}
-          <Link to="/login" className="text-[var(--primary)] font-medium">Sign in here</Link>
+          Already have an account? <Link to="/login" className="text-[var(--primary)] font-medium">Sign in here</Link>
         </p>
       </AuthCard>
     </AuthLayout>
   );
 };
 
-export default RegisterStudent;
+export default Register;
