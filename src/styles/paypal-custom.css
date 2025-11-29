@@ -1,0 +1,61 @@
+/* PayPal Custom Styles - Hide Email and Phone Fields */
+
+/* Hide contact information fields in PayPal checkout */
+.paypal-checkout-sandbox iframe[title*="email"],
+.paypal-checkout-sandbox iframe[title*="phone"],
+.paypal-checkout iframe[title*="email"],
+.paypal-checkout iframe[title*="phone"] {
+  display: none !important;
+}
+
+/* Hide specific PayPal form elements */
+[data-testid="email-field"],
+[data-testid="phone-field"],
+[data-testid="contact-section"],
+.email-field,
+.phone-field,
+.contact-info,
+.billing-address,
+.shipping-address {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Hide email and phone input fields */
+input[type="email"],
+input[name*="email"],
+input[placeholder*="email"],
+input[placeholder*="Email"],
+input[type="tel"],
+input[name*="phone"],
+input[placeholder*="phone"],
+input[placeholder*="Phone"] {
+  display: none !important;
+}
+
+/* PayPal button container styling */
+.paypal-button-container {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Hide PayPal branding elements that show contact info */
+.paypal-checkout-sandbox .paypal-checkout-context-iframe,
+.paypal-checkout .paypal-checkout-context-iframe {
+  display: none !important;
+}
+
+/* Ensure PayPal iframe loads without contact fields */
+#paypal-button-container iframe {
+  min-height: 300px;
+}
+
+/* Hide any form sections that contain email/phone */
+form section:has(input[type="email"]),
+form section:has(input[type="tel"]),
+form .form-group:has(input[type="email"]),
+form .form-group:has(input[type="tel"]) {
+  display: none !important;
+}

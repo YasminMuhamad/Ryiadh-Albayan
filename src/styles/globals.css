@@ -1,6 +1,9 @@
 /* استيراد الخطوط */
 @import url("https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Amiri:wght@400;700&family=Poppins:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap");
 
+/* استيراد أنماط PayPal المخصصة */
+@import "./paypal-custom.css";
+
 /* متغيرات الثيم */
 :root {
   --background: #faf9f6;
@@ -107,6 +110,56 @@ body {
   color: var(--primary);
 }
 
+/* Cart Badge Styles */
+.cart-badge {
+  position: absolute;
+  top: -8px;
+  right: -12px;
+  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 50%;
+  min-width: 18px;
+  min-height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+  animation: cart-badge-pulse 2s infinite;
+  z-index: 10;
+}
+
+@keyframes cart-badge-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 3px 12px rgba(255, 107, 107, 0.5);
+  }
+}
+
+/* Cart Button Animation */
+@keyframes cart-button-success {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2) rotate(5deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.cart-button-added {
+  animation: cart-button-success 0.6s ease-out;
+}
+
+/* Gradient hover effects */
+.cart-gradient-hover:hover {
+  background: linear-gradient(135deg, #14b8a6, #0f766e);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(20, 184, 166, 0.3);
+}
+
 .auth-buttons {
   display: flex;
   gap: 10px;
@@ -126,4 +179,142 @@ body {
 .btn-primary:hover {
   background-color: var(--primary);
   opacity: 0.9;
+}
+
+.btn-secondary {
+  background-color: var(--background);
+  /* color: black; */
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  border: 1px solid #DBE9E5;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn-secondary:hover {
+  background-color: var(--secondary);
+  color: black;
+  opacity: 0.9;
+}
+
+/* sidebar.css */
+.sidebar {
+  width: 240px;
+  height: calc(100vh - 60px);
+  background-color: var(--sidebar); 
+  color: var(--sidebar-foreground);
+  border-right: 1px solid #DBE9E5;
+  z-index: 20;
+  position: fixed;
+  top: 70px;
+  left: 0;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  transition: all 0.3s ease-in-out;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.sidebar-logo {
+  color: var(--sidebar-primary-foreground);
+  font-size: 24px;
+  margin-right: 10px;
+}
+
+.sidebar-links {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  margin-bottom: 10px;
+  border-radius: 15px;
+  color: var(--sidebar-foreground);
+  background-color: transparent;
+  transition: background-color 0.3s ease;
+}
+
+.sidebar-item:hover {
+  background-color: #E9D8A6;
+}
+
+.sidebar-item.active {
+  background-color: #0E7C7B !important;
+  color: white;
+}
+
+.sidebar-icon {
+  margin-right: 10px;
+  font-size: 20px;
+}
+
+.card {
+  display: inline-block;
+  background-color: #ffffff;
+  border-radius: 22px;
+  border: 1px solid #DBE9E5; 
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin: 5px 0;
+  transition: all 0.3s ease;
+  vertical-align: top;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* .card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+} */
+
+.card-content {
+  font-size: 14px;
+  color: #333333;
+  margin-bottom: 15px;
+}
+
+.card-stats {
+  margin-bottom: 15px;
+}
+
+input {
+  background-color: #F5F3ED;
+  width: 50%;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 12px;
+  outline: none;
+  transition: box-shadow 0.3s ease;
+}
+
+input:focus {
+  outline: black;
+  box-shadow: 0 0 0 4px rgba(14, 124, 123, 0.5);
+}
+
+@keyframes slide-in {
+  0% { transform: translateX(100%); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(-10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-out forwards;
 }
