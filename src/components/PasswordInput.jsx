@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
-const PasswordInput = ({ placeholder, value, onChange }) => {
+const PasswordInput = ({ placeholder, onBlur, value, onChange }) => {
   const [show, setShow] = useState(false);
 
   return (
@@ -10,6 +10,7 @@ const PasswordInput = ({ placeholder, value, onChange }) => {
         type={show ? "text" : "password"}
         placeholder={placeholder}
         value={value}
+        onBlur={onBlur}
         onChange={onChange}
         className="w-full pr-10 px-3 py-2"
       />

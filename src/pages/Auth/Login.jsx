@@ -9,12 +9,10 @@ import { Button } from "../../components/Button";
 import PasswordInput from "../../components/PasswordInput";
 import toast from "react-hot-toast";
 
-
 const Login = () => {
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
   const [loading, setLoading] = useState(false);
-  const [role, setRole] = useState("student");
   const [errors, setErrors] = useState({ email: "", pass: "" });
 
   const { login } = useAuth();
@@ -34,23 +32,8 @@ const Login = () => {
       default:
         break;
     }
-    setErrors((prev) => ({ ...prev, [name]: message }));
+    setErrors(prev => ({ ...prev, [name]: message }));
     return message === "";
-  };
-
-  const handleEmailChange = (e) => {
-    setEmail(e.target.value);
-    if (errors.email) validateField("email", e.target.value);
-  };
-
-  const handlePassChange = (e) => {
-    setPass(e.target.value);
-    if (errors.pass) validateField("pass", e.target.value);
-  };
-
-  const handleBlur = (field) => {
-    if (field === "email") validateField("email", email);
-    if (field === "pass") validateField("pass", pass);
   };
 
   const handleLogin = async () => {
@@ -58,14 +41,18 @@ const Login = () => {
 
     try {
       setLoading(true);
-      const userData = await login(email.trim().toLowerCase(), pass, role);
+      const res = await login(email.trim().toLowerCase(), pass); // returns { role, profile, uid }
+      const role = res.role;
 
       if (role === "teacher") {
         toast.success("Teacher login successful");
-        navigate("/teacher/dashboard"); // ممكن تغيري لو عايزة
+        navigate("/teacher/dashboard");
+      } else if (role === "admin") {
+        toast.success("Admin login successful");
+        navigate("/admin/dashboard");
       } else {
         toast.success("Student login successful");
-        navigate("/student/profile");
+        navigate("/student/dashboard");
       }
     } catch (err) {
       console.error("Login failed:", err);
@@ -93,8 +80,12 @@ const Login = () => {
           type="email"
           placeholder="your.email@example.com"
           value={email}
-          onChange={handleEmailChange}
-          onBlur={() => handleBlur("email")}
+          onBlur={() => validateField("email", email)}
+          onChange={e => {
+            const v = e.target.value;
+            setEmail(v);
+            validateField("email", v); // validate as user types
+          }}
           className={`${errors.email ? "border-red-500 border-2" : "border border-gray-300"} px-3 py-2 mb-1 w-full`}
         />
         {errors.email && <p className="text-red-500 text-sm mb-2">{errors.email}</p>}
@@ -104,37 +95,11 @@ const Login = () => {
           id="password"
           placeholder="Enter your password"
           value={pass}
-          onChange={handlePassChange}
-          onBlur={() => handleBlur("pass")}
+          onBlur={() => validateField("pass", pass)}
+          onChange={e => setPass(e.target.value)}
           className={`${errors.pass ? "border-red-500 border-2" : "border border-gray-300"} px-3 py-2 mb-1 w-full`}
         />
         {errors.pass && <p className="text-red-500 text-sm mb-2">{errors.pass}</p>}
-
-        <div className="flex gap-4 mb-4">
-          <label className="flex items-center gap-2">
-            <input
-              type="radio"
-              name="role"
-              value="student"
-              checked={role === "student"}
-              onChange={() => setRole("student")}
-              className="form-radio"
-            />
-            Student
-          </label>
-
-          <label className="flex items-center gap-2">
-            <input
-              type="radio"
-              name="role"
-              value="teacher"
-              checked={role === "teacher"}
-              onChange={() => setRole("teacher")}
-              className="form-radio"
-            />
-            Teacher
-          </label>
-        </div>
 
         <Button
           className="btn-primary w-full mt-4"

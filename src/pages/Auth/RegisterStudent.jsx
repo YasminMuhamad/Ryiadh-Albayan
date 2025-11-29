@@ -101,7 +101,11 @@ const Register = () => {
           type="email"
           placeholder="your.email@example.com"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={e => {
+            const v = e.target.value;
+            setEmail(v);
+            validateField("email", v); // validate as user types
+          }}
           onBlur={() => handleBlur("email")}
           className={`${errors.email ? "border-red-500 border-2" : "border border-gray-300"} px-3 py-2 mb-1 w-full`}
         />
@@ -111,7 +115,12 @@ const Register = () => {
         <PasswordInput
           placeholder="Enter your password"
           value={pass}
-          onChange={(e) => setPass(e.target.value)}
+          onChange={(e) => {
+            const v = e.target.value;
+            setPass(v);
+            validateField("pass", v);
+            if (confirmPass) validateField("confirmPass", confirmPass);
+          }}
           onBlur={() => handleBlur("pass")}
           className={`${errors.pass ? "border-red-500 border-2" : "border border-gray-300"} px-3 py-2 mb-1 w-full`}
         />
@@ -121,7 +130,11 @@ const Register = () => {
         <PasswordInput
           placeholder="Confirm your password"
           value={confirmPass}
-          onChange={(e) => setConfirmPass(e.target.value)}
+          onChange={e => {
+            const v = e.target.value;
+            setConfirmPass(v);
+            validateField("confirmPass", v); // validate as user types
+          }}
           onBlur={() => handleBlur("confirmPass")}
           className={`${errors.confirmPass ? "border-red-500 border-2" : "border border-gray-300"} px-3 py-2 mb-1 w-full`}
         />
