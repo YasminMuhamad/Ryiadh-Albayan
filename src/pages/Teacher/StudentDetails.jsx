@@ -1,8 +1,34 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../../../firebase.config";
 
-export default function StudentDetailsPage({ student, onBack }) {
-  const [openCourse, setOpenCourse] = useState(null);
-  const [openExam, setOpenExam] = useState(null);
+export default function StudentDetailsPage({ studentId, onBack }) {
+  const [student, setStudent] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchStudent() {
+      try {
+        const docRef = doc(db, "users", studentId); // collection "users"
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          setStudent({ id: docSnap.id, ...docSnap.data() });
+        } else {
+          console.error("No such student!");
+        }
+      } catch (err) {
+        console.error("Error fetching student:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (studentId) fetchStudent();
+  }, [studentId]);
+
+  if (loading) return <p>Loading...</p>;
+  if (!student) return <p>Student not found.</p>;
 
   return (
     <div className="p-6 font-sans space-y-6">
@@ -13,66 +39,28 @@ export default function StudentDetailsPage({ student, onBack }) {
         Back to Students
       </button>
 
-      {/* Student Card */}
+      {/* Student Info */}
       <div className="bg-[var(--card)] rounded-xl shadow p-6 flex flex-col md:flex-row items-center gap-6">
-        <div className="h-20 w-20 bg-[var(--primary)] rounded-full flex items-center justify-center text-white text-2xl font-semibold">
-          {student.name[0]}
+        <div className="h-20 w-20 rounded-full overflow-hidden flex items-center justify-center">
+          <img
+            src={student.profile_pic || "https://via.placeholder.com/80"}
+            alt={student.name}
+            className="h-full w-full object-cover"
+          />
         </div>
         <div className="flex-1">
           <h1 className="text-2xl font-semibold">{student.name}</h1>
           <p className="text-gray-500">{student.email}</p>
+          <p className="text-gray-500">Term: {student.term}</p>
+          <p className="text-gray-500">Year: {student.year}</p>
+          <p className="text-gray-500">Courses Count: {student.coursesCount}</p>
+          <p className="text-gray-500">
+            Subscription Status: {student.subscriptionStatus}
+          </p>
+          <p className="text-gray-500">
+            Created At: {student.createdAt?.toDate().toLocaleDateString()}
+          </p>
         </div>
-      </div>
-
-      {/* Courses */}
-      <div className="space-y-4">
-        {student.enrolledCourses.map((course) => (
-          <div key={course} className="bg-[var(--card)] rounded-xl shadow p-4">
-            <button
-              className="w-full text-left font-semibold text-lg flex justify-between items-center"
-              onClick={() =>
-                setOpenCourse(openCourse === course ? null : course)
-              }
-            >
-              {course} <span>{openCourse === course ? "▲" : "▼"}</span>
-            </button>
-
-            {openCourse === course && (
-              <ul className="mt-2 space-y-2">
-                {student.exams[course]?.map((exam, idx) => (
-                  <li
-                    key={idx}
-                    className="border rounded-md p-3 flex flex-col md:flex-row md:justify-between md:items-center gap-2"
-                  >
-                    <div>
-                      <p className="font-semibold">{exam.title}</p>
-                      <p className="text-sm text-gray-500">
-                        Score: {exam.score ?? "Not graded"} |{" "}
-                        {exam.solved ? "Solved" : "Not Solved"}
-                      </p>
-                    </div>
-                    <button
-                      className="mt-2 md:mt-0 px-3 py-1 border rounded-md text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition"
-                      onClick={() =>
-                        setOpenExam(openExam === exam ? null : exam)
-                      }
-                    >
-                      View Answers
-                    </button>
-
-                    {openExam === exam && (
-                      <ul className="mt-2 ml-4 list-disc space-y-1">
-                        {exam.answers.map((ans, i) => (
-                          <li key={i}>{ans}</li>
-                        ))}
-                      </ul>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        ))}
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import { Footer } from "./components/Footer.jsx";
 import CourseDetails from "../src/pages/Courses/CourseDetails.jsx";
 import Contact from "../src/pages/Contact/Contact.jsx";
 import './styles/globals.css'; 
+import { TeacherProvider } from "./context/TeacherContext.jsx";
 import TeacherDashboard from "./pages/Teacher/TeacherDashboard.jsx";
 import LiveSessions from "./pages/Teacher/LiveSessions";
 import Profile from "./pages/Teacher/Profile";
@@ -21,6 +22,7 @@ export default function App() {
     <Router>
       <Navbar />
       <div className="pt-16">
+        <TeacherProvider>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/courses" element={<Courses />} />
@@ -34,6 +36,7 @@ export default function App() {
           <Route path="/courses/:id" element={<CourseDetails />} />
           <Route path="/admin" element={<AdminShell />} />
         </Routes>
+        </TeacherProvider>
       </div>
       <Footer />
     </Router>

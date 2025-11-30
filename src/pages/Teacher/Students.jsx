@@ -1,76 +1,90 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import StudentDetailsPage from "./StudentDetails.jsx";
-import Sidebar from "../../components/TeacherSidebar.jsx"; // <-- استيراد Sidebar
+import Sidebar from "../../components/TeacherSidebar.jsx";
+
+// Firebase
+import { db } from "../../../firebase.config";
+import { collection, getDocs } from "firebase/firestore";
+
+// Teacher Context
+import { TeacherContext } from "../../context/TeacherContext.jsx";
 
 export default function StudentsPage() {
-  const mockCourses = ["Mathematics", "Physics", "Chemistry"];
-  const mockStudents = [
-    {
-      id: 1,
-      name: "Ahmed Ali",
-      email: "ahmed@example.com",
-      enrolledCourses: ["Mathematics", "Physics"],
-      progress: { "Mathematics": 70, "Physics": 50 },
-      exams: {
-        "Mathematics": [
-          { title: "Math Test 1", answers: ["A", "B", "C", "D"], score: 70, solved: true },
-          { title: "Math Test 2", answers: ["B", "A", "D", "C"], score: 80, solved: true },
-        ],
-        "Physics": [
-          { title: "Physics Quiz 1", answers: ["True", "False", "True"], score: 50, solved: false },
-        ],
-      },
-    },
-    {
-      id: 2,
-      name: "Laila Mohamed",
-      email: "layla@example.com",
-      enrolledCourses: ["Chemistry"],
-      progress: { "Chemistry": 80 },
-      exams: {
-        "Chemistry": [
-          { title: "Chemistry Midterm", answers: ["C", "D", "A", "B"], score: 80, solved: true },
-        ],
-      },
-    },
-    {
-      id: 3,
-      name: "Omar Hassan",
-      email: "omar@example.com",
-      enrolledCourses: ["Mathematics", "Chemistry"],
-      progress: { "Mathematics": 90, "Chemistry": 60 },
-      exams: {},
-    },
-  ];
+  const { teacher } = useContext(TeacherContext);
+  const teacherId = teacher?.id;
 
+  const [students, setStudents] = useState([]);
+  const [courses, setCourses] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCourse, setFilterCourse] = useState("all");
   const [selectedStudent, setSelectedStudent] = useState(null);
 
-  if (selectedStudent) {
-    return (
-      <StudentDetailsPage
-        student={selectedStudent}
-        onBack={() => setSelectedStudent(null)}
-      />
-    );
-  }
+  // ---------------------- Fetch Students ----------------------
+  useEffect(() => {
+    if (!teacherId) return;
 
-  const filteredStudents = mockStudents.filter((student) => {
-    const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const fetchStudents = async () => {
+      try {
+        const snap = await getDocs(collection(db, "users")); // collection "users"
+        let data = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+        // فلترة الطلاب حسب المدرس الحالي
+        data = data.filter((student) => student.teacherId === teacherId);
+
+        setStudents(data);
+      } catch (error) {
+        console.log("Error fetching students:", error);
+      } 
+    };
+
+    fetchStudents();
+  }, [teacherId]);
+
+  // ---------------------- Fetch Courses ----------------------
+  useEffect(() => {
+    if (!teacherId) return;
+
+    const fetchCourses = async () => {
+      try {
+        const snap = await getDocs(collection(db, "courses"));
+        let data = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+        // فلترة الكورسات حسب المدرس الحالي
+        data = data.filter((course) => course.teacherId === teacherId);
+
+        setCourses(data.map((c) => c.name));
+      } catch (error) {
+        console.log("Error fetching courses:", error);
+      }
+    };
+
+    fetchCourses();
+  }, [teacherId]);
+
+  // ---------------------- Filter Students ----------------------
+  const filteredStudents = students.filter((student) => {
+    const matchesSearch = student.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+
     const matchesCourse =
-      filterCourse === "all" || student.enrolledCourses.includes(filterCourse);
+      filterCourse === "all" || student.enrolledCourses?.includes(filterCourse);
+
     return matchesSearch && matchesCourse;
   });
 
-  const totalStudents = mockStudents.length;
-  const newThisMonth = 2;
-  const allProgress = mockStudents.flatMap((s) => Object.values(s.progress));
+  // ---------------------- Stats ----------------------
+  const totalStudents = students.length;
+  const newThisMonth = students?.filter((s) => s.createdAt)?.length || 0;
+  const allProgress = students.flatMap((s) =>
+    s.progress ? Object.values(s.progress) : []
+  );
   const avgProgress =
     allProgress.length > 0
       ? Math.round(allProgress.reduce((a, b) => a + b, 0) / allProgress.length)
       : 0;
 
+  // ------------------ UI Components ------------------
   const StatCard = ({ title, value }) => (
     <div className="bg-[var(--card)] shadow rounded-xl p-6 text-center">
       <p className="text-sm text-gray-500 mb-2">{title}</p>
@@ -79,9 +93,12 @@ export default function StudentsPage() {
   );
 
   const StudentCard = ({ student }) => {
+    const progressValues = student.progress
+      ? Object.values(student.progress)
+      : [0];
+
     const studentAvgProgress = Math.round(
-      Object.values(student.progress).reduce((a, b) => a + b, 0) /
-        Object.values(student.progress).length
+      progressValues.reduce((a, b) => a + b, 0) / progressValues.length
     );
 
     return (
@@ -95,13 +112,20 @@ export default function StudentsPage() {
             <p className="text-sm text-gray-500">{student.email}</p>
           </div>
         </div>
+
         <div className="flex flex-col md:flex-row items-center gap-4">
           <p className="text-sm">
-            Courses: <span className="font-semibold">{student.enrolledCourses.length}</span>
+            Courses:{" "}
+            <span className="font-semibold">
+              {student.enrolledCourses?.length || 0}
+            </span>
           </p>
+
           <p className="text-sm">
-            Avg Progress: <span className="font-semibold">{studentAvgProgress}%</span>
+            Avg Progress:{" "}
+            <span className="font-semibold">{studentAvgProgress}%</span>
           </p>
+
           <button
             className="px-3 py-1 border rounded-md text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition"
             onClick={() => setSelectedStudent(student)}
@@ -113,16 +137,24 @@ export default function StudentsPage() {
     );
   };
 
+  if (selectedStudent) {
+    return (
+      <StudentDetailsPage
+        studentId={selectedStudent.id} // نمرر ID للصفحة
+        onBack={() => setSelectedStudent(null)}
+      />
+    );
+  }
+
   return (
     <div className="flex min-h-screen bg-[var(--background)]">
-      {/* Sidebar */}
       <Sidebar />
 
-      {/* Main Content */}
       <div className="flex-1 p-6 space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <h1 className="text-3xl font-semibold heading-1">Students</h1>
+
           <div className="flex gap-2">
             <input
               type="text"
@@ -131,13 +163,14 @@ export default function StudentsPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-3 border rounded-lg w-64 p-2"
             />
+
             <select
               value={filterCourse}
               onChange={(e) => setFilterCourse(e.target.value)}
               className="border rounded-lg p-2"
             >
               <option value="all">All Courses</option>
-              {mockCourses.map((course) => (
+              {courses.map((course) => (
                 <option key={course} value={course}>
                   {course}
                 </option>

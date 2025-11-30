@@ -53,27 +53,119 @@
   },
   "courses": {
     "C001": {
-      "courseId": "C001",
-      "title": "Mathematics - Grade 10",
-      "description": "A comprehensive math course for grade 10 students.",
-      "price": 400,
-      "type": "semester",
-      "teacherId": "T001",
-      "termId": "S001",
-      "videos": [
-        {
-          "title": "Algebra Basics",
-          "url": "https://firebasestorage.googleapis.com/demo-video"
+  "courseId": "course_001",
+ "title": "Foundations of Islamic Studies",
+  "title_ar": "أساسيات العلوم الشرعية",
+  "description": "A structured course introducing Quranic sciences, Hadith fundamentals, Aqeedah basics, Fiqh principles, and Islamic ethics.",
+  "price": 199,
+  "thumbnail": "https://example.com/thumbnails/ai_course.jpg",
+  "teacherId": "teacher_123",
+  "category": "Islamic Studies",
+  "totalLessons": 1,
+  "totalModules": 1,
+  "studentsCount": 2,
+  "revenueTotal": 398,
+  "avgCompletion": 50,
+  "avgSatisfaction": 4.5,
+  "modules": {
+    "module_001": {
+      "title": "Module 1: Quranic Sciences",
+      "title_ar": "الوحدة 1: علوم القرآن",
+      "moduleOrder": 1,
+      "lessons": {
+        "lesson_001": {
+          "title": "Introduction to the Quran",
+          "title_ar": "مقدمة عن القرآن الكريم",
+          "lessonOrder": 1,
+          "materials": [
+            { "title": "Lecture Notes", "file": "https://example.com/materials/lesson1_notes.pdf" }
+          ],
+          "video": { "title": "Intro Video", "file": "https://example.com/videos/lesson1_intro.mp4" },
+          "liveSession": {
+            "title": "Live Q&A",
+            "dateTime": "2025-12-01T10:00:00Z",
+            "duration": 60,
+            "link": "https://zoom.us/j/123456789",
+            "status": "completed",
+            "attendanceCount": 2,
+            "attendance": {
+              "student_001": {
+                "status": "attended",
+                "studentRef": "users/student_001",
+                "studentName": "Ahmed Ali",
+                "timestamp": "2025-12-01T10:05:00Z"
+              },
+              "student_002": {
+                "status": "absent",
+                "studentRef": "users/student_002",
+                "studentName": "Sara Mohamed",
+                "timestamp": null
+              }
+            }
+          }
         }
-      ],
-      "materials": [
-        {
-          "title": "Math Book PDF",
-          "file": "https://firebasestorage.googleapis.com/demo-pdf"
+      },
+      "quizzes": {
+        "quiz_001": {
+           "title": "Quiz on Quranic Sciences",
+          "title_ar": "اختبار الوحدة: علوم القرآن",
+          "totalMarks": 10,
+          "questionsList": [
+            {
+              "question": "What does 'Makki Surah' mean?",
+              "options": [
+                "A Surah revealed in Makkah",
+                "A Surah about migration",
+                "A Surah with long verses"
+              ],
+              "correctAnswer": "A Surah revealed in Makkah"
+            },
+            {
+              "question": "How was the Quran preserved?",
+              "options": [
+                "Through memorization and written manuscripts",
+                "Only through oral tradition",
+                "Only through written books"
+              ],
+              "correctAnswer": "Through memorization and written manuscripts"
+            }
+          ],
+          "submissionsCount": 1,
+          "submissions": {
+            "student_001": {
+              "status": "submitted",
+              "studentRef": "users/student_001",
+              "studentName": "Ahmed Ali",
+              "score": 8,
+              "submittedAt": "2025-12-01T12:00:00Z"
+            },
+            "student_002": {
+              "status": "notSubmitted",
+              "studentRef": "users/student_002",
+              "studentName": "Sara Mohamed",
+              "score": null,
+              "submittedAt": null
+            }
+          }
         }
-      ],
-      "createdAt": "2025-11-12T10:00:00Z"
+      }
     }
+  },
+  "reviews": [
+    {
+      "studentId": "student_001",
+      "rating": 5,
+      "comment": "Great course!",
+      "createdAt": "2025-12-02T08:00:00Z"
+    },
+    {
+      "studentId": "student_002",
+      "rating": 4,
+      "comment": "Very informative.",
+      "createdAt": "2025-12-02T09:00:00Z"
+    }
+  ]
+}
   },
   "academic_schedules": {
     "S001": {
