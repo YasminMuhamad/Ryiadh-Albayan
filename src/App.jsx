@@ -7,6 +7,9 @@ import CourseDetails from "../src/pages/Courses/CourseDetails.jsx";
 import Contact from "../src/pages/Contact/Contact.jsx";
 import Login from "../src/pages/Auth/Login.jsx";
 import Register from "../src/pages/Auth/RegisterStudent.jsx";
+import Cart from "../src/pages/Cart/Cart.jsx";
+import Checkout from "../src/pages/Checkout/Checkout.jsx";
+import PaymentSuccess from "../src/pages/Checkout/PaymentSuccess.jsx";
 
 import ProtectedRoute from "../src/router.jsx";
 import { AuthProvider, useAuth } from "../src/context/AuthContext.jsx";
@@ -61,6 +64,9 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/courses/:id" element={<CourseDetails />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/checkout/:id" element={<Checkout />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
 
             {/* صفحة الأدمن */}
             <Route path="/admin/*" element={<AdminShell />} />
