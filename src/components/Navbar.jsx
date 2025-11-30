@@ -1,12 +1,12 @@
-import React from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { BookOpen, UserCircle, LogOut } from "lucide-react";
-import { Button } from "./Button";
-import { useAuth } from "../context/AuthContext";
+import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Button } from './Button'; 
+import { BookOpen } from 'lucide-react';
+import "../styles/globals.css";
 
 export function Navbar() {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const navigate = useNavigate(); 
+  const location = useLocation(); 
 
   const handleNavigation = (path) => {
     navigate(path);
@@ -14,6 +14,24 @@ export function Navbar() {
   const { user, logout } = useAuth();
 
   const currentPage = location.pathname;
+
+  // Update cart count
+  const updateCartCount = () => {
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    setCartCount(cart.length);
+  };
+
+  useEffect(() => {
+    // Initial count
+    updateCartCount();
+    
+    // Listen for cart updates
+    window.addEventListener('cartUpdated', updateCartCount);
+    
+    return () => {
+      window.removeEventListener('cartUpdated', updateCartCount);
+    };
+  }, []);
 
   return (
     <nav className="navbar">
@@ -55,33 +73,34 @@ export function Navbar() {
             Contact
           </span>
 
-          <div className="auth-buttons">
-
-            {!user ? (
-              <>
-                <span onClick={() => navigate("/login")} className="nav-item">
-                  Login
+          {/* Cart Button */}
+          <div className="relative">
+            <span
+              onClick={() => handleNavigation('/cart')}
+              className={`nav-item flex items-center ${currentPage === '/cart' ? 'active' : ''}`}
+            >
+              <ShoppingCart size={20} />
+              {cartCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-teal-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {cartCount}
                 </span>
-                <Button onClick={() => navigate("/register")} className="btn-primary">
-                  Sign Up
-                </Button>
-              </>
-            ) : (
-              <>
-                <div
-                  onClick={() => navigate("/profile")}
-                  className="w-10 h-10 rounded-full bg-teal-600 text-white flex items-center justify-center cursor-pointer"
-                >
-                  <UserCircle size={22} />
-                </div>
+              )}
+            </span>
+          </div>
 
-                <button onClick={logout} className="ml-3 text-teal-700 flex items-center">
-                  <LogOut size={18} />
-                  Logout
-                </button>
-              </>
-            )}
-
+          <div className="auth-buttons">
+            <span
+              onClick={() => handleNavigation('/login')}
+              className={`nav-item ${currentPage === '/login' ? 'active' : ''}`}
+            >
+              Login
+            </span>
+            <Button
+              onClick={() => handleNavigation('/signup')}
+              className="btn-primary"
+            >
+              Sign Up
+            </Button>
           </div>
         </div>
       </div>

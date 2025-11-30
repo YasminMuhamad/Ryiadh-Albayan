@@ -1,13 +1,19 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
-const CATEGORIES = ["All Categories", "Quran", "Arabic Language", "Islamic Studies"];
-
-export default function CategoryDropdown({ value, onChange }) {
+export default function CategoryDropdown({ value, onChange, categories = [] }) {
   const [isOpen, setIsOpen] = useState(false);
   const toggleOpen = () => setIsOpen((v) => !v);
 
+  const options = useMemo(() => {
+    const items = Array.isArray(categories) ? categories : [];
+    const cleaned = items
+      .map((c) => (c?.name ? String(c.name) : typeof c === "string" ? c : ""))
+      .filter(Boolean);
+    return ["All Categories", ...Array.from(new Set(cleaned))];
+  }, [categories]);
+
   const handleSelect = (cat) => {
-    onChange?.(cat);      // نبعت الاختيار للأب
+    onChange?.(cat);
     setIsOpen(false);
   };
 
@@ -16,7 +22,7 @@ export default function CategoryDropdown({ value, onChange }) {
       <button
         type="button"
         onClick={toggleOpen}
-        className="w-full flex items-center justify-between bg-[#fdfbf7] rounded-full px-5 py-3 shadow-lg text-sm font-semibold text-gray-900"
+        className="w-full flex items-center justify-between bg-[#fdfbf7] rounded-full px-5 py-3 shadow-lg text-sm font-semibold text-gray-900 hover:shadow-xl transition-shadow"
       >
         <span>{value}</span>
         <svg className={`w-4 h-4 text-gray-500 transition-transform ${isOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -25,8 +31,8 @@ export default function CategoryDropdown({ value, onChange }) {
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 right-0 mt-2 rounded-3xl bg-white shadow-lg overflow-hidden z-20">
-          {CATEGORIES.map((cat) => {
+        <div className="absolute left-0 right-0 mt-2 rounded-3xl bg-white shadow-xl border border-gray-100 overflow-hidden z-20 animate-fadeIn">
+          {options.map((cat) => {
             const isSelected = cat === value;
             return (
               <button
