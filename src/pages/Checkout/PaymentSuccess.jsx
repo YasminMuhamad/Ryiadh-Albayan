@@ -64,7 +64,7 @@ export default function PaymentSuccess() {
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={() =>
-                    navigate(primaryCourse?.id ? `/course/${primaryCourse.id}` : '/courses', {
+                    navigate(primaryCourse?.id ? `/courses/${primaryCourse.id}` : '/courses', {
                       state: { fromPaymentSuccess: true },
                     })
                   }

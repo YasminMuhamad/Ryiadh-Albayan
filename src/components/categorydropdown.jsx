@@ -9,7 +9,17 @@ export default function CategoryDropdown({ value, onChange, categories = [] }) {
     const cleaned = items
       .map((c) => (c?.name ? String(c.name) : typeof c === "string" ? c : ""))
       .filter(Boolean);
-    return ["All Categories", ...Array.from(new Set(cleaned))];
+    const seen = new Set();
+    const unique = [];
+    cleaned.forEach((cat) => {
+      const key = cat.trim().toLowerCase();
+      if (key === "all categories") return; // تفادي التكرار إذا جاء من الداتا
+      if (!seen.has(key)) {
+        seen.add(key);
+        unique.push(cat);
+      }
+    });
+    return ["All Categories", ...unique];
   }, [categories]);
 
   const handleSelect = (cat) => {

@@ -207,7 +207,7 @@ export default function Cart() {
                         </span>
                         <div className="flex gap-2">
                           <button
-                            onClick={() => navigate(`/course/${course.id}`)}
+                            onClick={() => navigate(`/courses/${course.id}`)}
                             className="px-4 py-2 text-teal-600 border border-teal-600 rounded-lg hover:bg-teal-50 transition-colors text-sm"
                           >
                             View Details
