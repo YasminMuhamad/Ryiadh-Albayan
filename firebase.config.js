@@ -1,7 +1,9 @@
-// firebaseConfig.js
-import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-import { getDatabase } from "firebase/database";
+// Import the functions you need from the SDKs you need
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+import { getFirestore  } from "firebase/firestore";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -15,9 +17,9 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);      // Firestore
-const database = getDatabase(app);  // Realtime Database (لو هتستخدميه)
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const analytics = getAnalytics(app);
+// Initialize Firestore
+const db = getFirestore(app);
 
-// Export
-export { app, db, database };
+export { db, app, analytics };
