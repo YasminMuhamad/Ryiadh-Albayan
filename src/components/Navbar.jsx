@@ -109,8 +109,10 @@ export function Navbar() {
                     {profile.profile_pic ? (
                       <img
                         src="/placeholder-avatar.png"
+                        height={'20px'}
+                        width={'20px'}
                         alt={profile.name || "User"}
-                        className="nav-item"
+                        className="nav-item rounded-xl"
                       />
                     ) : (
                       <UserCircle size={26} className="text-teal-600" />
