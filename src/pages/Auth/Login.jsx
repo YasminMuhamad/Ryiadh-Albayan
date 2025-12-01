@@ -36,6 +36,34 @@ const Login = () => {
     return message === "";
   };
 
+  const handleLogin = async () => {
+    if (loading) return;
+    
+    if (!validateField("email", email) || !validateField("pass", pass)) return;
+
+    try {
+      setLoading(true);
+      const res = await login(email.trim().toLowerCase(), pass); // returns { role, profile, uid }
+      const role = res.role;
+
+      if (role === "teacher") {
+        toast.success("Teacher login successful");
+        navigate("/teacher/dashboard");
+      } else if (role === "admin") {
+        toast.success("Admin login successful");
+        navigate("/admin/dashboard");
+      } else {
+        toast.success("Student login successful");
+        navigate("/student/dashboard");
+      }
+    } catch (err) {
+      console.error("Login failed:", err);
+      toast.error("Email or password is incorrect");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <AuthLayout>
       <AuthCard>
