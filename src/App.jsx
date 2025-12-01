@@ -22,6 +22,7 @@ import Loader from "./components/Loader";
 import StudentProfile from "./pages/Student/Profile";
 import TeacherProfile from "./pages/Teacher/Profile";
 import AdminProfile from "./pages/Admin/AdminProfile";
+import NotFound from "./pages/Auth/NotFound.jsx";
 
 // -------------------------
 // Layout Component
@@ -64,6 +65,7 @@ export default function App() {
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout/:id" element={<Checkout />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
+            <Route path="*" element={<NotFound />} />
 
             {/* Admin Pages */}
             <Route
