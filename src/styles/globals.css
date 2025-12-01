@@ -1,6 +1,10 @@
 /* استيراد الخطوط */
 @import url("https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Amiri:wght@400;700&family=Poppins:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap");
 
+/* استيراد أنماط PayPal المخصصة */
+@import "./paypal-custom.css";
+
+/* متغيرات الثيم */
 :root {
   --font-size: 16px;
   --background: #FAF9F6;
@@ -208,6 +212,56 @@ body {
   color: var(--primary);
 }
 
+/* Cart Badge Styles */
+.cart-badge {
+  position: absolute;
+  top: -8px;
+  right: -12px;
+  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 50%;
+  min-width: 18px;
+  min-height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+  animation: cart-badge-pulse 2s infinite;
+  z-index: 10;
+}
+
+@keyframes cart-badge-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 3px 12px rgba(255, 107, 107, 0.5);
+  }
+}
+
+/* Cart Button Animation */
+@keyframes cart-button-success {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2) rotate(5deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.cart-button-added {
+  animation: cart-button-success 0.6s ease-out;
+}
+
+/* Gradient hover effects */
+.cart-gradient-hover:hover {
+  background: linear-gradient(135deg, #14b8a6, #0f766e);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(20, 184, 166, 0.3);
+}
+
 .auth-buttons {
   display: flex;
   gap: 10px;
@@ -356,4 +410,14 @@ input:focus {
 
 .animate-slide-in {
   animation: slide-in 0.3s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(-10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-out forwards;
+  animation-fill-mode: both;
 }

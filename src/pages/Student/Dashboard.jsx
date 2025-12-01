@@ -1,23 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { collection, doc, getDocs, onSnapshot, query, where } from "firebase/firestore";
+import { collection, doc, getDocs, getDoc, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "../../services/firebase";
-import { Button } from "../../components/Button";
 
-// helper: format date
-const fmt = (ts) => {
-    if (!ts) return "-";
-    try {
-        const d = ts.toDate ? ts.toDate() : new Date(ts);
-        return d.toLocaleString();
-    } catch {
-        return String(ts);
-    }
-};
-
-// Card component
-const Card = ({ children, className }) => (
-    <div className={`bg-white rounded-xl shadow-sm p-4 ${className}`}>{children}</div>
-);
+// Components
+import ProfileCard from "../../components/userDashboard/ProfileCard";
+import StatsCards from "../../components/userDashboard/StatsCards";
+import EnrollmentCard from "../../components/userDashboard/EnrollmentCard";
+import { AttendanceCard, GradesCard } from "../../components/userDashboard/ProgressSection";
+import LiveSessionsCard from "../../components/userDashboard/LiveSessionsCard";
+import PaymentsCard from "../../components/userDashboard/PaymentsCard";
+import { Tab } from "../../components/Tab";
+import { LayoutDashboardIcon } from "lucide-react";
 
 export default function StudentDashboard({ userId }) {
     const [user, setUser] = useState(null);
@@ -25,109 +18,126 @@ export default function StudentDashboard({ userId }) {
     const [coursesMap, setCoursesMap] = useState({});
     const [payments, setPayments] = useState([]);
     const [liveSessionsUpcoming, setLiveSessionsUpcoming] = useState([]);
+    const [activeTab, setActiveTab] = useState("recorded");
+    const [attendanceData, setAttendanceData] = useState([]);
+    const [gradesData, setGradesData] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    // --- Fetch user ---
     useEffect(() => {
         if (!userId) return;
-        setLoading(true);
-
-        let mounted = true;
-
-        // listen to user doc (profile)
         const userRef = doc(db, "users", userId);
         const unsubUser = onSnapshot(userRef, (snap) => {
-            if (!mounted) return;
-            if (!snap.exists()) return setUser(null);
-            setUser({ id: snap.id, ...snap.data() });
+            setUser(snap.exists() ? { id: snap.id, ...snap.data() } : null);
         });
+        return () => unsubUser();
+    }, [userId]);
 
-        // listen enrollments subcollection (real-time)
-        const enrollmentsCol = collection(db, "users", userId, "enrollments");
-        const unsubEnroll = onSnapshot(enrollmentsCol, async (snap) => {
+    // --- Fetch enrollments & courses & upcoming sessions ---
+    useEffect(() => {
+        if (!userId) return;
+        let mounted = true;
+        setLoading(true);
+
+        const enrollRef = collection(db, "users", userId, "enrollments");
+        const unsubEnroll = onSnapshot(enrollRef, async (snap) => {
             if (!mounted) return;
-            const enrolls = snap.docs.map((s) => ({ id: s.id, ...s.data() }));
+            const enrolls = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             setEnrollments(enrolls);
 
-            setCoursesMap({});
-            setLiveSessionsUpcoming([]);
-
-            if (!enrolls.length) {
+            if (enrolls.length === 0) {
+                setCoursesMap({});
+                setLiveSessionsUpcoming([]);
                 setLoading(false);
                 return;
             }
 
             try {
-                const courseIds = enrolls.map((e) => e.courseId);
-                const coursesRef = collection(db, "courses");
-                const q = query(coursesRef, where("__name__", "in", courseIds));
-                const courseSnap = await getDocs(q);
+                // 1️⃣ Fetch courses
+                const courseIds = enrolls.map(e => e.courseId);
+                const qCourses = query(collection(db, "courses"), where("__name__", "in", courseIds));
+                const courseSnap = await getDocs(qCourses);
 
+                // 2️⃣ Fetch teachers
                 const teachersSnap = await getDocs(collection(db, "teachers"));
                 const teachersMap = {};
-                teachersSnap.forEach((t) => {
-                    teachersMap[t.id] = t.data();
+                teachersSnap.forEach(t => { teachersMap[t.id] = t.data(); });
+
+                // 3️⃣ Map courses
+                const map = {};
+                courseSnap.forEach(cDoc => {
+                    const data = { id: cDoc.id, ...cDoc.data() };
+                    const teacher = teachersMap[data.teacherId];
+                    data.teacherName = teacher?.name_en || teacher?.name || "Unknown Instructor";
+                    map[cDoc.id] = {
+                        ...data,
+                        type: data.type || "recorded",
+                        title: data.title || "Untitled Course",
+                        thumbnail: data.thumbnail || "/course-placeholder.png",
+                    };
                 });
 
-                const map = {};
+                // 4️⃣ Fetch upcoming sessions in parallel
                 const upcoming = [];
-
-                for (const cDoc of courseSnap.docs) {
-                    const cData = { id: cDoc.id, ...cDoc.data() };
-                    const teacher = teachersMap[cData.teacherId];
-                    cData.teacherName = teacher ? teacher.name_ar || teacher.name || "مدرب" : "مدرب غير معروف";
-
-                    // --- fetch modules as subcollection ---
+                await Promise.all(courseSnap.docs.map(async cDoc => {
                     const modulesSnap = await getDocs(collection(db, "courses", cDoc.id, "modules"));
-                    for (const modDoc of modulesSnap.docs) {
-                        const modData = { id: modDoc.id, ...modDoc.data() };
-
-                        // --- fetch lessons as subcollection ---
+                    await Promise.all(modulesSnap.docs.map(async modDoc => {
                         const lessonsSnap = await getDocs(collection(db, "courses", cDoc.id, "modules", modDoc.id, "lessons"));
-                        for (const lessonDoc of lessonsSnap.docs) {
-                            const lessonData = { id: lessonDoc.id, ...lessonDoc.data() };
+                        lessonsSnap.docs.forEach(lessonDoc => {
+                            const lesson = { id: lessonDoc.id, ...lessonDoc.data() };
+                            const s = lesson.liveSession;
+                            if (!s?.dateTime) return;
 
-                            const s = lessonData.liveSession; // liveSession is map inside lesson
-                            console.log("Checking live session:", s);
-                            if (!s?.dateTime) continue;                 // no live session
-                            const dt = s.dateTime.toDate()
-                            if (isNaN(dt.getTime())) continue;         // invalid date
-                            if (dt <= new Date()) continue;            // not future
-                            if (s.status === "cancelled") continue;    // cancelled
+                            const dt = typeof s.dateTime.toDate === "function" ? s.dateTime.toDate() : new Date(s.dateTime);
+                            if (dt <= new Date() || s.status === "cancelled") return;
 
                             upcoming.push({
                                 courseId: cDoc.id,
-                                courseTitle: cData.title,
-                                lessonId: lessonData.id,
-                                lessonTitle: lessonData.title,
+                                lessonId: lesson.id,
+                                lessonTitle: lesson.title,
                                 liveSession: s,
                                 liveAt: dt.getTime(),
-                                teacherId: cData.teacherId,
-                                teacherName: cData.teacherName,
+                                teacherId: map[cDoc.id].teacherId,
+                                teacherName: map[cDoc.id].teacherName,
                             });
-                            console.log("  -> upcoming live session found:", cData.title, lessonData.title, dt);
-                        }
-                    }
-
-                    map[cDoc.id] = cData;
-                }
+                        });
+                    }));
+                }));
 
                 upcoming.sort((a, b) => a.liveAt - b.liveAt);
+
+                // 5️⃣ Attach nextSession to courses
+                const nextSessionByCourse = {};
+                upcoming.forEach(s => {
+                    if (!nextSessionByCourse[s.courseId]) nextSessionByCourse[s.courseId] = s;
+                });
+                Object.keys(map).forEach(cid => {
+                    map[cid].nextSession = nextSessionByCourse[cid] || null;
+                });
+
                 if (!mounted) return;
                 setCoursesMap(map);
                 setLiveSessionsUpcoming(upcoming.slice(0, 5));
             } catch (err) {
-                console.error("fetch courses/modules/lessons error", err);
+                console.error("Error fetching courses/sessions:", err);
             } finally {
                 if (mounted) setLoading(false);
             }
         });
 
-        // payments listener
+        return () => {
+            mounted = false;
+            unsubEnroll();
+        };
+    }, [userId]);
+
+    // --- Fetch payments ---
+    useEffect(() => {
+        if (!userId) return;
         const paymentsRef = collection(db, "payments");
         const qPayments = query(paymentsRef, where("studentId", "==", userId));
         const unsubPayments = onSnapshot(qPayments, (snap) => {
-            if (!mounted) return;
-            const p = snap.docs.map((s) => ({ id: s.id, ...s.data() }));
+            const p = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             p.sort((a, b) => {
                 const ta = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt).getTime();
                 const tb = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt).getTime();
@@ -135,142 +145,137 @@ export default function StudentDashboard({ userId }) {
             });
             setPayments(p.slice(0, 10));
         });
-
-        return () => {
-            mounted = false;
-            try { unsubUser(); } catch (e) { }
-            try { unsubEnroll(); } catch (e) { }
-            try { unsubPayments(); } catch (e) { }
-        };
+        return () => unsubPayments();
     }, [userId]);
 
+    // --- Lazy load attendance & grades only when progress tab active ---
+    useEffect(() => {
+        if (activeTab !== "progress" || enrollments.length === 0) return;
+        let mounted = true;
+
+        async function loadAttendanceAndGrades() {
+            const perCourse = {};
+            const grades = [];
+
+            await Promise.all(enrollments.map(async e => {
+                const course = coursesMap[e.courseId];
+                if (!course) return;
+                perCourse[e.courseId] = { courseId: e.courseId, title: course.title, sessions: [] };
+
+                // Attendance
+                const modulesSnap = await getDocs(collection(db, "courses", e.courseId, "modules"));
+                await Promise.all(modulesSnap.docs.map(async modDoc => {
+                    const lessonsSnap = await getDocs(collection(db, "courses", e.courseId, "modules", modDoc.id, "lessons"));
+                    await Promise.all(lessonsSnap.docs.map(async lessonDoc => {
+                        const lesson = { id: lessonDoc.id, ...lessonDoc.data() };
+                        const liveSession = lesson.liveSession;
+                        if (!liveSession || !liveSession.dateTime) return;
+                        const sessionDate = liveSession.dateTime.toDate ? liveSession.dateTime.toDate() : liveSession.dateTime;
+                        if (sessionDate > new Date() || liveSession.status === "cancelled") return;
+
+                        // Get student's status from attendence collection
+                        const attRef = doc(db, "courses", e.courseId, "modules", modDoc.id, "lessons", lesson.id, "attendance", userId);
+                        const attSnap = await getDoc(attRef);
+                        const attData = attSnap.exists() ? attSnap.data() : null;
+
+                        perCourse[e.courseId].sessions.push({
+                            lessonId: lesson.id,
+                            title: lesson.title,
+                            status: attData?.status || "absent",
+                            date: sessionDate.toISOString()
+                        });
+                    }));
+
+                    // Grades
+                    const quizzesSnap = await getDocs(collection(db, "courses", e.courseId, "modules", modDoc.id, "quizzes"));
+                    await Promise.all(quizzesSnap.docs.map(async quizDoc => {
+                        const quiz = { id: quizDoc.id, ...quizDoc.data() };
+                        const submissionsSnap = await getDocs(collection(db, "courses", e.courseId, "modules", modDoc.id, "quizzes", quiz.id, "submissions"));
+                        submissionsSnap.docs.forEach(sub => {
+                            if (sub.id !== userId) return;
+                            const s = sub.data();
+                            grades.push({ title: quiz.title, course: course.title, score: s.score, status: s.status, date: s.submittedAt?.toDate?.().toLocaleDateString() });
+                        });
+                    }));
+                }));
+            }));
+
+            if (!mounted) return;
+            setAttendanceData(Object.values(perCourse));
+            setGradesData(grades);
+        }
+
+        loadAttendanceAndGrades();
+        return () => { mounted = false; };
+    }, [activeTab, enrollments, coursesMap, userId]);
+
+    const totalCoursesCount = enrollments.length;
     const activeCoursesCount = enrollments.filter(e => e.status !== "completed").length;
-    const completedCoursesCount = enrollments.filter((e) => e.status === "completed").length;
+    const completedCoursesCount = enrollments.filter(e => e.status === "completed").length;
     const subscriptionStatus = user?.subscriptionStatus || "-";
-    // console.log("User data:", user);
+
+    const filteredEnrollments = enrollments.filter(e => {
+        const course = coursesMap[e.courseId];
+        if (!course) return false;
+        return course.type === activeTab;
+    });
 
     return (
         <div className="p-6 space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-semibold">لوحة التحكم للطالب</h1>
-                    <p className="text-sm text-muted-foreground">
-                        نظرة سريعة على تقدمك، اشتراكاتك، والمحتوى
-                    </p>
+            <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                    {/* <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-8 w-8 text-[#0E7C7B]"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                    >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h18v18H3V3z" />
+                    </svg> */}
+                    <LayoutDashboardIcon />
+                    <div>
+                        <h1 className="text-2xl font-semibold text-gray-900">Student Dashboard</h1>
+                        <p className="text-sm text-muted-foreground">
+                            Quick overview of your progress, subscriptions, and content
+                        </p>
+                    </div>
                 </div>
+
+                {/* <button className="px-4 py-2 bg-[#0E7C7B] text-white rounded-lg text-sm hover:bg-[#0c6261] transition">
+                    View Profile
+                </button> */}
             </div>
 
-            {/* Profile + Stats */}
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                <Card>
-                    <div className="flex items-center gap-4">
-                        <img
-                            src={user?.profile_pic || "/placeholder-avatar.png"}
-                            alt="avatar"
-                            className="w-16 h-16 rounded-full object-cover border"
-                        />
-                        <div>
-                            <div className="font-medium">{user?.name}</div>
-                            <div className="text-sm text-muted-foreground">{user?.email}</div>
-                            <div className="mt-2 text-xs">
-                                الحالة: <span className="font-semibold">{subscriptionStatus}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="mt-4 border-t pt-3 text-sm text-muted-foreground space-y-1">
-                        <div>تاريخ التسجيل: {fmt(user?.createdAt)}</div>
-                        <div>عدد الكورسات: {user?.coursesCount ?? activeCoursesCount}</div>
-                    </div>
-                </Card>
+                <ProfileCard user={user} totalCoursesCount={totalCoursesCount} subscriptionStatus={subscriptionStatus} />
+                <StatsCards activeCoursesCount={activeCoursesCount} completedCoursesCount={completedCoursesCount} liveSessionsUpcomingCount={liveSessionsUpcoming.length} />
 
-                {/* Stats */}
-                <div className="col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Card>
-                        <div className="text-sm text-muted-foreground">كورسات نشطة</div>
-                        <div className="text-xl font-semibold">{activeCoursesCount}</div>
-                    </Card>
-                    <Card>
-                        <div className="text-sm text-muted-foreground">كورسات مكتملة</div>
-                        <div className="text-xl font-semibold">{completedCoursesCount}</div>
-                    </Card>
-                    <Card>
-                        <div className="text-sm text-muted-foreground">جلسات مباشرة قادمة</div>
-                        <div className="text-xl font-semibold">{liveSessionsUpcoming.length}</div>
-                    </Card>
-                </div>
-
-                {/* Enrollments */}
                 <div className="col-span-1 lg:col-span-3">
-                    <Card>
-                        <div className="flex items-center justify-between">
-                            <h2 className="font-medium">الكورسات المسجل بها</h2>
-                            <div className="text-sm text-muted-foreground">{enrollments.length} كورس</div>
+                    <Tab activeTab={activeTab} setActiveTab={setActiveTab} />
+
+                    {activeTab === "progress" && (
+                        <div className="flex flex-wrap gap-4">
+                            <AttendanceCard data={attendanceData} />
+                            <GradesCard data={gradesData} />
                         </div>
+                    )}
+
+                    {activeTab !== "progress" && (
                         <div className="mt-4 space-y-3">
-                            {enrollments.length === 0 && <div className="text-sm text-muted-foreground">لم تسجل في أي كورس بعد.</div>}
-                            {enrollments.map((e) => {
-                                const course = coursesMap[e.courseId] || {};
-                                return (
-                                    <div key={e.courseId} className="flex items-center gap-4 p-3 rounded-lg border">
-                                        <img src={course.thumbnail || "/course-placeholder.png"} alt="thumb" className="w-20 h-12 object-cover rounded" />
-                                        <div className="flex-1">
-                                            <div className="font-medium">{course.title || e.courseId}</div>
-                                            <div className="text-sm text-muted-foreground">{course.teacherId ? `مع ${course.teacherName}` : "مدرب غير معروف"}</div>
-                                            <div className="mt-2 text-sm">
-                                                <div className="w-full bg-gray-200 h-2 rounded overflow-hidden">
-                                                    <div style={{ width: `${e.percent ?? 0}%` }} className="h-2 bg-[#0E7C7B]" />
-                                                </div>
-                                                <div className="text-xs mt-1">{e.percent ?? 0}% - {e.status}</div>
-                                            </div>
-                                        </div>
-                                        <div className="text-xs text-muted-foreground">
-                                            <div>تسجل: {fmt(e.enrolledAt)}</div>
-                                            <div>دروس مكتملة: {e.completedLessonsCount ?? (e.completedLessons?.length ?? 0)}</div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                            {filteredEnrollments.length === 0 && <div className="text-sm text-muted-foreground">You are not enrolled in any course yet.</div>}
+                            {filteredEnrollments.map(e => (
+                                <EnrollmentCard key={e.courseId} enrollment={e} course={coursesMap[e.courseId]} />
+                            ))}
                         </div>
-                    </Card>
+                    )}
                 </div>
 
-                {/* Right column */}
                 <div className="col-span-1 space-y-4">
-                    <Card>
-                        <h3 className="font-medium">جلسات مباشرة قادمة</h3>
-                        <div className="mt-3 space-y-2 text-sm text-muted-foreground">
-                            {liveSessionsUpcoming.length === 0 && <div>لا توجد جلسات مباشرة قادمة.</div>}
-                            {liveSessionsUpcoming.map((s, i) => (
-                                <div key={i} className="border p-2 rounded">
-                                    <div className="font-medium">{s.courseTitle}</div>
-                                    <div className="text-xs">{s.lessonTitle}</div>
-                                    <div className="text-xs">{fmt(s.liveSession.dateTime)}</div>
-                                </div>
-                            ))}
-                        </div>
-                    </Card>
-
-                    <Card>
-                        <h3 className="font-medium">أحدث المدفوعات</h3>
-                        <div className="mt-3 space-y-2 text-sm text-muted-foreground">
-                            {payments.length === 0 && <div>لا توجد مدفوعات.</div>}
-                            {payments.map((p) => (
-                                <div key={p.id} className="flex items-center justify-between">
-                                    <div>
-                                        <div className="font-medium">{p.courseId || "عام"}</div>
-                                        <div className="text-xs">{p.amount} {p.currency} • {p.type}</div>
-                                    </div>
-                                    <div className="text-xs text-muted-foreground">{fmt(p.createdAt)}</div>
-                                </div>
-                            ))}
-                        </div>
-                    </Card>
+                    <LiveSessionsCard sessions={liveSessionsUpcoming} />
+                    <PaymentsCard payments={payments} coursesMap={coursesMap} />
                 </div>
-            </div>
-
-            <div className="text-xs text-muted-foreground mt-4">
-                ملاحظة: كل المعلومات تأتي مباشرة من قاعدة البيانات (users, enrollments, courses, payments)
             </div>
         </div>
     );
