@@ -1,5 +1,4 @@
 
-
 import React from "react";
 import photo1 from "../../assets/images/photo1.jpg";
 import photo2 from "../../assets/images/photo2.jpg";
@@ -7,6 +6,8 @@ import photo3 from "../../assets/images/photo3.jpg";
 import photo4 from "../../assets/images/photo4.jpg";
 import photo5 from "../../assets/images/photo5.jpg";
 import photo6 from "../../assets/images/photo6.jpg";
+import { addNotification } from "../../services/notificationService";
+
 const Home = () => {
   return (
     <>
@@ -34,7 +35,20 @@ const Home = () => {
           and deepen their understanding of Islamic sciences through our comprehensive online platform.
         </p>
 
-       
+
+
+              <  button onClick={async () => {
+              await addNotification({
+                title: "Test Notification",
+                message: "This is a test from Home page.",
+                userIds: [],
+              });
+            }}>
+              Send Notification
+
+            </button>
+
+
         <div className="flex flex-col sm:flex-row gap-4 mb-10">
           <button className="bg-[#21746c] hover:bg-[#1a5c56] text-white font-medium py-3 px-6 rounded-full transition duration-300">
             Start Learning Today
