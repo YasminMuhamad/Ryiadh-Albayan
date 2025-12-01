@@ -66,13 +66,13 @@ export function AttendanceCard({ data }) {
 }
 
 export function GradesCard({ data }) {
-  if (!data || data.length === 0) {
-    return (
-      <Card className="flex-1 w-1/2 p-4 space-y-4">
-        <div className="text-sm text-muted-foreground">No grades available yet.</div>
-      </Card>
-    );
-  }
+  // if (!data || data.length === 0) {
+  //   return (
+  //     <Card className="flex-1 w-1/2 p-4 space-y-4">
+  //       <div className="text-sm text-muted-foreground">No grades available yet.</div>
+  //     </Card>
+  //   );
+  // }
 
   return (
     <Card className="flex-1 w-1/2 p-4 space-y-4">
@@ -80,6 +80,11 @@ export function GradesCard({ data }) {
         <h3 className="text-l font-semibold text-muted-foreground">Recent Grades</h3>
         <p className="text-md text-gray-600 mb-4">Your performance in assignments and quizzes</p>
       </div>
+
+      {data.length === 0 && (
+        <div className="text-sm text-muted-foreground">No grades available yet.</div>
+      )}
+
       <div className="space-y-4">
         {data.map((item, idx) => (
           <div key={idx} className="bg-[#F5F1E8] p-4 rounded-xl flex justify-between items-center">

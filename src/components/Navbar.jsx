@@ -1,21 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { BookOpen, ShoppingCart, UserCircle, LogOut } from "lucide-react";
+import { BookOpen,ShoppingCart, UserCircle, LogOut, LayoutDashboardIcon, LayoutDashboard } from "lucide-react";
 import { Button } from "./Button";
 import { useAuth } from "../context/AuthContext";
 
 export function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout, profile } = useAuth();
-  const [cartCount, setCartCount] = useState(0);
-
-  const handleNavigation = (path) => {
-    navigate(path);
-  };
-
+  const { user, profile, logout } = useAuth();
   const currentPage = location.pathname;
-
+  const [ cartCount, setCartCount ] = useState();
   const updateCartCount = () => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
     setCartCount(cart.length);
@@ -27,23 +21,36 @@ export function Navbar() {
     return () => window.removeEventListener("cartUpdated", updateCartCount);
   }, []);
 
-  const dashboardPath = useMemo(() => {
-    if (profile?.role === "teacher") return "/teacher/dashboard";
-    if (profile?.role === "admin") return "/admin";
-    return "/student/dashboard";
-  }, [profile]);
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
+  const { role } = useAuth();
+
+  const goToProfile = () => {
+    if (role === "admin") navigate("/admin/profile");
+    else if (role === "teacher") navigate("/teacher/profile");
+    else navigate("/student/profile");
+  };
+  const goToDashboard = () => {
+    if (role === "admin") navigate("/admin/dashboard");
+    else if (role === "teacher") navigate("/teacher/dashboard");
+    else navigate("/student/dashboard");
+  };
 
   return (
     <nav className="navbar">
       <div className="navbar-content">
         <div className="logo-section">
           <div className="flex items-center justify-center">
+            {/* <div className="logo"> */}
             <div
               className="w-12 h-12 flex items-center justify-center rounded-full"
-              style={{ backgroundColor: "#E6EFEB" }}
+              style={{ backgroundColor: '#E6EFEB' }}
             >
-              <BookOpen className="text-2xl" style={{ color: "#0E7C7B" }} />
+              <BookOpen className="text-2xl" style={{ color: '#0E7C7B' }} />
             </div>
+            {/* </div> */}
             <div className="logo-text">
               <span
                 onClick={() => handleNavigation("/")}
@@ -83,34 +90,63 @@ export function Navbar() {
             </span>
           </div>
 
-          <div className="auth-buttons">
-            {!user ? (
-              <>
-                <span onClick={() => navigate("/login")} className="nav-item">
-                  Login
-                </span>
-                <Button onClick={() => navigate("/register")} className="btn-primary">
-                  Sign Up
-                </Button>
-              </>
-            ) : (
-              <>
-                <div
-                  onClick={() => navigate(dashboardPath)}
-                  className="w-10 h-10 rounded-full bg-teal-600 text-white flex items-center justify-center cursor-pointer"
-                >
-                  <UserCircle size={22} />
-                </div>
+            <div className="flex items-center gap-6">
+              {profile ? (
+                <>
+                  <span className="border-l border-gray-300 h-6"></span>
+                  <span
+                    onClick={goToDashboard}
+                    className="cursor-pointer flex items-center gap-2"
+                  >
+                    <LayoutDashboard size={20} className="text-teal-600" />
+                    <span className="nav-item">Dashboard</span>
+                  </span>
 
-                <button onClick={logout} className="ml-3 text-teal-700 flex items-center">
-                  <LogOut size={18} />
-                  Logout
-                </button>
-              </>
-            )}
+                  <span
+                    onClick={goToProfile}
+                    className="cursor-pointer flex items-center gap-2"
+                  >
+                    {profile.profile_pic ? (
+                      <img
+                        src="/placeholder-avatar.png"
+                        alt={profile.name || "User"}
+                        className="nav-item"
+                      />
+                    ) : (
+                      <UserCircle size={26} className="text-teal-600" />
+                    )}
+                    <span className="nav-item">
+                      {profile.name || "User"}
+                    </span>
+                  </span>
+
+                  {/* Logout */}
+                  <span
+                    onClick={handleLogout}
+                    className="cursor-pointer flex items-center gap-1 text-gray-700 hover:text-red-600 transition"
+                  >
+                    <LogOut size={18} />
+                    <span className="hidden sm:inline">Logout</span>
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span
+                    onClick={() => navigate("/login")}
+                    className="cursor-pointer text-gray-700 hover:text-teal-700"
+                  >
+                    Login
+                  </span>
+
+                  <Button onClick={() => navigate("/register")} className="btn-primary">
+                    Sign Up
+                  </Button>
+                </>
+              )}
+            </div>
+
           </div>
         </div>
-      </div>
     </nav>
   );
 }
