@@ -13,6 +13,7 @@ import Profile from "./pages/Teacher/Profile";
 import Report from "./pages/Teacher/Report.jsx";
 import Students from "./pages/Teacher/Students.jsx";
 import Assignment from "./pages/Teacher/Assignment.jsx";
+import AddQuizepage from "./pages/Teacher/AddQuize.jsx";
 import { AdminShell } from "./components/AdminShell.jsx";
 import Login from "../src/pages/Auth/Login.jsx";
 import Register from "../src/pages/Auth/RegisterStudent.jsx";
@@ -55,36 +56,23 @@ function StudentDashboardWithUid() {
 export default function App() {
 
   return (
-//     <Router>
-//       <Navbar />
-//       <div className="pt-16">
-//         <TeacherProvider>
-//         <Routes>
-//           <Route path="/" element={<Home />} />
-//           <Route path="/courses" element={<Courses />} />
-//           <Route path="/contact" element={<Contact />} />
-//           <Route path="/teacher" element={<TeacherDashboard />} />
-//           <Route path="/teacher/report" element={<Report />} />
-//           <Route path="/teacher/live" element={<LiveSessions />} />
-//           <Route path="/teacher/students" element={<Students />} />
-//           <Route path="/teacher/profile" element={<Profile />} />
-//           <Route path="/teacher/Assignment" element={<Assignment />} />
-//           <Route path="/courses/:id" element={<CourseDetails />} />
-//           <Route path="/admin" element={<AdminShell />} />
-//         </Routes>
-//         </TeacherProvider>
-//       </div>
-//       <Footer />
-//     </Router>
-    <AuthProvider>
-      <Router>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/courses" element={<Courses />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/courses/:id" element={<CourseDetails />} />
+    <Router>
+      <Navbar />
+      <div className="pt-16">
+        <TeacherProvider>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/courses" element={<Courses />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/teacher" element={<TeacherDashboard />} />
+          <Route path="/teacher/report" element={<Report />} />
+          <Route path="/teacher/live" element={<LiveSessions />} />
+          <Route path="/teacher/students" element={<Students />} />
+          <Route path="/teacher/profile" element={<Profile />} />
+          <Route path="/teacher/Assignment" element={<Assignment />} />
+          <Route path="/teacher/AddQuize" element={<AddQuizepage/>}/>
+          <Route path="/courses/:id" element={<CourseDetails />} />
+          <Route path="/admin" element={<AdminShell />} />
             <Route path="/register" element={<Register />} />
 
             {/* صفحة الأدمن */}
@@ -107,9 +95,48 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
-          </Routes>
-        </Layout>
-      </Router>
-    </AuthProvider>
+        </Routes>
+        </TeacherProvider>
+      </div>
+      <Footer />
+    </Router>
   );
 }
+
+  //   <AuthProvider>
+  //     <Router>
+  //       <Layout>
+  //         <Routes>
+  //           <Route path="/" element={<Home />} />
+  //           <Route path="/courses" element={<Courses />} />
+  //           <Route path="/contact" element={<Contact />} />
+  //           <Route path="/login" element={<Login />} />
+  //           <Route path="/courses/:id" element={<CourseDetails />} />
+  //           <Route path="/register" element={<Register />} />
+
+  //           {/* صفحة الأدمن */}
+  //           <Route path="/admin/*" element={<AdminShell />} />
+
+  //           {/* صفحة الطالب محمية */}
+  //           <Route
+  //             path="/student/dashboard"
+  //             element={
+  //               <ProtectedRoute role="student">
+  //                 <StudentDashboardWithUid />
+  //               </ProtectedRoute>
+  //             }
+  //           />
+  //           <Route
+  //             path="/teacher/dashboard"
+  //             element={
+  //               <ProtectedRoute role="teacher">
+  //                 <TeacherDashboard />
+  //               </ProtectedRoute>
+  //             }
+  //           />
+  //         </Routes>
+  //       </Layout>
+  //     </Router>
+  //   </AuthProvider>
+  // );
+// }

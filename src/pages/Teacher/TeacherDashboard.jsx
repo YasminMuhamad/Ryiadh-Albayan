@@ -166,7 +166,7 @@ const TeacherDashboard = () => {
     { action: "createCourse", icon: BookOpen, title: "Create Course", desc: "Start a new course", onClick: () => navigate("/create-course") },
     { action: "scheduleLive", icon: Video, title: "Schedule Live", desc: "Schedule a live session", onClick: () => navigate("/schedule-live") },
     { action: "addAnnouncement", icon: Bell, title: "Add Announcement", desc: "Post to your courses", onClick: () => navigate("/add-announcement") },
-    { action: "addQuiz", icon: FileQuestion, title: "Add Quiz", desc: "Create an assessment", onClick: () => setShowQuizForm(true) },
+    { action: "addQuiz", icon: FileQuestion, title: "Add Quiz", desc: "Create an assessment", onClick: () => navigate("AddQuize.jsx") },
   ];
 
   return (
@@ -263,11 +263,25 @@ const TeacherDashboard = () => {
               <h2 className="text-xl font-semibold mb-3 text-[var(--primary)]">Add New Quiz</h2>
               
               {/* Select Course */}
-              <label className="block font-medium mb-1">Select Course</label>
-              <select className="w-full p-2 border rounded" value={selectedCourse?.id || ""} onChange={(e) => setSelectedCourse(courses.find(c => c.id === e.target.value))}>
-                {courses.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
-              </select>
+<label className="block font-medium mb-1">Select Course</label>
 
+<select
+  className="w-full p-2 border rounded"
+  value={selectedCourse?.id || ""}
+  onChange={(e) =>
+    setSelectedCourse(courses.find(c => c.id === e.target.value))
+  }
+>
+  <option value="">-- Select a course --</option>
+
+  {courses.map((c) => (
+    <option key={c.id} value={c.id}>
+      {c.title}
+    </option>
+  ))}
+</select>
+
+{/* 
               {/* Quiz Title */}
               <label className="block font-medium mb-1 mt-3">Quiz Title</label>
               <input className="w-full p-2 border rounded" value={newQuizTitle} onChange={(e) => setNewQuizTitle(e.target.value)} />
@@ -295,7 +309,7 @@ const TeacherDashboard = () => {
               <button className="ml-2 px-4 py-2 rounded border" onClick={() => setShowQuizForm(false)}>Cancel</button>
             </div>
           </div>
-        )}
+        )} 
 
       </div>
     </div>
