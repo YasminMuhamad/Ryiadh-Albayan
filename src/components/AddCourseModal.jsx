@@ -80,6 +80,8 @@ export function AddCourseModal({ isOpen, onClose, teachers = [], terms = [], onS
     };
 
     const handleSubmit = async (e) => {
+        if (loading) return;
+        
         e.preventDefault();
         if (!validateAll()) return;
 
@@ -229,8 +231,37 @@ export function AddCourseModal({ isOpen, onClose, teachers = [], terms = [], onS
                     {/* Buttons */}
                     <div className="flex justify-end gap-2 mt-2">
                         <Button type="button" onClick={handleClose} className="btn-secondary" disabled={loading}>Cancel</Button>
-                        <Button type="submit" onClick={handleSubmit} className="btn-primary" disabled={loading}>
-                            {loading ? "Saving..." : (course ? "Save" : "Create")}
+                        <Button
+                            type="submit"
+                            onClick={handleSubmit}
+                            className="btn-primary flex items-center justify-center gap-2"
+                            disabled={loading}
+                        >
+                            {loading ? (
+                                <>
+                                    <svg
+                                        className="animate-spin h-5 w-5 text-white"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <circle
+                                            className="opacity-25"
+                                            cx="12"
+                                            cy="12"
+                                            r="10"
+                                            stroke="currentColor"
+                                            strokeWidth="4"
+                                        ></circle>
+                                        <path
+                                            className="opacity-75"
+                                            fill="currentColor"
+                                            d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8z"
+                                        ></path>
+                                    </svg>
+                                    Saving...
+                                </>
+                            ) : course ? "Save" : "Create"}
                         </Button>
                     </div>
                 </form>
