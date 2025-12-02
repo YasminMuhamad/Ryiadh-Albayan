@@ -1,0 +1,109 @@
+{
+  "courseId": "course_001",
+  "title": "Fiqh of Worship: Salah, Zakah, and Fasting",
+  "title_ar": "فقه العبادات: الصلاة، الزكاة، والصيام",
+  "description": "A practical course on the rulings of purification, prayer, zakah, and fasting according to the Quran and Sunnah.",
+  "price": 199,
+  "thumbnail": "https://www.ramstarab.com/wp-content/uploads/2018/10/%D8%B5%D9%88%D8%B1-%D8%AF%D9%8A%D9%86%D9%8A%D8%A9-4.jpg",
+  "teacherId": "3qR4eqcssXiSDdKyYqgU",
+  "category": "Fiqh",
+  "status": "Published",
+  "totalLessons": 1,
+  "totalModules": 1,
+  "studentsCount": 4,
+  "revenueTotal": 350,
+  "avgCompletion": 55,
+  "avgSatisfaction": 4.6,
+  "modules": {
+    "module_001": {
+      "title": "Module 1: AI Basics",
+      "moduleOrder": 1,
+      "lessons": {
+        "lesson_001": {
+          "title": "Lesson 1: Introduction",
+          "lessonOrder": 1,
+          "materials": [
+            {
+              "title": "Lecture Notes",
+              "file": "https://example.com/materials/lesson1_notes.pdf"
+            }
+          ],
+          "video": {
+            "title": "Intro Video",
+            "file": "https://drive.google.com/file/d/1i_bsFB1437NaSuyEsOwazMl8RwMrE6J7/view?usp=drive_link"
+          },
+          "liveSession": {
+            "title": "Live Q&A",
+            "dateTime": "2025-12-01T10:00:00Z",
+            "duration": 60,
+            "link": "https://zoom.us/j/123456789",
+            "status": "completed",
+            "attendanceCount": 2,
+            "attendance": {
+              "Ie7Qr1rIJGTwMdwIhgme": {
+                "status": "attended",
+                "studentRef": "users/Ie7Qr1rIJGTwMdwIhgme",
+                "studentName": "Ahmed Ali",
+                "timestamp": "2025-12-01T10:05:00Z"
+              },
+              "FYtIP1hxsaXKhzqEueOe": {
+                "status": "absent",
+                "studentRef": "users/FYtIP1hxsaXKhzqEueOe",
+                "studentName": "Sara Mohamed",
+                "timestamp": null
+              }
+            }
+          }
+        }
+      },
+      "quizzes": {
+        "quiz_001": {
+          "title": "Module 1 Quiz",
+          "totalMarks": 10,
+          "questionsList": [
+            {
+              "question": "What is AI?",
+              "options": [
+                "Artificial Intelligence",
+                "Automobile Industry",
+                "Applied Information"
+              ],
+              "correctAnswer": "Artificial Intelligence"
+            }
+          ],
+          "submissionsCount": 1,
+          "submissions": {
+            "Ie7Qr1rIJGTwMdwIhgme": {
+              "status": "submitted",
+              "studentRef": "users/Ie7Qr1rIJGTwMdwIhgme",
+              "studentName": "Ahmed Ali",
+              "score": 8,
+              "submittedAt": "2025-12-01T12:00:00Z"
+            },
+            "FYtIP1hxsaXKhzqEueOe": {
+              "status": "notSubmitted",
+              "studentRef": "users/FYtIP1hxsaXKhzqEueOe",
+              "studentName": "Sara Mohamed",
+              "score": null,
+              "submittedAt": null
+            }
+          }
+        }
+      }
+    }
+  },
+  "reviews": [
+    {
+      "studentId": "Ie7Qr1rIJGTwMdwIhgme",
+      "rating": 5,
+      "comment": "Great course!",
+      "createdAt": "2025-12-02T08:00:00Z"
+    },
+    {
+      "studentId": "FYtIP1hxsaXKhzqEueOe",
+      "rating": 4,
+      "comment": "Very informative.",
+      "createdAt": "2025-12-02T09:00:00Z"
+    }
+  ]
+}
