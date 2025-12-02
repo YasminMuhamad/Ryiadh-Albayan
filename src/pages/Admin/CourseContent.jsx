@@ -16,7 +16,7 @@ import {
 import { Plus, Trash } from 'lucide-react';
 import toast from "react-hot-toast";
 import ConfirmModal from "../../components/ConfirmModal";
-// import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 export function CourseContent({ courseId, setActiveTab }) {
     // original remote data

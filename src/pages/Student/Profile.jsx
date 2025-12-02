@@ -6,8 +6,7 @@ import { db } from "../../services/firebase";
 import toast from "react-hot-toast";
 import { Card } from "../../components/Card";
 import { Button } from "../../components/Button";
-
-// import DatePicker from "react-datepicker";
+import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format, parseISO, isValid } from "date-fns";
 import { fmtDateOnly } from "../../utils/formatDate";
