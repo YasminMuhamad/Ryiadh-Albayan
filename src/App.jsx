@@ -154,12 +154,15 @@ import CourseDetails from "./pages/Courses/CourseDetails";
 import Contact from "./pages/Contact/Contact";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/RegisterStudent";
-import Cart from "./pages/Cart/Cart";
-import Checkout from "./pages/Checkout/Checkout";
-import PaymentSuccess from "./pages/Checkout/PaymentSuccess";
-import ProtectedRoute from "./ProtectedRoute";
-import { AuthProvider, useAuth } from "./context/AuthContext";
-import "./styles/globals.css";
+import Cart from "../src/pages/Cart/Cart.jsx";
+import Checkout from "../src/pages/Checkout/Checkout.jsx";
+import PaymentSuccess from "../src/pages/Checkout/PaymentSuccess.jsx";
+import MyCourses from "./pages/Student/MyCourses.jsx";
+
+import ProtectedRoute from "../src/router.jsx";
+import { AuthProvider, useAuth } from "../src/context/AuthContext.jsx";
+
+import './styles/globals.css';
 import { AdminShell } from "./components/AdminShell";
 import { TeacherDashboard } from "./pages/Teacher/Dashboard";
 import StudentDashboard from "./pages/Student/Dashboard";
@@ -230,6 +233,7 @@ export default function App() {
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout/:id" element={<Checkout />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
+            <Route path="/my-courses" element={<MyCourses />} />
 
             {/* Admin */}
             <Route

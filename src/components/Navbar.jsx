@@ -111,12 +111,11 @@ export function Navbar() {
           >
             Courses
           </span>
-          <span
-            onClick={() => navigate("/contact")}
-            className={`nav-item ${
-              currentPage === "/contact" ? "font-bold" : ""
-            }`}
-          >
+          <span onClick={() => navigate("/my-courses")} className={`nav-item ${currentPage === "/my-courses" ? "active" : ""}`}>
+            My Courses
+          </span>
+
+          <span onClick={() => navigate("/contact")} className={`nav-item ${currentPage === "/contact" ? "active" : ""}`}>
             Contact
           </span>
 

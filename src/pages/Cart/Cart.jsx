@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../../firebase.config';
+import toast from 'react-hot-toast';
 
 export default function Cart() {
   const navigate = useNavigate();
@@ -64,6 +65,7 @@ export default function Cart() {
     
     // Trigger custom event to update navbar counter
     window.dispatchEvent(new Event('cartUpdated'));
+    toast.success('Removed from cart');
   };
 
   // Calculate total price
@@ -283,7 +285,7 @@ export default function Cart() {
                 onClick={() => navigate('/courses')}
                 className="bg-teal-600 text-white px-8 py-3 rounded-lg hover:bg-teal-700 transition-colors font-semibold"
               >
-                Browse Courses
+                Go to Courses
               </button>
             </div>
           </div>

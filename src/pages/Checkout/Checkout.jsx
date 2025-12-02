@@ -1,16 +1,18 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { collection, getDocs, doc, getDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, addDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { db } from '../../../firebase.config';
 import PayPalButton from '../../components/PayPalButton';
 import CheckoutStepper from '../../components/CheckoutStepper';
 import OrderSummaryCard from '../../components/OrderSummaryCard';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Checkout() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const cartCoursesFromState = useMemo(() => location.state?.cartCourses || [], [location.state]);
+  const { uid, profile } = useAuth();
   const [enrichedCartCourses, setEnrichedCartCourses] = useState(cartCoursesFromState);
   const [course, setCourse] = useState(null);
   const [teacher, setTeacher] = useState(null);
@@ -94,13 +96,14 @@ export default function Checkout() {
     const price = typeof item?.price === 'number' ? item.price : parseFloat(item?.price || 0);
     return sum + (isNaN(price) ? 0 : price);
   }, 0);
+  const safeAmount = Number.isFinite(totalAmount) && totalAmount > 0 ? Number(totalAmount.toFixed(2)) : 1;
 
   const handlePaymentSuccess = async (details) => {
     console.log('Payment successful:', details);
     setPaymentError(null);
 
     try {
-      await addDoc(collection(db, 'payment'), {
+      await addDoc(collection(db, 'payments'), {
         paymentId: details.id,
         payer: details?.payer || null,
         amount: totalAmount,
@@ -114,8 +117,27 @@ export default function Checkout() {
           price: item.price,
           category: item.category || null,
         })),
+        studentId: uid || null,
+        studentEmail: profile?.email || null,
         createdAt: serverTimestamp(),
       });
+
+      // Save enrollment for the student so it appears in My Courses
+      if (uid) {
+        const enrollmentsRef = collection(db, 'users', uid, 'enrollments');
+        await Promise.all(
+          checkoutItems.map((item) =>
+            setDoc(doc(enrollmentsRef, item.id), {
+              courseId: item.id,
+              purchasedAt: serverTimestamp(),
+              price: item.price ?? null,
+              status: 'active',
+              title: item.title ?? '',
+              category: item.category ?? '',
+            }, { merge: true })
+          )
+        );
+      }
     } catch (logErr) {
       console.error('Failed to log payment to Firestore:', logErr);
     }
@@ -219,26 +241,31 @@ export default function Checkout() {
                   setPaymentMethod('paypal');
                   setCurrentStep(2);
                 }}
-                className={`p-5 border-2 rounded-2xl cursor-pointer transition-colors ${
-                  paymentMethod === 'paypal' ? 'border-teal-600 bg-white' : 'border-gray-200 hover:border-gray-300'
+                className={`group p-5 border-2 rounded-3xl cursor-pointer transition-all duration-200 flex items-center gap-4 ${
+                  paymentMethod === 'paypal'
+                    ? 'border-teal-600 shadow-[0_8px_24px_rgba(13,148,136,0.15)] bg-white'
+                    : 'border-gray-200 hover:border-teal-200 bg-white'
                 }`}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className={`w-4 h-4 rounded-full border-2 mr-4 ${
-                      paymentMethod === 'paypal' ? 'border-teal-600 bg-teal-600' : 'border-gray-300'
+                <div className="flex items-center justify-between gap-4 flex-1">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                      paymentMethod === 'paypal' ? 'border-teal-600 bg-teal-50' : 'border-gray-300'
                     }`}>
-                      {paymentMethod === 'paypal' && <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5"></div>}
+                      {paymentMethod === 'paypal' && <div className="w-2 h-2 rounded-full bg-teal-600" />}
                     </div>
-                    <div className="text-right">
-                      <div className="font-semibold text-gray-900 mb-1">PayPal</div>
-                      <div className="text-sm text-gray-500">Pay with PayPal</div>
+                    <div>
+                      <div className="font-bold text-gray-900 text-lg">PayPal</div>
+                      <div className="text-base text-gray-500">Pay with PayPal</div>
                     </div>
                   </div>
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <svg className="w-6 h-6 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.73-.258c-.31-.075-.663-.14-1.074-.14H15.19c-.524 0-.968.382-1.05.9l-.72 4.571-.84 5.334h4.606c2.57 0 4.578-.543 5.69-1.81 1.01-1.15 1.304-2.42 1.012-4.287-.023-.143-.047-.288-.077-.437-.455-2.334-1.315-3.873-2.639-4.873z"/>
-                    </svg>
+                  <div className="p-3 rounded-2xl bg-blue-50">
+                    <img
+                      src="https://www.paypalobjects.com/webstatic/icon/pp258.png"
+                      alt="PayPal"
+                      className="w-8 h-8"
+                      loading="lazy"
+                    />
                   </div>
                 </div>
               </div>
@@ -264,10 +291,18 @@ export default function Checkout() {
                 {paymentMethod === 'paypal' && (
                   <div>
                     <PayPalButton 
-                      amount={totalAmount}
+                      amount={safeAmount}
                       onSuccess={handlePaymentSuccess}
                       onError={handlePaymentError}
                     />
+                    {paymentError && (
+                      <p className="text-red-600 text-sm mt-3">{paymentError}</p>
+                    )}
+                    {safeAmount !== totalAmount && (
+                      <p className="text-amber-600 text-xs mt-2">
+                        Using minimum charge amount because course price is missing. Please contact support if this is unexpected.
+                      </p>
+                    )}
                   </div>
                 )}
 
