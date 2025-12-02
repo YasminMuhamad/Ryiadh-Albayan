@@ -3,14 +3,14 @@ import React, { useEffect, useState } from 'react';
 import Title from '../../components/Title';
 import SearchBar from '../../components/SearchBar';
 import { Button } from '../../components/Button';
-import { Edit, PlusCircle, Trash } from 'lucide-react';
+import { Edit, Plus, PlusCircle, Trash } from 'lucide-react';
 import { addDoc, collection, deleteDoc, doc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { db } from '../../../firebase.config';
 import Toast from '../../components/Toast';
 import { AddCourseModal } from '../../components/AddCourseModal';
 import ConfirmModal from '../../components/ConfirmModal';
 
-export default function AdminCourses() {
+export default function AdminCourses({ setActiveTab, setSelectedCourseId }) {
   const [isCourseModalOpen, setCourseModalOpen] = useState(false);
   const [courses, setCourses] = useState([]);
   const [query, setQuery] = useState("");
@@ -79,6 +79,11 @@ export default function AdminCourses() {
       console.log("Preparing to delete course with id:", courseId);
       setCourseToDelete(courseId);
       setConfirmOpen(true);
+    } else if (action === "add_content") {
+      console.log("Preparing to add content to course with id:", courseId);
+      setActiveTab("content");
+      setSelectedCourseId(courseId);
+      // open AddCourseContent page
     }
   };
 
@@ -203,6 +208,12 @@ export default function AdminCourses() {
                   className="btn-secondary text-red-500"
                   icon={Trash}
                   onClick={() => onButtonClick('delete_course', course.id)}
+                />
+                <Button
+                  key="add_content"
+                  className="btn-secondary text-green-500"
+                  icon={Plus}
+                  onClick={() => onButtonClick('add_content', course.id)}
                 />
               </td>
             </tr>

@@ -2,8 +2,13 @@
 import React from "react";
 import { X } from "lucide-react";
 
-export default function ConfirmModal({ isOpen, onClose, onConfirm, title, message }) {
+export default function ConfirmModal({ isOpen, onClose, onConfirm, title, message, confirmText = "Delete" }) {
   if (!isOpen) return null;
+  const colorClass = confirmText === "Delete"
+    ? "bg-red-500 hover:bg-red-600"
+    : confirmText === "Add"
+      ? "bg-green-500 hover:bg-green-600"
+      : "bg-blue-500 hover:bg-blue-600";
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
@@ -22,14 +27,15 @@ export default function ConfirmModal({ isOpen, onClose, onConfirm, title, messag
             Cancel
           </button>
           <button
-            className="px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600"
+            className={`px-4 py-2 text-white rounded-xl ${colorClass}`}
             onClick={() => {
               onConfirm();
               onClose();
             }}
           >
-            Delete
+            {confirmText}
           </button>
+
         </div>
       </div>
     </div>
