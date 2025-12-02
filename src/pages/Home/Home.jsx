@@ -6,7 +6,7 @@ import photo3 from "../../assets/images/photo3.jpg";
 import photo4 from "../../assets/images/photo4.jpg";
 import photo5 from "../../assets/images/photo5.jpg";
 import photo6 from "../../assets/images/photo6.jpg";
-import { addNotification } from "../../services/notificationService";
+// import { addNotification } from "../../services/notificationService";
 
 const Home = () => {
   return (
@@ -37,7 +37,7 @@ const Home = () => {
 
 
 
-              <  button onClick={async () => {
+              {/* <  button onClick={async () => {
               await addNotification({
                 title: "Test Notification",
                 message: "This is a test from Home page.",
@@ -46,7 +46,7 @@ const Home = () => {
             }}>
               Send Notification
 
-            </button>
+            </button> */}
 
 
         <div className="flex flex-col sm:flex-row gap-4 mb-10">
