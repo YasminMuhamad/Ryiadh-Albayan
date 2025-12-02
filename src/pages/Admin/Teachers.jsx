@@ -70,9 +70,9 @@ export default function AdminTeachers() {
 
   const filteredTeachers = teachers.filter(
     t =>
-      t.name.toLowerCase().includes(query.toLowerCase()) ||
-      t.name_ar.toLowerCase().includes(query.toLowerCase()) ||
-      t.email.toLowerCase().includes(query.toLowerCase())
+      t.name?.toLowerCase().includes(query.toLowerCase()) ||
+      t.name_ar?.toLowerCase().includes(query.toLowerCase()) ||
+      t.email?.toLowerCase().includes(query.toLowerCase())
   );
 
   return (

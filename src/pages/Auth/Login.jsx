@@ -37,6 +37,8 @@ const Login = () => {
   };
 
   const handleLogin = async () => {
+    if (loading) return;
+    
     if (!validateField("email", email) || !validateField("pass", pass)) return;
 
     try {
@@ -56,7 +58,7 @@ const Login = () => {
       }
     } catch (err) {
       console.error("Login failed:", err);
-      toast.error(err.message || "Email or password is incorrect");
+      toast.error("Email or password is incorrect");
     } finally {
       setLoading(false);
     }
@@ -102,11 +104,27 @@ const Login = () => {
         {errors.pass && <p className="text-red-500 text-sm mb-2">{errors.pass}</p>}
 
         <Button
-          className="btn-primary w-full mt-4"
-          title={loading ? "Signing In..." : "Sign In"}
+          className="btn-primary w-full mt-4 flex items-center justify-center gap-2"
           onClick={handleLogin}
           disabled={loading}
-        />
+        >
+          {loading && (
+            <svg
+              className="animate-spin h-4 w-4 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              ></path>
+            </svg>
+          )}
+          {loading ? "Signing In..." : "Sign In"}
+        </Button>
 
         <p className="text-center mt-3 text-sm">
           Don't have an account? <Link to="/register" className="text-[var(--primary)] font-medium">Sign up here</Link>

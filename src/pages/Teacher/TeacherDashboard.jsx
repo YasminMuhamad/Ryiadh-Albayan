@@ -1,176 +1,251 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Users,
-  BookOpen,
-  Video,
-  FileQuestion,
-  Bell,
-  Calendar,
-} from "lucide-react";
+import { db } from "../../services/firebase";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { Users, Video, BookOpen, Plus, FileQuestion, Calendar } from "lucide-react";
+import { useAuth } from "../../context/AuthContext.jsx";
 import "../../styles/globals.css";
 
-// Firebase
-import { db } from "../../../firebase.config";
-import {
-  collection,
-  getDocs,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-} from "firebase/firestore";
-
-// Context
-import { TeacherContext } from "../../context/TeacherContext.jsx";
-
-// Sidebar
 import Sidebar from "../../components/TeacherSidebar.jsx";
-// KPI CARD
-const KPICard = ({ title, value, icon: Icon, trend, onClick }) => (
-  <div
-    onClick={onClick}
-    className="bg-white border border-[var(--primary)] p-4 rounded-[var(--radius)] flex items-center justify-between cursor-pointer hover:bg-[var(--secondary)] transition"
-  >
-    <div className="flex items-center gap-3">
-      <div className="bg-[var(--primary)] p-2 rounded flex items-center justify-center">
-        <Icon className="h-6 w-6 text-white" />
-      </div>
-      <div>
-        <p className="font-bold text-lg text-[var(--foreground)]">{value}</p>
-        <p className="text-sm text-[var(--foreground)]/70">{title}</p>
-      </div>
-    </div>
-    <p className="text-sm text-[var(--primary)] font-medium">{trend}</p>
-  </div>
-);
 
-const TeacherDashboard = () => {
+const TeacherDashboard = ({ teacherId: propTeacherId }) => {
   const navigate = useNavigate();
-  const { teacher } = useContext(TeacherContext);
-  const teacherId = teacher?.id; // افترض ان الـ context فيه id
+  const { profile } = useAuth();
+  const teacherId = propTeacherId || profile?.uid;
 
-  // ===== STATES =====
-  const [coursesCount, setCoursesCount] = useState(0);
-  const [studentsCount, setStudentsCount] = useState(0);
-  const [liveSessionsCount, setLiveSessionsCount] = useState(0);
-  const [quizzesCount, setQuizzesCount] = useState(0);
-  const [recentActivities, setRecentActivities] = useState([]);
-  const [upcomingSessions, setUpcomingSessions] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [totalStudents, setTotalStudents] = useState(0);
 
-  // ===== TIME FORMAT =====
+  // ======= Mock Data =======
+  const recentActivities = [
+    { id: 1, type: "session", title: "Live Session Scheduled", description: "A new live session on 'Arabic Alphabet Basics' has been scheduled.", timestamp: Date.now() - 2*60*60*1000 },
+    { id: 2, type: "quiz", title: "Quiz Added", description: "A new quiz was added to 'Basic Grammar' course.", timestamp: Date.now() - 5*60*60*1000 },
+    { id: 3, type: "lesson", title: "New Lesson Uploaded", description: "Lesson 'Introduction to Tajweed' has been uploaded.", timestamp: Date.now() - 1*24*60*60*1000 },
+  ];
+
+  const quickActions = [
+    { action:"createCourse", icon: BookOpen, title:"Create Course", desc:"Start a new course" },
+    { action:"addAnnouncement", icon: Calendar, title:"Add Announcement", desc:"Post to your courses" },
+    { action:"addQuiz", icon: FileQuestion, title:"Add Quiz", desc:"Create an assessment" },
+  ];
+
+  const upcomingSessions = [
+    { id:1, title:"Introduction to Arabic Alphabet", time:"Today 4:00 PM", duration:"60 min", badge:"In 2 hours" },
+    { id:2, title:"Fiqh Discussion - Prayer Rulings", time:"Tomorrow 2:00 PM", duration:"90 min", badge:"Tomorrow" },
+  ];
+
   const formatTime = (timestamp) => {
-    if (!timestamp) return "";
-    const diff = Math.floor((Date.now() - timestamp.toDate()) / (1000 * 60 * 60));
-    if (diff < 1) return "Just now";
-    if (diff < 24) return `${diff}h ago`;
-    return timestamp.toDate().toLocaleDateString();
+    const diff = Math.floor((Date.now() - timestamp)/(1000*60*60));
+    if(diff<1) return "Just now";
+    if(diff<24) return `${diff}h ago`;
+    return new Date(timestamp).toLocaleDateString();
   };
 
-  // ===== FETCH FIREBASE DATA =====
   useEffect(() => {
     if (!teacherId) return;
 
-    // Courses count
-    const coursesQuery = query(
-      collection(db, "courses"),
-      where("teacherId", "==", teacherId)
-    );
-    getDocs(coursesQuery).then((snap) => {
-      setCoursesCount(snap.size);
-    });
+    const getTeacherCourses = async () => {
+      try {
+        const q = query(
+          collection(db, "courses"),
+          where("teacherId", "==", teacherId)
+        );
 
-    // Students count
-    getDocs(collection(db, "students")).then((snap) => {
-      setStudentsCount(snap.size);
-    });
+        const querySnapshot = await getDocs(q);
 
-    // Live sessions
-    getDocs(collection(db, "liveSessions")).then((snap) => {
-      setLiveSessionsCount(snap.size);
-    });
+        const coursesData = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setCourses(coursesData);
 
-    // Quizzes
-    getDocs(collection(db, "quizzes")).then((snap) => {
-      setQuizzesCount(snap.size);
-    });
-
-    // Recent Activity
-    const activityQuery = query(
-      collection(db, "activities"),
-      orderBy("timestamp", "desc")
-    );
-    const unsubActivity = onSnapshot(activityQuery, (snap) => {
-      setRecentActivities(
-        snap.docs.slice(0, 4).map((doc) => ({ id: doc.id, ...doc.data() }))
-      );
-    });
-
-    // Upcoming Sessions
-    const sessionQuery = query(
-      collection(db, "upcomingSessions"),
-      where("teacherId", "==", teacherId),
-      orderBy("timestamp", "asc")
-    );
-    const unsubSessions = onSnapshot(sessionQuery, (snap) => {
-      setUpcomingSessions(
-        snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-      );
-    });
-
-    return () => {
-      unsubActivity();
-      unsubSessions();
+        const total = coursesData.reduce(
+          (sum, course) => sum + (course.studentsCount || 0),
+          0
+        );
+        setTotalStudents(total);
+      } catch (error) {
+        console.error("Error getting courses:", error);
+      }
     };
+
+    getTeacherCourses();
   }, [teacherId]);
-
-  if (!teacher) return <div className="p-6">Loading...</div>;
-
-  // KPI DATA
-  const kpiData = [
-    { title: "My Courses", value: coursesCount, icon: BookOpen, trend: "+3%", link: "/teacher/courses" },
-    { title: "Students", value: studentsCount, icon: Users, trend: "+5%", link: "/teacher/students" },
-    { title: "Live Sessions", value: liveSessionsCount, icon: Video, trend: "+2%", link: "/teacher/live" },
-    { title: "Quizzes", value: quizzesCount, icon: FileQuestion, trend: "+1%", link: "/teacher/assignment" },
-  ];
 
   return (
     <div className="flex min-h-screen">
-
       {/* Sidebar */}
       <Sidebar />
 
-      {/* MAIN CONTENT */}
-      <div className="flex-1 p-6 space-y-6 font-[Poppins]">
+      {/* Main Content */}
+      <div className="flex-1 bg-[var(--background)] p-6 space-y-6 font-[Poppins]">
 
         {/* HEADER */}
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <img
-              src={teacher.profile_pic}
-              alt={teacher.name}
-              className="w-16 h-16 rounded-full object-cover border-2 border-[var(--primary)]"
-            />
-            <div>
-              <h1 className="text-3xl font-semibold text-[var(--foreground)]">
-                Welcome Back, {teacher.name_ar} 👋
-              </h1>
-              <p className="text-[var(--foreground)]/70 text-sm">{teacher.specialization}</p>
-              <p className="text-[var(--foreground)]/60 text-xs">
-                Joined: {new Date(teacher.createdAt).toLocaleDateString()}
-              </p>
-            </div>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-semibold mb-2 text-[var(--foreground)]">
+              Welcome Back, {profile?.name || "Teacher"}
+            </h1>
+            <p className="text-[var(--foreground)]/70 text-sm">
+              Here's what's happening with your courses today
+            </p>
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              className="bg-[var(--primary)] text-white px-4 py-2 rounded-[var(--radius)] flex items-center gap-2 hover:opacity-90"
+              onClick={() => navigate("/Teacher/AddQuize")}
+            >
+              <Plus className="w-5 h-5" /> Add Quiz
+            </button>
+
+            <button
+              className="bg-[var(--primary)] text-white px-4 py-2 rounded-[var(--radius)] flex items-center gap-2 hover:opacity-90"
+              onClick={() => navigate("/Teacher/AddLiveSessions")}
+            >
+              <Plus className="w-5 h-5" /> Add Live Session
+            </button>
           </div>
         </div>
 
         {/* KPI CARDS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {kpiData.map((kpi) => (
-            <KPICard key={kpi.title} {...kpi} onClick={() => navigate(kpi.link)} />
-          ))}
+          {/* Total Students */}
+          <div className="bg-white border border-[var(--primary)] p-4 rounded-[var(--radius)] flex items-center justify-between cursor-pointer hover:bg-[var(--secondary)] transition">
+            <div className="flex items-center gap-3">
+              <div className="bg-[var(--primary)] p-2 rounded flex items-center justify-center">
+                <Users className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <p className="font-bold text-lg text-[var(--foreground)]">
+                  {totalStudents}
+                </p>
+                <p className="text-sm text-[var(--foreground)]/70">
+                  Total Students
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Total Interactive Courses */}
+          <div className="bg-white border border-[var(--primary)] p-4 rounded-[var(--radius)] flex flex-col gap-3">
+            <div className="flex items-center gap-3">
+              <div className="bg-[var(--primary)] p-2 rounded flex items-center justify-center">
+                <BookOpen className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <p className="font-bold text-lg text-[var(--foreground)]">
+                  {courses.filter((course) => course.type === "interactive").length}
+                </p>
+                <p className="text-sm text-[var(--foreground)]/70">
+                  Total Interactive Courses
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Total Recorded Courses */}
+          <div className="bg-white border border-[var(--primary)] p-4 rounded-[var(--radius)] flex flex-col gap-3">
+            <div className="flex items-center gap-3">
+              <div className="bg-[var(--primary)] p-2 rounded flex items-center justify-center">
+                <BookOpen className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <p className="font-bold text-lg text-[var(--foreground)]">
+                  {courses.filter((course) => course.type === "recorded").length}
+                </p>
+                <p className="text-sm text-[var(--foreground)]/70">
+                  Total Recorded Courses
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* باقي المحتوى زي Recent Activity وQuick Actions وUpcoming Sessions */}
+        {/* RECENT + ACTIONS */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+          {/* Recent Activity */}
+          <div>
+            <h2 className="text-2xl font-semibold mb-3 text-[var(--primary)]">Recent Activity</h2>
+            <div className="space-y-3">
+              {recentActivities.map((act) => (
+                <div
+                  key={act.id}
+                  className="flex items-start gap-3 p-3 bg-[var(--card)] rounded-[var(--radius)] hover:bg-[var(--secondary)] cursor-pointer"
+                >
+                  <div className="w-10 h-10 bg-[var(--secondary)] rounded-full flex items-center justify-center">
+                    {act.type === "quiz" ? (
+                      <FileQuestion className="w-5 h-5 text-[var(--primary)]" />
+                    ) : act.type === "lesson" ? (
+                      <BookOpen className="w-5 h-5 text-[var(--primary)]" />
+                    ) : (
+                      <Calendar className="w-5 h-5 text-[var(--primary)]" />
+                    )}
+                  </div>
+
+                  <div>
+                    <p className="font-medium text-[var(--foreground)]">{act.title}</p>
+                    <p className="text-[var(--foreground)]/60 text-sm">{act.description}</p>
+                    <p className="text-[var(--foreground)]/40 text-xs mt-1">
+                      {formatTime(act.timestamp)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div>
+            <h2 className="text-2xl font-semibold mb-3 text-[var(--primary)]">Quick Actions</h2>
+            <div className="grid grid-cols-1 gap-3">
+              {quickActions.map((a) => (
+                <button
+                  key={a.action}
+                  onClick={() => navigate(`/Teacher/AddQuize`)}
+                  className="flex items-center gap-3 p-3 bg-[var(--card)] rounded-[var(--radius)] hover:bg-[var(--secondary)]"
+                >
+                  <div className="w-10 h-10 bg-[var(--primary)] text-white flex items-center justify-center rounded-[var(--radius)]">
+                    <a.icon className="w-5 h-5" />
+                  </div>
+
+                  <div>
+                    <p className="font-medium text-[var(--foreground)]">{a.title}</p>
+                    <p className="text-sm text-[var(--foreground)]/60">{a.desc}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* UPCOMING SESSIONS */}
+        <div>
+          <h2 className="text-2xl font-semibold mb-3 text-[var(--primary)]">Upcoming Live Sessions</h2>
+          <div className="space-y-3">
+            {upcomingSessions.map((session) => (
+              <div
+                key={session.id}
+                className="flex items-center justify-between p-3 bg-[var(--card)] rounded-[var(--radius)] hover:bg-[var(--secondary)]"
+              >
+                <div className="flex items-center gap-3">
+                  <Video className="w-6 h-6 text-[var(--primary)]" />
+                  <div>
+                    <p className="font-medium text-[var(--foreground)]">{session.title}</p>
+                    <p className="text-[var(--foreground)]/60 text-sm">
+                      {session.time} • {session.duration}
+                    </p>
+                  </div>
+                </div>
+                <div className="bg-[var(--secondary)] px-2 py-1 rounded text-sm">
+                  {session.badge}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>
     </div>
   );

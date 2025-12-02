@@ -51,12 +51,16 @@ const Register = () => {
   };
 
   const handleRegister = async () => {
+     if (loading) return;
+     
     let hasError = false;
     if (!validateField("fullname", fullname)) hasError = true;
     if (!validateField("email", email)) hasError = true;
     if (!validateField("pass", pass)) hasError = true;
     if (!validateField("confirmPass", confirmPass)) hasError = true;
     if (hasError) return;
+
+    setLoading(true);
 
     try {
       const userData = await register(fullname, email.trim().toLowerCase(), pass, "student");
@@ -141,11 +145,23 @@ const Register = () => {
         {errors.confirmPass && <p className="text-red-500 text-sm mb-2">{errors.confirmPass}</p>}
 
         <Button
-          className="btn-primary w-full mt-4"
-          title={loading ? "Creating account..." : "Sign Up"}
+          className="btn-primary w-full mt-4 flex items-center justify-center gap-2"
           onClick={handleRegister}
           disabled={loading}
-        />
+        >
+          {loading && (
+            <svg
+              className="animate-spin h-4 w-4 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            </svg>
+          )}
+          {loading ? "Creating account..." : "Sign Up"}
+        </Button>
 
         <p className="text-center mt-3 text-sm">
           Already have an account? <Link to="/login" className="text-[var(--primary)] font-medium">Sign in here</Link>

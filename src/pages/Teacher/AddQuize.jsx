@@ -1,189 +1,192 @@
-import React, { useState, useEffect, useContext } from "react";
+// src/pages/AddQuiz.jsx
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { db } from "../../../firebase.config";
-import { TeacherContext } from "../../context/TeacherContext.jsx";
-import {
-  collection,
-  getDocs,
-  addDoc,
-  serverTimestamp,
-} from "firebase/firestore";
+import { collection, addDoc, Timestamp, query, where, getDocs } from "firebase/firestore";
+import { useAuth } from "../../context/AuthContext.jsx";
+import { db } from "../../services/firebase.js";
+import toast from "react-hot-toast";
 
-const AddQuizPage = () => {
+export const AddQuiz = () => {
   const navigate = useNavigate();
-  const { teacher } = useContext(TeacherContext);
-  const teacherId = teacher?.id;
+  const { uid: teacherId } = useAuth();
 
+  const [title, setTitle] = useState("");
+  const [selectedCourse, setSelectedCourse] = useState("");
+  const [selectedModule, setSelectedModule] = useState("");
   const [courses, setCourses] = useState([]);
-  const [selectedCourse, setSelectedCourse] = useState(null);
   const [modules, setModules] = useState([]);
-  const [selectedModule, setSelectedModule] = useState(null);
+  const [questions, setQuestions] = useState([{ question: "", options: ["", "", "", ""], correct: 0 }]);
 
-  const [quizTitle, setQuizTitle] = useState("");
-  const [questions, setQuestions] = useState([]);
-
-  // ===== FETCH COURSES =====
+  // Fetch teacher's courses
   useEffect(() => {
-    if (!teacherId) return;
     const fetchCourses = async () => {
-      const snap = await getDocs(collection(db, "courses"));
-      const teacherCourses = snap.docs
-        .map((doc) => ({ id: doc.id, ...doc.data() }))
-        .filter((c) => c.teacherId === teacherId);
-      setCourses(teacherCourses);
-      setSelectedCourse(teacherCourses[0] || null);
+      try {
+        const q = query(collection(db, "courses"), where("teacherId", "==", teacherId));
+        const snapshot = await getDocs(q);
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setCourses(data);
+        if (data.length > 0) setSelectedCourse(data[0].id);
+      } catch (err) {
+        console.error("Failed to fetch courses:", err);
+      }
     };
     fetchCourses();
   }, [teacherId]);
 
-  // ===== FETCH MODULES WHEN COURSE CHANGES =====
+  // Fetch modules for selected course
   useEffect(() => {
-    if (!selectedCourse) return;
     const fetchModules = async () => {
-      const snap = await getDocs(
-        collection(db, `courses/${selectedCourse.id}/modules`)
-      );
-      setModules(snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
-      setSelectedModule(snap.docs[0] ? { id: snap.docs[0].id, ...snap.docs[0].data() } : null);
+      if (!selectedCourse) return;
+      try {
+        const q = query(collection(db, `courses/${selectedCourse}/modules`));
+        const snapshot = await getDocs(q);
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setModules(data);
+        if (data.length > 0) setSelectedModule(data[0].id);
+      } catch (err) {
+        console.error("Failed to fetch modules:", err);
+      }
     };
     fetchModules();
   }, [selectedCourse]);
 
-  // ===== ADD NEW QUESTION =====
-  const addQuestion = () => {
-    setQuestions([...questions, { question: "", options: ["", "", "", ""], correct: 0 }]);
+  const handleQuestionChange = (index, field, value) => {
+    const updated = [...questions];
+    if (field === "question") updated[index].question = value;
+    else if (field.startsWith("option")) updated[index].options[parseInt(field.slice(-1))] = value;
+    else if (field === "correct") updated[index].correct = parseInt(value);
+    setQuestions(updated);
   };
 
-  // ===== REMOVE QUESTION =====
-  const removeQuestion = (index) => {
-    const temp = [...questions];
-    temp.splice(index, 1);
-    setQuestions(temp);
-  };
+  const addQuestion = () => setQuestions([...questions, { question: "", options: ["", "", "", ""], correct: 0 }]);
+  const removeQuestion = (index) => setQuestions(questions.filter((_, i) => i !== index));
 
-  // ===== SAVE QUIZ =====
-  const handleAddQuiz = async () => {
-    if (!selectedCourse || !selectedModule) return alert("Select course and module first!");
-    if (!quizTitle) return alert("Enter quiz title!");
-    if (questions.length === 0) return alert("Add at least one question!");
-
-    const quizRef = collection(db, `courses/${selectedCourse.id}/modules/${selectedModule.id}/quizzes`);
-    await addDoc(quizRef, {
-      title: quizTitle,
-      questionsList: questions,
-      createdAt: serverTimestamp(),
-      teacherId,
-      status: "Published",
-      submissionsCount: 0,
-      totalMarks: questions.length,
-    });
-
-    alert("Quiz added successfully!");
-    navigate("/teacher/dashboard");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedCourse || !selectedModule) {
+      toast("Please select a course and module!");
+      return;
+    }
+    try {
+      await addDoc(collection(db, `courses/${selectedCourse}/modules/${selectedModule}/quizzes`), {
+        title,
+        teacherId,
+        questions,
+        createdAt: Timestamp.fromDate(new Date()),
+      });
+      toast("Quiz added successfully!");
+      navigate("/teacher/dashboard");
+    } catch (err) {
+      console.error(err);
+     toast("Failed to add quiz.");
+    }
   };
 
   return (
-    <div className="p-6 font-[Poppins] max-w-4xl mx-auto">
-      <h1 className="text-2xl font-semibold mb-4">Add New Quiz</h1>
+    <div className="p-6 max-w-4xl mx-auto">
+      <h1 className="heading-1">Add New Quiz</h1>
 
-      {/* Select Course */}
-      <label className="block font-medium mb-1">Select Course</label>
-      <select
-        className="w-full p-2 border rounded mb-3"
-        value={selectedCourse?.id || ""}
-        onChange={(e) =>
-          setSelectedCourse(courses.find((c) => c.id === e.target.value))
-        }
-      >
-        {courses.map((c) => (
-          <option key={c.id} value={c.id}>{c.title}</option>
-        ))}
-      </select>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Course Selection */}
+        <div className="flex flex-col">
+          <label className="font-medium mb-1">Select Course:</label>
+          <select
+            value={selectedCourse}
+            onChange={(e) => setSelectedCourse(e.target.value)}
+            className="border rounded px-3 py-2 w-full"
+          >
+            {courses.map(course => (
+              <option key={course.id} value={course.id}>{course.title}</option>
+            ))}
+          </select>
+        </div>
 
-      {/* Select Module */}
-      <label className="block font-medium mb-1">Select Module</label>
-      <select
-        className="w-full p-2 border rounded mb-3"
-        value={selectedModule?.id || ""}
-        onChange={(e) =>
-          setSelectedModule(modules.find((m) => m.id === e.target.value))
-        }
-      >
-        {modules.map((m) => (
-          <option key={m.id} value={m.id}>{m.title}</option>
-        ))}
-      </select>
+        {/* Module Selection */}
+        <div className="flex flex-col">
+          <label className="font-medium mb-1">Select Module:</label>
+          <select
+            value={selectedModule}
+            onChange={(e) => setSelectedModule(e.target.value)}
+            className="border rounded px-3 py-2 w-full"
+          >
+            {modules.map(mod => (
+              <option key={mod.id} value={mod.id}>{mod.title}</option>
+            ))}
+          </select>
+        </div>
 
-      {/* Quiz Title */}
-      <label className="block font-medium mb-1">Quiz Title</label>
-      <input
-        className="w-full p-2 border rounded mb-3"
-        value={quizTitle}
-        onChange={(e) => setQuizTitle(e.target.value)}
-      />
-
-      {/* Questions */}
-      <h2 className="text-xl font-semibold mb-2">Questions</h2>
-      {questions.map((q, i) => (
-        <div key={i} className="border p-3 rounded mb-3 space-y-2">
-          <div className="flex justify-between items-center">
-            <label>Question {i + 1}</label>
-            <button className="text-red-500 text-sm" onClick={() => removeQuestion(i)}>Remove</button>
-          </div>
+        {/* Quiz Title */}
+        <div>
+          <label className="font-medium mb-1">Quiz Title:</label>
           <input
-            className="w-full p-1 border rounded"
-            placeholder="Enter question"
-            value={q.question}
-            onChange={(e) => {
-              const temp = [...questions];
-              temp[i].question = e.target.value;
-              setQuestions(temp);
-            }}
-          />
-          {q.options.map((opt, j) => (
-            <input
-              key={j}
-              className="w-full p-1 border rounded mt-1"
-              placeholder={`Option ${j + 1}`}
-              value={opt}
-              onChange={(e) => {
-                const temp = [...questions];
-                temp[i].options[j] = e.target.value;
-                setQuestions(temp);
-              }}
-            />
-          ))}
-          <label>Correct Answer (0-3)</label>
-          <input
-            type="number"
-            min="0"
-            max="3"
-            className="w-full p-1 border rounded"
-            value={q.correct}
-            onChange={(e) => {
-              const temp = [...questions];
-              temp[i].correct = Number(e.target.value);
-              setQuestions(temp);
-            }}
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+            className="border rounded px-3 py-2 w-full"
+            placeholder="Enter quiz title"
           />
         </div>
-      ))}
 
-      <button
-        className="bg-[var(--primary)] text-white px-4 py-2 rounded mr-2"
-        onClick={addQuestion}
-      >
-        Add Question
-      </button>
+        {/* Questions */}
+        {questions.map((q, index) => (
+          <div key={index} className="card animate-fadeIn">
+            <div className="flex justify-between items-center mb-2">
+              <h2 className="font-semibold">Question {index + 1}</h2>
+              <button
+                type="button"
+                onClick={() => removeQuestion(index)}
+                className="text-red-500 font-medium"
+              >
+                Remove
+              </button>
+            </div>
 
-      <button
-        className="bg-[var(--primary)] text-white px-4 py-2 rounded"
-        onClick={handleAddQuiz}
-      >
-        Save Quiz
-      </button>
+            <input
+              type="text"
+              placeholder="Enter the question here"
+              value={q.question}
+              onChange={(e) => handleQuestionChange(index, "question", e.target.value)}
+              required
+              className="w-full border rounded px-3 py-2 mb-2"
+            />
+
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              {q.options.map((opt, i) => (
+                <input
+                  key={i}
+                  type="text"
+                  placeholder={`Option ${i + 1}`}
+                  value={opt}
+                  onChange={(e) => handleQuestionChange(index, `option${i}`, e.target.value)}
+                  required
+                  className="border rounded px-3 py-2"
+                />
+              ))}
+            </div>
+
+            <div>
+              <label>Correct Option (0-3):</label>
+              <input
+                type="number"
+                min="0"
+                max="3"
+                value={q.correct}
+                onChange={(e) => handleQuestionChange(index, "correct", e.target.value)}
+                required
+                className="w-16 border rounded px-2 py-1 ml-2"
+              />
+            </div>
+          </div>
+        ))}
+
+        <div className="flex gap-2">
+          <button type="button" onClick={addQuestion} className="btn-primary">Add Question</button>
+          <button type="submit" className="btn-secondary">Save Quiz</button>
+        </div>
+      </form>
     </div>
   );
 };
 
-export default AddQuizPage;
+export default AddQuiz;

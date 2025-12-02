@@ -24,10 +24,10 @@
 }
 
 /* Hide email and phone input fields */
-input[type="email"],
-input[name*="email"],
-input[placeholder*="email"],
-input[placeholder*="Email"],
+/* input[type="email"], */
+/* input[name*="email"], */
+/* input[placeholder*="email"], */
+/* input[placeholder*="Email"], */
 input[type="tel"],
 input[name*="phone"],
 input[placeholder*="phone"],

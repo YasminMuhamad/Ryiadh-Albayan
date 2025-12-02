@@ -1,17 +1,18 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { LayoutDashboard, Users, Video, FileText, UserCircle, FileCheck } from "lucide-react";
+import TeacherDashboard from "../pages/Teacher/TeacherDashboard";
 
 const Sidebar = () => {
   const links = [
-    { to: "/teacher", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/teacher/dashboard", label: "TeacherDashboard", icon: LayoutDashboard },
     { to: "/teacher/students", label: "Students", icon: Users },
     { to: "/teacher/live", label: "Live Sessions", icon: Video },
-    { to: "/teacher/Assignment", label: "Assignments", icon: FileCheck },
+    { to: "/teacher/Assignments", label: "Assignments", icon: FileCheck },
     { to: "/teacher/report", label: "Reports", icon: FileText },
     { to: "/teacher/profile", label: "Profile", icon: UserCircle },
   ];
-
+TeacherDashboard
   return (
     <div className="w-60 min-h-screen bg-[var(--card)] border-r border-[var(--primary)] p-5 font-[Poppins]">
       <h1 className="text-xl font-bold text-[var(--primary)] mb-6">Teacher Panel</h1>

@@ -3,15 +3,15 @@ import StudentDetailsPage from "./StudentDetails.jsx";
 import Sidebar from "../../components/TeacherSidebar.jsx";
 
 // Firebase
-import { db } from "../../../firebase.config";
+import { db } from "../../services/firebase";
 import { collection, getDocs } from "firebase/firestore";
 
-// Teacher Context
-import { TeacherContext } from "../../context/TeacherContext.jsx";
+// Auth Context (بدل TeacherContext)
+import { useAuth } from "../../context/AuthContext.jsx";
 
 export default function StudentsPage() {
-  const { teacher } = useContext(TeacherContext);
-  const teacherId = teacher?.id;
+  const { profile } = useAuth();
+  const teacherId = profile?.uid; // نفترض أن ID المدرس هو uid من الفايربيز
 
   const [students, setStudents] = useState([]);
   const [courses, setCourses] = useState([]);
@@ -25,16 +25,16 @@ export default function StudentsPage() {
 
     const fetchStudents = async () => {
       try {
-        const snap = await getDocs(collection(db, "users")); // collection "users"
+        const snap = await getDocs(collection(db, "users"));
         let data = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
-        // فلترة الطلاب حسب المدرس الحالي
+        // فلترة الطلاب حسب المدرس
         data = data.filter((student) => student.teacherId === teacherId);
 
         setStudents(data);
       } catch (error) {
         console.log("Error fetching students:", error);
-      } 
+      }
     };
 
     fetchStudents();
@@ -49,7 +49,6 @@ export default function StudentsPage() {
         const snap = await getDocs(collection(db, "courses"));
         let data = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
-        // فلترة الكورسات حسب المدرس الحالي
         data = data.filter((course) => course.teacherId === teacherId);
 
         setCourses(data.map((c) => c.name));
@@ -63,25 +62,43 @@ export default function StudentsPage() {
 
   // ---------------------- Filter Students ----------------------
   const filteredStudents = students.filter((student) => {
-    const matchesSearch = student.name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
+    const matchesSearch =
+      student.name?.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesCourse =
-      filterCourse === "all" || student.enrolledCourses?.includes(filterCourse);
+      filterCourse === "all" ||
+      student.enrolledCourses?.includes(filterCourse);
 
     return matchesSearch && matchesCourse;
   });
 
   // ---------------------- Stats ----------------------
   const totalStudents = students.length;
-  const newThisMonth = students?.filter((s) => s.createdAt)?.length || 0;
+
+  const newThisMonth =
+    students.filter((s) => {
+      if (!s.createdAt) return false;
+
+      const created = s.createdAt.toDate
+        ? s.createdAt.toDate()
+        : new Date(s.createdAt);
+
+      const now = new Date();
+      return (
+        created.getMonth() === now.getMonth() &&
+        created.getFullYear() === now.getFullYear()
+      );
+    }).length || 0;
+
   const allProgress = students.flatMap((s) =>
     s.progress ? Object.values(s.progress) : []
   );
+
   const avgProgress =
     allProgress.length > 0
-      ? Math.round(allProgress.reduce((a, b) => a + b, 0) / allProgress.length)
+      ? Math.round(
+          allProgress.reduce((a, b) => a + b, 0) / allProgress.length
+        )
       : 0;
 
   // ------------------ UI Components ------------------
@@ -105,7 +122,7 @@ export default function StudentsPage() {
       <div className="bg-[var(--card)] border rounded-xl p-4 hover:shadow-md transition flex flex-col md:flex-row justify-between items-center gap-4">
         <div className="flex items-center gap-4">
           <div className="h-12 w-12 bg-[var(--primary)] text-white flex items-center justify-center rounded-full font-semibold">
-            {student.name[0]}
+            {student.name?.[0] || "?"}
           </div>
           <div>
             <h3 className="font-semibold">{student.name}</h3>
@@ -140,7 +157,7 @@ export default function StudentsPage() {
   if (selectedStudent) {
     return (
       <StudentDetailsPage
-        studentId={selectedStudent.id} // نمرر ID للصفحة
+        studentId={selectedStudent.id}
         onBack={() => setSelectedStudent(null)}
       />
     );
