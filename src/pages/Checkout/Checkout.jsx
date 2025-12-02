@@ -241,41 +241,31 @@ export default function Checkout() {
                   setPaymentMethod('paypal');
                   setCurrentStep(2);
                 }}
-                className={`p-5 border-2 rounded-2xl cursor-pointer transition-colors ${
-                  paymentMethod === 'paypal' ? 'border-teal-600 bg-white' : 'border-gray-200 hover:border-gray-300'
+                className={`group p-5 border-2 rounded-3xl cursor-pointer transition-all duration-200 flex items-center gap-4 ${
+                  paymentMethod === 'paypal'
+                    ? 'border-teal-600 shadow-[0_8px_24px_rgba(13,148,136,0.15)] bg-white'
+                    : 'border-gray-200 hover:border-teal-200 bg-white'
                 }`}
               >
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center justify-between gap-4 flex-1">
                   <div className="flex items-center gap-3">
-                    <div className={`w-4 h-4 rounded-full border-2 ${
-                      paymentMethod === 'paypal' ? 'border-teal-600 bg-teal-600' : 'border-gray-300'
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                      paymentMethod === 'paypal' ? 'border-teal-600 bg-teal-50' : 'border-gray-300'
                     }`}>
-                      {paymentMethod === 'paypal' && <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5"></div>}
+                      {paymentMethod === 'paypal' && <div className="w-2 h-2 rounded-full bg-teal-600" />}
                     </div>
                     <div>
-                      <div className="font-semibold text-gray-900 text-base">PayPal</div>
-                      <div className="text-sm text-gray-500">Pay with PayPal</div>
+                      <div className="font-bold text-gray-900 text-lg">PayPal</div>
+                      <div className="text-base text-gray-500">Pay with PayPal</div>
                     </div>
                   </div>
-                  <div
-                    className="p-2 rounded-xl shadow-sm"
-                    style={{
-                      background: 'linear-gradient(135deg, #eef3fb 0%, #f7fbff 100%)',
-                    }}
-                  >
-                    <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
-                      <linearGradient id="ppblue" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stopColor="#27346A" />
-                        <stop offset="100%" stopColor="#1B254F" />
-                      </linearGradient>
-                      <linearGradient id="ppteal" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#2790C3" />
-                        <stop offset="100%" stopColor="#1F7DB6" />
-                      </linearGradient>
-                      <path fill="url(#ppblue)" d="M22.9 9.1c-.4-.4-1-.8-1.8-1.1-.7-.2-1.5-.3-2.5-.3h-5.7c-.5 0-.8.4-.9.8l-2.5 16.4-.1.8h3l.2-1.4.7-4.5.5-3.3.1-.7c0-.3.3-.5.6-.5h1.9c2.3 0 4-.5 5.1-1.5 1-.9 1.5-2.3 1.5-4.1 0-1-.2-1.8-.6-2.6-.2-.5-.7-1-1.5-1.5z"/>
-                      <path fill="url(#ppteal)" d="M23.9 11.6c-.3-.1-.6-.2-1-.3-.4-.1-.9-.1-1.5-.1h-5.4c-.2 0-.3.1-.3.3l-.7 4.5-.2 1.1c0 .2.1.3.3.3h1.4c.6 0 1.2 0 1.7-.1.6-.1 1.1-.2 1.6-.4.5-.2.9-.5 1.3-.8.4-.4.7-.8.9-1.4.2-.5.3-1.1.3-1.8 0-.5-.1-1-.3-1.3-.1-.3-.4-.5-.7-.7z"/>
-                      <path fill="#253B80" d="M14.9 23.5l.2-1.3.4-2.7.2-1.2c0-.2.2-.3.3-.3h1.7c.7 0 1.4-.1 2-.3.6-.2 1.1-.5 1.5-.9.4-.4.7-.9.9-1.4.2-.6.3-1.2.3-2 0-.7-.1-1.3-.3-1.8-.2-.6-.6-1-1-1.4-.5-.4-1.1-.7-1.8-.8-.7-.2-1.5-.2-2.3-.2h-4.8c-.2 0-.3.1-.3.3l-1.5 9.4-.5 3.2c0 .2.1.3.3.3h2.2c.2 0 .3-.1.4-.3l.2-.8z"/>
-                    </svg>
+                  <div className="p-3 rounded-2xl bg-blue-50">
+                    <img
+                      src="https://www.paypalobjects.com/webstatic/icon/pp258.png"
+                      alt="PayPal"
+                      className="w-8 h-8"
+                      loading="lazy"
+                    />
                   </div>
                 </div>
               </div>

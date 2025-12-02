@@ -1,18 +1,21 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { db } from "../../../firebase.config";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, doc, getDocs, onSnapshot, query, where } from "firebase/firestore";
+import { useAuth } from "../../context/AuthContext";
 
 export default function CourseDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const { uid } = useAuth();
   const fromPaymentSuccess = Boolean(location.state?.fromPaymentSuccess);
   const [course, setCourse] = useState(null);
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modules, setModules] = useState([]);
   const [selectedLesson, setSelectedLesson] = useState(null);
+  const [isEnrolled, setIsEnrolled] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -87,6 +90,48 @@ export default function CourseDetails() {
     fetchModulesAndLessons();
   }, [id]);
 
+  // Check enrollment for the current user and course
+  // Consolidated enrollment detection: listen to enrollments and payments, and include payment-success state
+  useEffect(() => {
+    if (!uid || !id) {
+      setIsEnrolled(false);
+      return;
+    }
+
+    const enrollmentRef = doc(db, "users", uid, "enrollments", id);
+    const paymentsQuery = query(collection(db, "payments"), where("studentId", "==", uid));
+
+    const unsubEnroll = onSnapshot(
+      enrollmentRef,
+      (snap) => {
+        if (snap.exists()) setIsEnrolled(true);
+      },
+      (err) => console.error("Failed to check enrollment", err)
+    );
+
+    const unsubPayments = onSnapshot(
+      paymentsQuery,
+      (snap) => {
+        const hasCourse = snap.docs.some((d) => {
+          const courses = d.data().courses;
+          return Array.isArray(courses) && courses.some((c) => c.id === id || c.courseId === id);
+        });
+        if (hasCourse) setIsEnrolled(true);
+      },
+      (err) => console.error("Failed to watch payments for enrollment", err)
+    );
+
+    const paidCourses = location.state?.courses || [];
+    if (fromPaymentSuccess && paidCourses.some((c) => c.id === id)) {
+      setIsEnrolled(true);
+    }
+
+    return () => {
+      unsubEnroll();
+      unsubPayments();
+    };
+  }, [uid, id, fromPaymentSuccess, location.state]);
+
   const getTeacherName = (teacherId) => {
     const teacher = teachers.find((t) => t.id === teacherId);
     return teacher ? "Name : " + teacher.name : "محاضر متخصص";
@@ -94,7 +139,7 @@ export default function CourseDetails() {
 
   const getTeacherImage = (teacherId) => {
     const teacher = teachers.find((t) => t.id === teacherId);
-    return teacher?.image || teacher?.thumbnail || "/api/placeholder/150/150";
+    return teacher?.profile_pic || teacher?.image || teacher?.thumbnail ;
   };
 
   const getTeacherEmail = (teacherId) => {
@@ -383,10 +428,15 @@ export default function CourseDetails() {
                 </div>
 
                 <button
-                  onClick={() => navigate(`/checkout/${course.id}`)}
-                  className="w-full bg-teal-600 text-white py-3 rounded-xl font-semibold hover:bg-teal-700 transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-xl hover:-translate-y-1 transform mb-6"
+                  onClick={() => !isEnrolled && navigate(`/checkout/${course.id}`)}
+                  disabled={isEnrolled}
+                  className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 ease-in-out mb-6 ${
+                    isEnrolled
+                      ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                      : "bg-teal-600 text-white hover:bg-teal-700 hover:scale-105 hover:shadow-xl hover:-translate-y-1 transform"
+                  }`}
                 >
-                  Enroll Now
+                  {isEnrolled ? "Already Enrolled" : "Enroll Now"}
                 </button>
 
                 <div className="space-y-4">
