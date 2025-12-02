@@ -1,16 +1,18 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { collection, getDocs, doc, getDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, addDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { db } from '../../../firebase.config';
 import PayPalButton from '../../components/PayPalButton';
 import CheckoutStepper from '../../components/CheckoutStepper';
 import OrderSummaryCard from '../../components/OrderSummaryCard';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Checkout() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const cartCoursesFromState = useMemo(() => location.state?.cartCourses || [], [location.state]);
+  const { uid, profile } = useAuth();
   const [enrichedCartCourses, setEnrichedCartCourses] = useState(cartCoursesFromState);
   const [course, setCourse] = useState(null);
   const [teacher, setTeacher] = useState(null);
@@ -94,13 +96,14 @@ export default function Checkout() {
     const price = typeof item?.price === 'number' ? item.price : parseFloat(item?.price || 0);
     return sum + (isNaN(price) ? 0 : price);
   }, 0);
+  const safeAmount = Number.isFinite(totalAmount) && totalAmount > 0 ? Number(totalAmount.toFixed(2)) : 1;
 
   const handlePaymentSuccess = async (details) => {
     console.log('Payment successful:', details);
     setPaymentError(null);
 
     try {
-      await addDoc(collection(db, 'payment'), {
+      await addDoc(collection(db, 'payments'), {
         paymentId: details.id,
         payer: details?.payer || null,
         amount: totalAmount,
@@ -114,8 +117,27 @@ export default function Checkout() {
           price: item.price,
           category: item.category || null,
         })),
+        studentId: uid || null,
+        studentEmail: profile?.email || null,
         createdAt: serverTimestamp(),
       });
+
+      // Save enrollment for the student so it appears in My Courses
+      if (uid) {
+        const enrollmentsRef = collection(db, 'users', uid, 'enrollments');
+        await Promise.all(
+          checkoutItems.map((item) =>
+            setDoc(doc(enrollmentsRef, item.id), {
+              courseId: item.id,
+              purchasedAt: serverTimestamp(),
+              price: item.price ?? null,
+              status: 'active',
+              title: item.title ?? '',
+              category: item.category ?? '',
+            }, { merge: true })
+          )
+        );
+      }
     } catch (logErr) {
       console.error('Failed to log payment to Firestore:', logErr);
     }
@@ -223,21 +245,36 @@ export default function Checkout() {
                   paymentMethod === 'paypal' ? 'border-teal-600 bg-white' : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className={`w-4 h-4 rounded-full border-2 mr-4 ${
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-4 h-4 rounded-full border-2 ${
                       paymentMethod === 'paypal' ? 'border-teal-600 bg-teal-600' : 'border-gray-300'
                     }`}>
                       {paymentMethod === 'paypal' && <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5"></div>}
                     </div>
-                    <div className="text-right">
-                      <div className="font-semibold text-gray-900 mb-1">PayPal</div>
+                    <div>
+                      <div className="font-semibold text-gray-900 text-base">PayPal</div>
                       <div className="text-sm text-gray-500">Pay with PayPal</div>
                     </div>
                   </div>
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <svg className="w-6 h-6 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.73-.258c-.31-.075-.663-.14-1.074-.14H15.19c-.524 0-.968.382-1.05.9l-.72 4.571-.84 5.334h4.606c2.57 0 4.578-.543 5.69-1.81 1.01-1.15 1.304-2.42 1.012-4.287-.023-.143-.047-.288-.077-.437-.455-2.334-1.315-3.873-2.639-4.873z"/>
+                  <div
+                    className="p-2 rounded-xl shadow-sm"
+                    style={{
+                      background: 'linear-gradient(135deg, #eef3fb 0%, #f7fbff 100%)',
+                    }}
+                  >
+                    <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
+                      <linearGradient id="ppblue" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#27346A" />
+                        <stop offset="100%" stopColor="#1B254F" />
+                      </linearGradient>
+                      <linearGradient id="ppteal" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#2790C3" />
+                        <stop offset="100%" stopColor="#1F7DB6" />
+                      </linearGradient>
+                      <path fill="url(#ppblue)" d="M22.9 9.1c-.4-.4-1-.8-1.8-1.1-.7-.2-1.5-.3-2.5-.3h-5.7c-.5 0-.8.4-.9.8l-2.5 16.4-.1.8h3l.2-1.4.7-4.5.5-3.3.1-.7c0-.3.3-.5.6-.5h1.9c2.3 0 4-.5 5.1-1.5 1-.9 1.5-2.3 1.5-4.1 0-1-.2-1.8-.6-2.6-.2-.5-.7-1-1.5-1.5z"/>
+                      <path fill="url(#ppteal)" d="M23.9 11.6c-.3-.1-.6-.2-1-.3-.4-.1-.9-.1-1.5-.1h-5.4c-.2 0-.3.1-.3.3l-.7 4.5-.2 1.1c0 .2.1.3.3.3h1.4c.6 0 1.2 0 1.7-.1.6-.1 1.1-.2 1.6-.4.5-.2.9-.5 1.3-.8.4-.4.7-.8.9-1.4.2-.5.3-1.1.3-1.8 0-.5-.1-1-.3-1.3-.1-.3-.4-.5-.7-.7z"/>
+                      <path fill="#253B80" d="M14.9 23.5l.2-1.3.4-2.7.2-1.2c0-.2.2-.3.3-.3h1.7c.7 0 1.4-.1 2-.3.6-.2 1.1-.5 1.5-.9.4-.4.7-.9.9-1.4.2-.6.3-1.2.3-2 0-.7-.1-1.3-.3-1.8-.2-.6-.6-1-1-1.4-.5-.4-1.1-.7-1.8-.8-.7-.2-1.5-.2-2.3-.2h-4.8c-.2 0-.3.1-.3.3l-1.5 9.4-.5 3.2c0 .2.1.3.3.3h2.2c.2 0 .3-.1.4-.3l.2-.8z"/>
                     </svg>
                   </div>
                 </div>
@@ -264,10 +301,18 @@ export default function Checkout() {
                 {paymentMethod === 'paypal' && (
                   <div>
                     <PayPalButton 
-                      amount={totalAmount}
+                      amount={safeAmount}
                       onSuccess={handlePaymentSuccess}
                       onError={handlePaymentError}
                     />
+                    {paymentError && (
+                      <p className="text-red-600 text-sm mt-3">{paymentError}</p>
+                    )}
+                    {safeAmount !== totalAmount && (
+                      <p className="text-amber-600 text-xs mt-2">
+                        Using minimum charge amount because course price is missing. Please contact support if this is unexpected.
+                      </p>
+                    )}
                   </div>
                 )}
 

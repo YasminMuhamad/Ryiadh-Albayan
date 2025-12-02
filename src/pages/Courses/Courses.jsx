@@ -3,9 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../../firebase.config";
 import CategoryDropdown from "../../components/categorydropdown";
+import CourseRecommendations from "../../components/CourseRecommendations";
+import { useAuth } from "../../context/AuthContext";
+import toast from "react-hot-toast";
 
 export default function Courses() {
   const navigate = useNavigate();
+  const { uid } = useAuth();
   const [courses, setCourses] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
@@ -14,6 +18,7 @@ export default function Courses() {
   const [error, setError] = useState(null);
   const [cart, setCart] = useState([]);
   const [categories, setCategories] = useState(["All Categories"]);
+  const [enrolledIds, setEnrolledIds] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -79,6 +84,23 @@ export default function Courses() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    const fetchEnrollments = async () => {
+      if (!uid) {
+        setEnrolledIds([]);
+        return;
+      }
+      try {
+        const snap = await getDocs(collection(db, "users", uid, "enrollments"));
+        const ids = snap.docs.map((d) => d.data().courseId).filter(Boolean);
+        setEnrolledIds(ids);
+      } catch (err) {
+        console.error("Failed to fetch enrollments", err);
+      }
+    };
+    fetchEnrollments();
+  }, [uid]);
+
   const getTeacherName = (teacherId) => {
     const teacher = teachers.find((t) => t.id === teacherId);
     return teacher ? teacher.name : "Unknown Teacher";
@@ -92,6 +114,11 @@ export default function Courses() {
     setCart(updatedCart);
     localStorage.setItem("cart", JSON.stringify(updatedCart));
     window.dispatchEvent(new Event("cartUpdated"));
+    if (updatedCart.includes(courseId)) {
+      toast.success("Added to cart");
+    } else {
+      toast("Removed from cart");
+    }
   };
 
   const isInCart = (courseId) => cart.includes(courseId);
@@ -264,7 +291,7 @@ export default function Courses() {
 
                 <div className="flex items-center justify-between mt-auto">
                   <div className="text-xl font-bold text-teal-600">
-                    $ {typeof course.price === "number" ? course.price : course.price || "149"}
+                    $ {typeof course.price === "number" ? course.price : course.price || 149}
                   </div>
                   <div className="flex gap-3">
                     <button
@@ -304,10 +331,19 @@ export default function Courses() {
           <p className="text-gray-500">
             {searchTerm || selectedCategory !== "All Categories"
               ? "Try adjusting your search or filter criteria."
-              : "No courses are currently available."}
+            : "No courses are currently available."}
           </p>
         </div>
       )}
+
+      {/* AI Recommendations at bottom */}
+      <div className="mt-12">
+        <CourseRecommendations
+          courses={courses}
+          enrolledIds={enrolledIds}
+          cartIds={cart}
+        />
+      </div>
     </div>
   );
 }

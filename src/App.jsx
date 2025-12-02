@@ -10,8 +10,11 @@ import Register from "./pages/Auth/RegisterStudent";
 import Cart from "../src/pages/Cart/Cart.jsx";
 import Checkout from "../src/pages/Checkout/Checkout.jsx";
 import PaymentSuccess from "../src/pages/Checkout/PaymentSuccess.jsx";
-import ProtectedRoute from "./ProtectedRoute";
-import { AuthProvider, useAuth } from "./context/AuthContext";
+import MyCourses from "./pages/Student/MyCourses.jsx";
+
+import ProtectedRoute from "../src/router.jsx";
+import { AuthProvider, useAuth } from "../src/context/AuthContext.jsx";
+
 import './styles/globals.css';
 import { AdminShell } from "./components/AdminShell";
 import { TeacherDashboard } from "./pages/Teacher/Dashboard";
@@ -73,7 +76,7 @@ export default function App() {
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout/:id" element={<Checkout />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
-            <Route path="*" element={<NotFound />} />
+            <Route path="/my-courses" element={<MyCourses />} />
 
             {/* Admin Pages */}
             <Route
