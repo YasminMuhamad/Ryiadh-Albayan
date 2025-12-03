@@ -1,3 +1,4 @@
+import React from "react";
 export function DashCard({ title, subtitle, icon: Icon, children, actions, className = "" }) {
   return (
     <div className={`card ${className}`}>
