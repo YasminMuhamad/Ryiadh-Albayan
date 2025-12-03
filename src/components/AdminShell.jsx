@@ -1,6 +1,5 @@
 // src/components/AdminShell.jsx
 import React, { useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
 import '../styles/globals.css';
 import { Sidebar } from './SideBar';
 import { Layout } from './Layaout';
@@ -11,7 +10,7 @@ import AdminRevenue from '../pages/Admin/Revenue';
 import AdminSettings from '../pages/Admin/Settings';
 import { AdminDashboard } from '../pages/Admin/Dashboard';
 import AdminCourses from '../pages/Admin/Courses';
-import { AddCourseContent } from '../pages/Admin/AddCourseContent';
+import { CourseContent } from '../pages/Admin/CourseContent';
 
 export function AdminShell({ userRole = 'admin' }) {
 const [activeTab, setActiveTab] = useState('dashboard');
@@ -25,7 +24,7 @@ const [selectedCourseId, setSelectedCourseId] = useState(null);
       case 'analytics': return <AdminAnalytics />;
       case 'revenue': return <AdminRevenue />;
       case 'settings': return <AdminSettings />;
-      case 'content' : return <AddCourseContent setActiveTab={setActiveTab} courseId={selectedCourseId}/>;
+      case 'content' : return <CourseContent setActiveTab={setActiveTab} courseId={selectedCourseId}/>;
       default: return <AdminDashboard />;
     }
   };

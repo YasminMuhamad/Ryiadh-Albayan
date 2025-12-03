@@ -1,4 +1,4 @@
-// src/pages/Admin/AddCourseContent.jsx
+// src/pages/Admin/CourseContent.jsx
 import React, { useEffect, useState, useCallback } from "react";
 import { db } from '../../../firebase.config';
 import {
@@ -18,7 +18,7 @@ import toast from "react-hot-toast";
 import ConfirmModal from "../../components/ConfirmModal";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
-export function AddCourseContent({ courseId, setActiveTab }) {
+export function CourseContent({ courseId, setActiveTab }) {
     // original remote data
     const [course, setCourse] = useState(null);
     const [loadingRemote, setLoadingRemote] = useState(false);
@@ -104,7 +104,13 @@ export function AddCourseContent({ courseId, setActiveTab }) {
             await Promise.all(modules.map(async (m) => {
                 const lessonsCol = collection(db, "courses", courseId, "modules", m.id, "lessons");
                 const lessonsSnap = await getDocs(lessonsCol);
-                lessonsMap[m.id] = lessonsSnap.docs.map(d => ({ id: d.id, title: d.data().title || "", content: d.data().content || "" }));
+                lessonsMap[m.id] = lessonsSnap.docs.map(d => ({
+                    id: d.id,
+                    title: d.data().title || "",
+                    content: d.data().content || "",
+                    materials: d.data().materials || [],
+                    video: d.data().video || null
+                }));
             }));
 
             // set local copies with _state = 'unchanged'
@@ -162,7 +168,7 @@ export function AddCourseContent({ courseId, setActiveTab }) {
         const tempLId = `temp_l_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
         setLessonsMapLocal(prev => {
             const list = prev[moduleId] ? [...prev[moduleId]] : [];
-            list.push({ id: tempLId, title: title.trim(), content: content ?? "", _state: 'new' });
+            list.push({ id: tempLId, title: title.trim(), content: content ?? "", materials: [], video: null, _state: 'new' });
             return { ...prev, [moduleId]: list };
         });
     };
@@ -234,72 +240,76 @@ export function AddCourseContent({ courseId, setActiveTab }) {
     const handleSave = async () => {
         if (!courseId) return;
         setSaving(true);
+
         try {
-            // 1) Create new modules first to get real IDs for their lessons
-            // mapping tempId -> newId
+            // 1) Create/update modules & keep tempId -> realId mapping
             const tempMap = {}; // temp module id => new module id
-            // process modulesLocal in order (keep order)
-            for (const m of modulesLocal) {
+
+            for (const [index, m] of modulesLocal.entries()) {
+                let finalModuleId = m.id;
+
                 if (m._state === 'new') {
                     const newDocRef = await addDoc(collection(db, "courses", courseId, "modules"), {
                         title: m.title,
-                        createdAt: serverTimestamp()
+                        createdAt: serverTimestamp(),
+                        moduleOrder: index + 1
                     });
-                    tempMap[m.id] = newDocRef.id;
+                    finalModuleId = newDocRef.id;
+                    tempMap[m.id] = finalModuleId;
                 } else if (m._state === 'modified') {
-                    // update existing module title
-                    await updateDoc(doc(db, "courses", courseId, "modules", m.id), { title: m.title, updatedAt: serverTimestamp() });
+                    await updateDoc(doc(db, "courses", courseId, "modules", m.id), {
+                        title: m.title,
+                        updatedAt: serverTimestamp(),
+                        moduleOrder: index + 1
+                    });
                 }
-                // unchanged or deleted handled later
-            }
 
-            // 2) For modules marked deleted: cascade delete lessons then module
-            const deletedModules = modulesLocal.filter(m => m._state === 'deleted').map(m => m.id);
-            for (const mid of deletedModules) {
-                // if temp new id (shouldn't happen), skip
-                if (mid?.toString?.().startsWith?.('temp_')) {
-                    continue;
-                }
-                // delete lessons under module
-                const lessonsCol = collection(db, "courses", courseId, "modules", mid, "lessons");
-                const lessonsSnap = await getDocs(lessonsCol);
-                await Promise.all(lessonsSnap.docs.map(d => deleteDoc(doc(db, "courses", courseId, "modules", mid, "lessons", d.id))));
-                // delete module doc
-                await deleteDoc(doc(db, "courses", courseId, "modules", mid));
-            }
+                // 2) Process lessons inside this module
+                const lessonsList = lessonsMapLocal[m.id] || [];
+                for (const [lIndex, ls] of lessonsList.entries()) {
+                    const lessonData = {
+                        title: ls.title,
+                        content: ls.content ?? "",
+                        materials: ls.materials ?? [],
+                        video: ls.video ?? null,
+                        createdAt: serverTimestamp(),
+                        updatedAt: serverTimestamp(),
+                        lessonOrder: lIndex + 1
+                    };
 
-            // 3) Process lessons: create/update/delete.
-            for (const moduleKey of Object.keys(lessonsMapLocal)) {
-                // resolve final moduleId on server:
-                const finalModuleId = moduleKey.startsWith('temp_') ? tempMap[moduleKey] : moduleKey;
-                if (!finalModuleId) {
-                    // maybe module was temp but failed to create; skip
-                    continue;
-                }
-                const lessonsList = lessonsMapLocal[moduleKey] || [];
-                for (const ls of lessonsList) {
                     if (ls._state === 'new') {
-                        await addDoc(collection(db, "courses", courseId, "modules", finalModuleId, "lessons"), {
-                            title: ls.title,
-                            content: ls.content ?? "",
-                            materials: ls.materials || [],
-                            createdAt: serverTimestamp()
-                        });
+                        await addDoc(
+                            collection(db, "courses", courseId, "modules", finalModuleId, "lessons"),
+                            lessonData
+                        );
                     } else if (ls._state === 'modified') {
-                        await updateDoc(doc(db, "courses", courseId, "modules", finalModuleId, "lessons", ls.id), {
-                            title: ls.title,
-                            content: ls.content ?? "",
-                            updatedAt: serverTimestamp()
-                        });
+                        await updateDoc(
+                            doc(db, "courses", courseId, "modules", finalModuleId, "lessons", ls.id),
+                            lessonData
+                        );
                     } else if (ls._state === 'deleted') {
                         if (!ls.id?.toString?.().startsWith?.('temp_')) {
-                            await deleteDoc(doc(db, "courses", courseId, "modules", finalModuleId, "lessons", ls.id));
+                            await deleteDoc(
+                                doc(db, "courses", courseId, "modules", finalModuleId, "lessons", ls.id)
+                            );
                         }
                     }
                 }
             }
 
-            // 4) Update course metadata (category, status, type) AND totals (computed from server)
+            // 3) Delete modules marked deleted
+            const deletedModules = modulesLocal.filter(m => m._state === 'deleted').map(m => m.id);
+            for (const mid of deletedModules) {
+                if (mid?.toString?.().startsWith?.('temp_')) continue;
+
+                const lessonsCol = collection(db, "courses", courseId, "modules", mid, "lessons");
+                const lessonsSnap = await getDocs(lessonsCol);
+                await Promise.all(lessonsSnap.docs.map(d => deleteDoc(doc(db, "courses", courseId, "modules", mid, "lessons", d.id))));
+
+                await deleteDoc(doc(db, "courses", courseId, "modules", mid));
+            }
+
+            // 4) Update course metadata & totals
             const totals = await computeTotalsFromServer();
             await updateDoc(doc(db, "courses", courseId), {
                 category: selectedCategory ?? null,
@@ -310,8 +320,9 @@ export function AddCourseContent({ courseId, setActiveTab }) {
                 updatedAt: serverTimestamp()
             });
 
-            // 5) After everything, refresh local from DB
+            // 5) Refresh local state from DB
             await fetchRemoteAndPopulateLocal();
+
         } catch (err) {
             console.error("save changes err", err);
             alert("Failed to save changes. Check console.");
@@ -573,7 +584,8 @@ export function AddCourseContent({ courseId, setActiveTab }) {
                             {/* Lessons for this module (local) */}
                             <div className="mt-4">
                                 <div className="space-y-2">
-                                    {((lessonsMapLocal[m.id] || []).filter(ls => ls._state !== 'deleted')).map(ls => (
+                                    {/* Existing lessons (not deleted) */}
+                                    {(lessonsMapLocal[m.id] || []).filter(ls => ls._state !== 'deleted').map(ls => (
                                         <div key={ls.id} className="p-3 bg-[#F9FAFB] rounded border">
                                             {/* Lesson title & content */}
                                             <div className="flex items-start justify-between gap-2 mb-2">
@@ -608,22 +620,22 @@ export function AddCourseContent({ courseId, setActiveTab }) {
                                                         <input
                                                             placeholder="Material title"
                                                             value={mat.title}
-                                                            onChange={(e) => editLessonLocal(m.id, ls.id, `materials.${idx}.title`, e.target.value)}
+                                                            onChange={(e) => editLessonMaterialLocal(m.id, ls.id, idx, 'title', e.target.value)}
                                                             className="p-1 rounded border bg-white focus:outline-none flex-1"
                                                         />
                                                         <input
                                                             placeholder="Material file URL"
                                                             value={mat.file}
-                                                            onChange={(e) => editLessonLocal(m.id, ls.id, `materials.${idx}.file`, e.target.value)}
+                                                            onChange={(e) => editLessonMaterialLocal(m.id, ls.id, idx, 'file', e.target.value)}
                                                             className="p-1 rounded border bg-white focus:outline-none flex-1"
                                                         />
                                                         <select
                                                             value={mat.type || 'file'}
-                                                            onChange={(e) => editLessonLocal(m.id, ls.id, `materials.${idx}.type`, e.target.value)}
+                                                            onChange={(e) => editLessonMaterialLocal(m.id, ls.id, idx, 'type', e.target.value)}
                                                             className="p-1 rounded border bg-white focus:outline-none"
                                                         >
-                                                            <option value="file">File</option>
-                                                            <option value="video">Video</option>
+                                                            <option value="pdf">Pdf</option>
+                                                            <option value="pptx">Ppt</option>
                                                         </select>
                                                         <button
                                                             onClick={() => editLessonLocal(m.id, ls.id, 'materials', (ls.materials || []).filter((_, i) => i !== idx))}
@@ -639,8 +651,8 @@ export function AddCourseContent({ courseId, setActiveTab }) {
                                                     <input id={`newMatTitle_${ls.id}`} placeholder="Material title" className="p-1 rounded border bg-[#F5F3ED] flex-1" />
                                                     <input id={`newMatFile_${ls.id}`} placeholder="Material file URL" className="p-1 rounded border bg-[#F5F3ED] flex-1" />
                                                     <select id={`newMatType_${ls.id}`} className="p-1 rounded border bg-[#F5F3ED]">
-                                                        <option value="file">File</option>
-                                                        <option value="video">Video</option>
+                                                        <option value="pdf">Pdf</option>
+                                                        <option value="pptx">Ppt</option>
                                                     </select>
                                                     <button
                                                         onClick={() => {
@@ -658,11 +670,36 @@ export function AddCourseContent({ courseId, setActiveTab }) {
                                                     </button>
                                                 </div>
                                             </div>
+
+                                            {/* Video input */}
+                                            <div className="mt-4 p-2 border-t border-gray-200">
+                                                <label className="block text-sm mb-1 font-medium">Lesson Video (single)</label>
+                                                <input
+                                                    placeholder="Video file URL"
+                                                    value={ls.video?.file || ""}
+                                                    onChange={(e) => editLessonLocal(m.id, ls.id, 'video', { ...(ls.video || {}), file: e.target.value })}
+                                                    className="w-full p-1 rounded border bg-white focus:outline-none"
+                                                />
+                                                <input
+                                                    placeholder="Video title"
+                                                    value={ls.video?.title || ""}
+                                                    onChange={(e) => editLessonLocal(m.id, ls.id, 'video', { ...(ls.video || {}), title: e.target.value })}
+                                                    className="w-full mt-1 p-1 rounded border bg-white focus:outline-none"
+                                                />
+                                                {ls.video && (
+                                                    <button
+                                                        onClick={() => editLessonLocal(m.id, ls.id, 'video', null)}
+                                                        className="mt-2 px-2 py-1 text-red-600 rounded border"
+                                                    >
+                                                        Remove Video
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
                                     ))}
 
-                                    {/* show deleted lessons as faded with Undo */}
-                                    {((lessonsMapLocal[m.id] || []).filter(ls => ls._state === 'deleted')).map(ls => (
+                                    {/* Deleted lessons as faded */}
+                                    {(lessonsMapLocal[m.id] || []).filter(ls => ls._state === 'deleted').map(ls => (
                                         <div key={ls.id} className="flex items-center justify-between px-2 py-1 bg-yellow-50 rounded opacity-80">
                                             <div>
                                                 <div className="text-sm">{ls.title}</div>
@@ -673,12 +710,33 @@ export function AddCourseContent({ courseId, setActiveTab }) {
                                             </div>
                                         </div>
                                     ))}
+
+                                    {/* Always visible: Add new lesson */}
+                                    <div className="flex gap-2 mt-2">
+                                        <input
+                                            id={`newLessonTitle_${m.id}`}
+                                            placeholder="New lesson title"
+                                            className="flex-1 p-2 rounded border bg-[#F5F3ED] focus:outline-none"
+                                        />
+                                        <button
+                                            onClick={() => {
+                                                const title = document.getElementById(`newLessonTitle_${m.id}`).value.trim();
+                                                if (!title) return;
+                                                addLessonLocal(m.id, title);
+                                                document.getElementById(`newLessonTitle_${m.id}`).value = "";
+                                            }}
+                                            className="px-3 py-2 bg-green-600 text-white rounded"
+                                        >
+                                            Add Lesson
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
                         </div>
                     ))}
                 </div>
+                
                 {/* ----- Category Management ----- */}
                 <div className="my-6 p-4 bg-white rounded-lg shadow-sm border">
                     <h3 className="font-medium mb-2">Manage Categories</h3>
