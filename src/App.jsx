@@ -40,6 +40,15 @@ function Layout({ children }) {
   // Show ChatWidget only for students & guests
   const showChat = !isAdminPage && !isTeacherPage;
 
+
+// Send notification once
+//  addNotification({ 
+//    title: "App Started",
+//    message: " Test notification.",
+//   type: "info",
+//  });
+
+
   return (
     <>
       <Navbar />
