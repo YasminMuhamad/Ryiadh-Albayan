@@ -5,9 +5,8 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [
     react({
-      babel: {
-        plugins: [['babel-plugin-react-compiler']],
-      },
+      // React Compiler disabled to avoid missing runtime issues during dev.
+      // Re-enable later if you add the compiler runtime package.
     }),
   ],
 })

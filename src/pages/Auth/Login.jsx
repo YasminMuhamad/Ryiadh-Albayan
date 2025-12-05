@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import AuthLayout from "../../components/AuthLayout";
 import AuthCard from "../../components/AuthCard";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { BookOpen } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../../components/Button";
@@ -17,6 +17,8 @@ const Login = () => {
 
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const validateField = (name, value) => {
@@ -46,16 +48,23 @@ const Login = () => {
       const res = await login(email.trim().toLowerCase(), pass); // returns { role, profile, uid }
       const role = res.role;
 
-      if (role === "teacher") {
-        toast.success("Teacher login successful");
-        navigate("/teacher/dashboard");
-      } else if (role === "admin") {
-        toast.success("Admin login successful");
-        navigate("/admin/dashboard");
-      } else {
-        toast.success("Student login successful");
-        navigate("/student/dashboard");
-      }
+      const target =
+        (typeof from === "string" && from) ||
+        (from?.pathname ? from.pathname : null) ||
+        (role === "teacher"
+          ? "/teacher/dashboard"
+          : role === "admin"
+            ? "/admin/dashboard"
+            : "/student/dashboard");
+
+      toast.success(
+        role === "teacher"
+          ? "Teacher login successful"
+          : role === "admin"
+            ? "Admin login successful"
+            : "Student login successful"
+      );
+      navigate(target);
     } catch (err) {
       console.error("Login failed:", err);
       toast.error("Email or password is incorrect");

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useMemo, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import {
   onNotificationsListener,
   markNotificationsAsRead,
@@ -135,17 +135,20 @@ export function Navbar() {
           </span>
 
           <div className="relative">
-            <span
-              onClick={() => handleNavigation("/cart")}
-              className={`nav-item flex items-center ${currentPage === "/cart" ? "active" : ""}`}
+            <Link
+              to="/cart"
+              className={`nav-item flex items-center gap-1 px-2 py-1 rounded-full transition ${
+                currentPage === "/cart" ? "font-bold bg-gray-100" : ""
+              }`}
+              aria-label="Cart"
             >
               <ShoppingCart size={20} />
               {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-teal-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                <span className="absolute -top-2 -right-2 bg-teal-600 text-white text-xs rounded-full h-5 min-w-[20px] px-1 flex items-center justify-center">
                   {cartCount}
                 </span>
               )}
-            </span>
+            </Link>
           </div>
 
           <div className="flex items-center gap-6">
