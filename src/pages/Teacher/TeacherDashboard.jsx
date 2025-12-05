@@ -2,7 +2,14 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { db } from "../../services/firebase";
 import { collection, getDocs, query, where } from "firebase/firestore";
-import { Users, Video, BookOpen, Plus, FileQuestion, Calendar } from "lucide-react";
+import {
+  Users,
+  Video,
+  BookOpen,
+  Plus,
+  FileQuestion,
+  Calendar,
+} from "lucide-react";
 import { useAuth } from "../../context/AuthContext.jsx";
 import "../../styles/globals.css";
 
@@ -15,29 +22,37 @@ const TeacherDashboard = ({ teacherId: propTeacherId }) => {
 
   const [courses, setCourses] = useState([]);
   const [totalStudents, setTotalStudents] = useState(0);
+  const [recentActivities, setRecentActivities] = useState([]);
 
-  // ======= Mock Data =======
-  const recentActivities = [
-    { id: 1, type: "session", title: "Live Session Scheduled", description: "A new live session on 'Arabic Alphabet Basics' has been scheduled.", timestamp: Date.now() - 2*60*60*1000 },
-    { id: 2, type: "quiz", title: "Quiz Added", description: "A new quiz was added to 'Basic Grammar' course.", timestamp: Date.now() - 5*60*60*1000 },
-    { id: 3, type: "lesson", title: "New Lesson Uploaded", description: "Lesson 'Introduction to Tajweed' has been uploaded.", timestamp: Date.now() - 1*24*60*60*1000 },
-  ];
-
+  // Quick Actions مع الصفحات الصحيحة
   const quickActions = [
-    { action:"createCourse", icon: BookOpen, title:"Create Course", desc:"Start a new course" },
-    { action:"addAnnouncement", icon: Calendar, title:"Add Announcement", desc:"Post to your courses" },
-    { action:"addQuiz", icon: FileQuestion, title:"Add Quiz", desc:"Create an assessment" },
-  ];
-
-  const upcomingSessions = [
-    { id:1, title:"Introduction to Arabic Alphabet", time:"Today 4:00 PM", duration:"60 min", badge:"In 2 hours" },
-    { id:2, title:"Fiqh Discussion - Prayer Rulings", time:"Tomorrow 2:00 PM", duration:"90 min", badge:"Tomorrow" },
+    {
+      action: "createCourse",
+      icon: BookOpen,
+      title: "Create Course",
+      desc: "Start a new course",
+      path: "/teacher/edit-course/", 
+    },
+    {
+      action: "addAnnouncement",
+      icon: Calendar,
+      title: "Add Announcement",
+      desc: "Post to your courses",
+      path: "/Teacher/AddLiveSessions",
+    },
+    {
+      action: "addQuiz",
+      icon: FileQuestion,
+      title: "Add Quiz",
+      desc: "Create an assessment",
+      path: "/Teacher/AddQuize",
+    },
   ];
 
   const formatTime = (timestamp) => {
-    const diff = Math.floor((Date.now() - timestamp)/(1000*60*60));
-    if(diff<1) return "Just now";
-    if(diff<24) return `${diff}h ago`;
+    const diff = Math.floor((Date.now() - timestamp) / (1000 * 60 * 60));
+    if (diff < 1) return "Just now";
+    if (diff < 24) return `${diff}h ago`;
     return new Date(timestamp).toLocaleDateString();
   };
 
@@ -64,6 +79,60 @@ const TeacherDashboard = ({ teacherId: propTeacherId }) => {
           0
         );
         setTotalStudents(total);
+
+        // تحديث recentActivities بناءً على بيانات الكورسات
+        const activities = [];
+
+        coursesData.forEach((course) => {
+          if (course.createdAt) {
+            activities.push({
+              id: `course-${course.id}`,
+              type: "course",
+              title: `New Course Added`,
+              description: `${course.title} has been added.`,
+              timestamp: course.createdAt.toMillis
+                ? course.createdAt.toMillis()
+                : Date.now(),
+            });
+          }
+
+          if (course.lessons) {
+            course.lessons.forEach((lesson) => {
+              activities.push({
+                id: `lesson-${lesson.id}`,
+                type: "lesson",
+                title: `New Lesson Uploaded`,
+                description: lesson.title,
+                timestamp: lesson.createdAt
+                  ? lesson.createdAt.toMillis
+                    ? lesson.createdAt.toMillis()
+                    : Date.now()
+                  : Date.now(),
+              });
+            });
+          }
+
+          if (course.quizzes) {
+            course.quizzes.forEach((quiz) => {
+              activities.push({
+                id: `quiz-${quiz.id}`,
+                type: "quiz",
+                title: `New Quiz Added`,
+                description: quiz.title,
+                timestamp: quiz.createdAt
+                  ? quiz.createdAt.toMillis
+                    ? quiz.createdAt.toMillis()
+                    : Date.now()
+                  : Date.now(),
+              });
+            });
+          }
+        });
+
+        // ترتيب الأنشطة من الأحدث للأقدم
+        activities.sort((a, b) => b.timestamp - a.timestamp);
+
+        setRecentActivities(activities);
       } catch (error) {
         console.error("Error getting courses:", error);
       }
@@ -79,7 +148,6 @@ const TeacherDashboard = ({ teacherId: propTeacherId }) => {
 
       {/* Main Content */}
       <div className="flex-1 bg-[var(--background)] p-6 space-y-6 font-[Poppins]">
-
         {/* HEADER */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -164,10 +232,11 @@ const TeacherDashboard = ({ teacherId: propTeacherId }) => {
 
         {/* RECENT + ACTIONS */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
           {/* Recent Activity */}
           <div>
-            <h2 className="text-2xl font-semibold mb-3 text-[var(--primary)]">Recent Activity</h2>
+            <h2 className="text-2xl font-semibold mb-3 text-[var(--primary)]">
+              Recent Activity
+            </h2>
             <div className="space-y-3">
               {recentActivities.map((act) => (
                 <div
@@ -187,9 +256,7 @@ const TeacherDashboard = ({ teacherId: propTeacherId }) => {
                   <div>
                     <p className="font-medium text-[var(--foreground)]">{act.title}</p>
                     <p className="text-[var(--foreground)]/60 text-sm">{act.description}</p>
-                    <p className="text-[var(--foreground)]/40 text-xs mt-1">
-                      {formatTime(act.timestamp)}
-                    </p>
+                    <p className="text-[var(--foreground)]/40 text-xs mt-1">{formatTime(act.timestamp)}</p>
                   </div>
                 </div>
               ))}
@@ -198,12 +265,14 @@ const TeacherDashboard = ({ teacherId: propTeacherId }) => {
 
           {/* Quick Actions */}
           <div>
-            <h2 className="text-2xl font-semibold mb-3 text-[var(--primary)]">Quick Actions</h2>
+            <h2 className="text-2xl font-semibold mb-3 text-[var(--primary)]">
+              Quick Actions
+            </h2>
             <div className="grid grid-cols-1 gap-3">
               {quickActions.map((a) => (
                 <button
                   key={a.action}
-                  onClick={() => navigate(`/Teacher/AddQuize`)}
+                  onClick={() => navigate(a.path)}
                   className="flex items-center gap-3 p-3 bg-[var(--card)] rounded-[var(--radius)] hover:bg-[var(--secondary)]"
                 >
                   <div className="w-10 h-10 bg-[var(--primary)] text-white flex items-center justify-center rounded-[var(--radius)]">
@@ -222,30 +291,29 @@ const TeacherDashboard = ({ teacherId: propTeacherId }) => {
 
         {/* UPCOMING SESSIONS */}
         <div>
-          <h2 className="text-2xl font-semibold mb-3 text-[var(--primary)]">Upcoming Live Sessions</h2>
+          <h2 className="text-2xl font-semibold mb-3 text-[var(--primary)]">
+            Upcoming Activities
+          </h2>
           <div className="space-y-3">
-            {upcomingSessions.map((session) => (
+            {recentActivities.slice(0, 5).map((activity) => (
               <div
-                key={session.id}
+                key={activity.id}
                 className="flex items-center justify-between p-3 bg-[var(--card)] rounded-[var(--radius)] hover:bg-[var(--secondary)]"
               >
                 <div className="flex items-center gap-3">
                   <Video className="w-6 h-6 text-[var(--primary)]" />
                   <div>
-                    <p className="font-medium text-[var(--foreground)]">{session.title}</p>
-                    <p className="text-[var(--foreground)]/60 text-sm">
-                      {session.time} • {session.duration}
-                    </p>
+                    <p className="font-medium text-[var(--foreground)]">{activity.title}</p>
+                    <p className="text-[var(--foreground)]/60 text-sm">{activity.description}</p>
                   </div>
                 </div>
                 <div className="bg-[var(--secondary)] px-2 py-1 rounded text-sm">
-                  {session.badge}
+                  {formatTime(activity.timestamp)}
                 </div>
               </div>
             ))}
           </div>
         </div>
-
       </div>
     </div>
   );

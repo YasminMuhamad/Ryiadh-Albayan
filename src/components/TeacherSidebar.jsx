@@ -11,6 +11,8 @@ const Sidebar = () => {
     { to: "/teacher/Assignments", label: "Assignments", icon: FileCheck },
     { to: "/teacher/report", label: "Reports", icon: FileText },
     { to: "/teacher/profile", label: "Profile", icon: UserCircle },
+    { to: "/teacher/MyCourses", label: "MyCourses", icon: UserCircle },
+
   ];
 TeacherDashboard
   return (

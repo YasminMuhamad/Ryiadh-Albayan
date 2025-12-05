@@ -1,170 +1,172 @@
-// pages/Teacher/LiveSessionsPage.jsx
+// pages/Teacher/InteractiveCourses.jsx
 import React, { useEffect, useState } from "react";
-import Sidebar from "../../components/TeacherSidebar.jsx";
-import { getDatabase, ref, get, child } from "firebase/database";
-import { app } from "../../../firebase.config";
-import { Calendar, Clock, Play, Plus } from "lucide-react";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { db } from "../../services/firebase.js";
+import Sidebar from "../../components/TeacherSidebar.jsx";
+import Loader from "../../components/Loader.jsx";
 
-// ---------------- Button ----------------
-function Button({ variant = "default", size = "md", children, ...props }) {
-  const base = "rounded-md font-medium transition-all flex items-center justify-center";
-  const variants = {
-    default: "bg-[var(--primary)] text-white hover:opacity-90",
-    outline: "border border-gray-300 text-gray-700 hover:bg-gray-100",
-  };
-  const sizes = { sm: "px-2 py-1 text-sm", md: "px-4 py-2 text-md" };
-  return (
-    <button className={`${base} ${variants[variant]} ${sizes[size]}`} {...props}>
-      {children}
-    </button>
-  );
-}
-
-// ---------------- Card ----------------
-function Card({ children, className = "" }) {
-  return <div className={`bg-[var(--card)] rounded-[var(--radius)] shadow-md p-4 ${className}`}>{children}</div>;
-}
-
-// ---------------- Page ----------------
-export default function LiveSessionsPage() {
-  const { profile } = useAuth(); 
-  const [sessions, setSessions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [view, setView] = useState("upcoming");
+export default function InteractiveCourses() {
+  const { uid, loading } = useAuth();
+  const [courses, setCourses] = useState([]);
+  const [loadingCourses, setLoadingCourses] = useState(true);
 
   useEffect(() => {
-    if (!profile) return;
+    if (!uid) return;
 
-    const db = getDatabase(app);
-    const dbRef = ref(db, "courses"); // مسار الداتا اللي بعتيه
-
-    const fetchSessions = async () => {
+    const fetchCourses = async () => {
+      setLoadingCourses(true);
       try {
-        const snapshot = await get(dbRef);
-        if (!snapshot.exists()) {
-          setSessions([]);
-          setLoading(false);
-          return;
+        const q = query(
+          collection(db, "courses"),
+          where("teacherId", "==", uid),
+          where("type", "==", "interactive")
+        );
+        const snapshot = await getDocs(q);
+        const coursesData = [];
+
+        for (let docSnap of snapshot.docs) {
+          const course = docSnap.data();
+          const courseId = docSnap.id;
+
+          const modulesSnap = await getDocs(collection(db, `courses/${courseId}/modules`));
+          const liveLessons = [];
+
+          for (let moduleDoc of modulesSnap.docs) {
+            const lessonsSnap = await getDocs(
+              collection(db, `courses/${courseId}/modules/${moduleDoc.id}/lessons`)
+            );
+
+            lessonsSnap.docs.forEach(lessonDoc => {
+              const lesson = lessonDoc.data();
+              if (lesson.liveSession || lesson.dateTime) {
+                liveLessons.push({
+                  ...lesson,
+                  lessonTitle: lesson.title,
+                  link: lesson.liveSession?.link || "",
+                  materials: lesson.materials || [],
+                  duration: lesson.duration || 0,
+                  dateTime: lesson.dateTime,
+                });
+              }
+            });
+          }
+
+          coursesData.push({ ...course, id: courseId, liveLessons });
         }
 
-        const data = snapshot.val();
-        const allCourses = Object.values(data);
-
-        // فلترة الكورسات للمعلم الحالي ونوعها interactive
-        const teacherCourses = allCourses.filter(
-          (c) => c.teacherId === profile.uid && c.type === "interactive"
-        );
-
-        setSessions(teacherCourses);
+        setCourses(coursesData);
       } catch (err) {
         console.error(err);
+      } finally {
+        setLoadingCourses(false);
       }
-      setLoading(false);
     };
 
-    fetchSessions();
-  }, [profile]);
+    fetchCourses();
+  }, [uid]);
+
+  if (loading || loadingCourses) return <Loader />;
 
   const now = new Date();
-  const parseDate = (d) => (d ? new Date(d) : now);
 
-  const upcomingSessions = sessions.filter((s) => parseDate(s.date) > now);
-  const liveSessions = sessions.filter((s) => {
-    const start = parseDate(s.date);
-    const end = new Date(start.getTime() + (s.duration || 60) * 60000);
-    return start <= now && now <= end;
-  });
-  const finishedSessions = sessions.filter(
-    (s) => parseDate(s.date) < now && !liveSessions.includes(s)
-  );
+  const getLessonStatus = (lesson) => {
+    let start;
+    if (lesson.dateTime?.seconds) {
+      start = new Date(lesson.dateTime.seconds * 1000);
+    } else {
+      start = new Date(lesson.dateTime);
+    }
 
-  const formatDateTime = (dateTime) => {
-    const date = parseDate(dateTime);
-    return date.toLocaleString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    const end = new Date(start.getTime() + lesson.duration * 60000);
+
+    if (now < start) return { status: "Upcoming", className: "bg-secondary text-secondary-foreground" };
+    if (now >= start && now <= end) return { status: "Ongoing", className: "bg-primary text-primary-foreground" };
+    return { status: "Completed", className: "bg-muted text-muted-foreground" };
   };
 
-  const renderSessionCard = (session) => (
-    <Card key={session.id || session.title} className="hover:shadow-lg transition">
-      <div className="flex justify-between items-start gap-4">
-        <div className="flex-1">
-          <h3 className="text-lg font-semibold">{session.title}</h3>
-          <div className="flex gap-4 mt-2 text-sm text-[var(--foreground)]">
-            <span className="flex items-center gap-1">
-              <Calendar className="w-4 h-4" /> {formatDateTime(session.date)}
-            </span>
-            <span className="flex items-center gap-1">
-              <Clock className="w-4 h-4" /> {session.duration || 60} mins
-            </span>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-2">
-          {(upcomingSessions.includes(session) || liveSessions.includes(session)) && (
-            <Button className="flex items-center gap-2">
-              <Play className="w-4 h-4" /> Join Session
-            </Button>
-          )}
-          {finishedSessions.includes(session) && (
-            <Button variant="outline" size="sm">
-              {/* لو فيه حقل teacherPresent ممكن نستخدمه */}
-              {session.teacherPresent === false ? "Teacher Absent" : "Finished"}
-            </Button>
-          )}
-        </div>
-      </div>
-    </Card>
-  );
-
-  if (loading || !profile) return <div className="p-6">Loading...</div>;
-
   return (
-    <div className="flex min-h-screen bg-[var(--background)]">
+    <div className="flex min-h-screen">
+      {/* Sidebar */}
       <Sidebar />
-      <div className="flex-1 p-6 flex flex-col space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="heading-1">Live Sessions</h1>
-            <p className="paragraph">Manage your interactive courses</p>
-          </div>
-          <Button className="flex items-center gap-2">
-            <Plus className="w-4 h-4" /> Schedule New
-          </Button>
-        </div>
 
-        <div>
-          <div className="flex border-b border-[var(--border)]">
-            <button
-              onClick={() => setView("upcoming")}
-              className={`px-4 py-2 ${view === "upcoming" && "border-b-2 border-[var(--primary)] font-semibold"}`}
-            >
-              Upcoming ({upcomingSessions.length})
-            </button>
-            <button
-              onClick={() => setView("live")}
-              className={`px-4 py-2 ${view === "live" && "border-b-2 border-[var(--primary)] font-semibold"}`}
-            >
-              Live Now ({liveSessions.length})
-            </button>
-            <button
-              onClick={() => setView("finished")}
-              className={`px-4 py-2 ${view === "finished" && "border-b-2 border-[var(--primary)] font-semibold"}`}
-            >
-              Finished ({finishedSessions.length})
-            </button>
-          </div>
+      {/* Main Content */}
+      <div className="flex-1 p-6 space-y-8">
+        <h1 className="heading-1">Interactive Courses & Live Lessons</h1>
 
-          <div className="mt-4 space-y-4">
-            {view === "upcoming" && upcomingSessions.map(renderSessionCard)}
-            {view === "live" && liveSessions.map(renderSessionCard)}
-            {view === "finished" && finishedSessions.map(renderSessionCard)}
+        {courses.length === 0 && <p className="paragraph">No interactive courses found.</p>}
+
+        {courses.map((course) => (
+          <div key={course.id} className="card animate-fadeIn">
+            {/* Course Header */}
+            <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
+              <img src={course.thumbnail} alt={course.title} className="h-24 w-24 object-cover rounded-lg" />
+              <div className="flex-1 space-y-1">
+                <h2 className="font-semibold text-xl">{course.title}</h2>
+                <p className="paragraph">{course.description}</p>
+                <div className="flex gap-4 mt-1 text-sm">
+                  <span>Completion: {course.avgCompletion || 0}%</span>
+                  <span>Satisfaction: {course.avgSatisfaction || 0} ⭐</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Live Lessons */}
+            {course.liveLessons.length === 0 && <p className="paragraph">No live lessons yet.</p>}
+
+            <div className="grid md:grid-cols-2 gap-4">
+              {course.liveLessons.map((lesson, i) => {
+                const { status, className } = getLessonStatus(lesson);
+                let start = lesson.dateTime?.seconds
+                  ? new Date(lesson.dateTime.seconds * 1000)
+                  : new Date(lesson.dateTime);
+                const showJoinButton = status === "Ongoing" && lesson.link;
+
+                return (
+                  <div key={i} className="card p-4 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="font-semibold">{lesson.lessonTitle}</h3>
+                        <span className={`px-2 py-1 rounded text-xs ${className}`}>{status}</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">Date: {start.toLocaleString()}</p>
+                      <p className="text-sm text-muted-foreground">Duration: {lesson.duration} mins</p>
+
+                      {/* Materials */}
+                      {lesson.materials?.length > 0 ? (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {lesson.materials.map((mat, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => window.open(mat.file, "_blank")}
+                              className="btn-secondary px-3 py-1 text-sm rounded hover:bg-secondary hover:text-secondary-foreground transition"
+                            >
+                              {mat.title}
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground italic text-red-500 mt-2">Notes Not Found</p>
+                      )}
+                    </div>
+
+                    {/* Join Button */}
+                    {showJoinButton ? (
+                      <a
+                        href={lesson.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-primary mt-3 text-center hover:scale-105 transition-transform"
+                      >
+                        Join Session
+                      </a>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        ))}
       </div>
     </div>
   );

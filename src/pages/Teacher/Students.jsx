@@ -1,213 +1,195 @@
-import React, { useState, useEffect, useContext } from "react";
-import StudentDetailsPage from "./StudentDetails.jsx";
+import React, { useEffect, useState } from "react";
 import Sidebar from "../../components/TeacherSidebar.jsx";
-
-// Firebase
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../../services/firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { useAuth } from "../../context/AuthContext";
 
-// Auth Context (بدل TeacherContext)
-import { useAuth } from "../../context/AuthContext.jsx";
-
-export default function StudentsPage() {
-  const { profile } = useAuth();
-  const teacherId = profile?.uid; // نفترض أن ID المدرس هو uid من الفايربيز
-
-  const [students, setStudents] = useState([]);
+export default function StudentsDashboard() {
+  const { user } = useAuth();
+  const [enrollments, setEnrollments] = useState([]);
   const [courses, setCourses] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterCourse, setFilterCourse] = useState("all");
-  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [selectedCourse, setSelectedCourse] = useState("");
+  const [selectedType, setSelectedType] = useState("");
+  const [search, setSearch] = useState("");
 
-  // ---------------------- Fetch Students ----------------------
   useEffect(() => {
-    if (!teacherId) return;
-
-    const fetchStudents = async () => {
-      try {
-        const snap = await getDocs(collection(db, "users"));
-        let data = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-
-        // فلترة الطلاب حسب المدرس
-        data = data.filter((student) => student.teacherId === teacherId);
-
-        setStudents(data);
-      } catch (error) {
-        console.log("Error fetching students:", error);
-      }
-    };
-
-    fetchStudents();
-  }, [teacherId]);
-
-  // ---------------------- Fetch Courses ----------------------
-  useEffect(() => {
-    if (!teacherId) return;
-
-    const fetchCourses = async () => {
-      try {
-        const snap = await getDocs(collection(db, "courses"));
-        let data = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-
-        data = data.filter((course) => course.teacherId === teacherId);
-
-        setCourses(data.map((c) => c.name));
-      } catch (error) {
-        console.log("Error fetching courses:", error);
-      }
-    };
-
+    if (!user) return;
     fetchCourses();
-  }, [teacherId]);
+  }, [user]);
 
-  // ---------------------- Filter Students ----------------------
-  const filteredStudents = students.filter((student) => {
-    const matchesSearch =
-      student.name?.toLowerCase().includes(searchQuery.toLowerCase());
-
-    const matchesCourse =
-      filterCourse === "all" ||
-      student.enrolledCourses?.includes(filterCourse);
-
-    return matchesSearch && matchesCourse;
-  });
-
-  // ---------------------- Stats ----------------------
-  const totalStudents = students.length;
-
-  const newThisMonth =
-    students.filter((s) => {
-      if (!s.createdAt) return false;
-
-      const created = s.createdAt.toDate
-        ? s.createdAt.toDate()
-        : new Date(s.createdAt);
-
-      const now = new Date();
-      return (
-        created.getMonth() === now.getMonth() &&
-        created.getFullYear() === now.getFullYear()
-      );
-    }).length || 0;
-
-  const allProgress = students.flatMap((s) =>
-    s.progress ? Object.values(s.progress) : []
-  );
-
-  const avgProgress =
-    allProgress.length > 0
-      ? Math.round(
-          allProgress.reduce((a, b) => a + b, 0) / allProgress.length
-        )
-      : 0;
-
-  // ------------------ UI Components ------------------
-  const StatCard = ({ title, value }) => (
-    <div className="bg-[var(--card)] shadow rounded-xl p-6 text-center">
-      <p className="text-sm text-gray-500 mb-2">{title}</p>
-      <p className="text-2xl font-semibold">{value}</p>
-    </div>
-  );
-
-  const StudentCard = ({ student }) => {
-    const progressValues = student.progress
-      ? Object.values(student.progress)
-      : [0];
-
-    const studentAvgProgress = Math.round(
-      progressValues.reduce((a, b) => a + b, 0) / progressValues.length
-    );
-
-    return (
-      <div className="bg-[var(--card)] border rounded-xl p-4 hover:shadow-md transition flex flex-col md:flex-row justify-between items-center gap-4">
-        <div className="flex items-center gap-4">
-          <div className="h-12 w-12 bg-[var(--primary)] text-white flex items-center justify-center rounded-full font-semibold">
-            {student.name?.[0] || "?"}
-          </div>
-          <div>
-            <h3 className="font-semibold">{student.name}</h3>
-            <p className="text-sm text-gray-500">{student.email}</p>
-          </div>
-        </div>
-
-        <div className="flex flex-col md:flex-row items-center gap-4">
-          <p className="text-sm">
-            Courses:{" "}
-            <span className="font-semibold">
-              {student.enrolledCourses?.length || 0}
-            </span>
-          </p>
-
-          <p className="text-sm">
-            Avg Progress:{" "}
-            <span className="font-semibold">{studentAvgProgress}%</span>
-          </p>
-
-          <button
-            className="px-3 py-1 border rounded-md text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition"
-            onClick={() => setSelectedStudent(student)}
-          >
-            View Details
-          </button>
-        </div>
-      </div>
-    );
-  };
-
-  if (selectedStudent) {
-    return (
-      <StudentDetailsPage
-        studentId={selectedStudent.id}
-        onBack={() => setSelectedStudent(null)}
-      />
-    );
+  async function fetchCourses() {
+    const coursesRef = collection(db, "courses");
+    const q = query(coursesRef, where("teacherId", "==", user.uid));
+    const snap = await getDocs(q);
+    const data = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    setCourses(data);
+    fetchEnrollments(data);
   }
 
+  async function fetchEnrollments(coursesData) {
+    const usersSnap = await getDocs(collection(db, "users"));
+    let allEnrollments = [];
+
+    for (let userDoc of usersSnap.docs) {
+      const enrollRef = collection(db, "users", userDoc.id, "enrollments");
+      const enrollSnap = await getDocs(enrollRef);
+
+      enrollSnap.forEach((enr) => {
+        const course = coursesData.find((c) => c.id === enr.data().courseId);
+        if (course) {
+          allEnrollments.push({
+            userId: userDoc.id,
+            userName: userDoc.data().name || "No Name",
+            email: userDoc.data().email,
+            gender: userDoc.data().gender || "",
+            phone: userDoc.data().phone || "",
+            profile_pic: userDoc.data().profile_pic || "",
+            courseTitle: course.title,
+            courseType: course.type,
+            coursePrice: course.price,
+            purchasedAt: enr.data().purchasedAt,
+            percent: enr.data().percent,
+            completedLessonsCount: enr.data().completedLessonsCount,
+            quizzesTaken: enr.data().quizzesTaken,
+            status: enr.data().status,
+          });
+        }
+      });
+    }
+
+    setEnrollments(allEnrollments);
+  }
+
+  // ---------------- FILTERS ----------------
+  const filteredData = enrollments
+    .filter((item) => {
+      const byCourse = selectedCourse ? item.courseTitle === selectedCourse : true;
+      const byType = selectedType ? item.courseType === selectedType : true;
+      return byCourse && byType;
+    })
+    .filter((item) => {
+      const s = search.toLowerCase();
+      return (
+        item.userName.toLowerCase().includes(s) ||
+        item.email.toLowerCase().includes(s) ||
+        item.courseTitle.toLowerCase().includes(s)
+      );
+    });
+
+  const getStatusStyle = (status) => {
+    switch (status) {
+      case "completed":
+        return { background: "var(--chart-2)", color: "var(--foreground)" };
+      case "active":
+        return { background: "var(--secondary)", color: "var(--secondary-foreground)" };
+      case "in-progress":
+        return { background: "var(--muted)", color: "var(--muted-foreground)" };
+      default:
+        return { background: "var(--muted)", color: "var(--muted-foreground)" };
+    }
+  };
+
   return (
-    <div className="flex min-h-screen bg-[var(--background)]">
+    <div className="flex min-h-screen" style={{ background: "var(--background)", fontFamily: "Cairo" }}>
       <Sidebar />
 
-      <div className="flex-1 p-6 space-y-6">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          <h1 className="text-3xl font-semibold heading-1">Students</h1>
+      <div className="flex-1 p-6">
+        <h1 className="text-3xl mb-6" style={{ color: "var(--primary)", fontWeight: "700" }}>
+          Students Enrollments Dashboard
+        </h1>
 
-          <div className="flex gap-2">
-            <input
-              type="text"
-              placeholder="Search students..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-3 border rounded-lg w-64 p-2"
-            />
+        {/* Filters */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
 
-            <select
-              value={filterCourse}
-              onChange={(e) => setFilterCourse(e.target.value)}
-              className="border rounded-lg p-2"
-            >
-              <option value="all">All Courses</option>
-              {courses.map((course) => (
-                <option key={course} value={course}>
-                  {course}
-                </option>
+          <select
+            value={selectedCourse}
+            onChange={(e) => setSelectedCourse(e.target.value)}
+            className="p-3 rounded-xl border shadow-sm"
+            style={{ background: "var(--card)", borderColor: "var(--border)", color: "var(--foreground)" }}
+          >
+            <option value="">All Courses</option>
+            {courses.map((c) => (
+              <option key={c.id} value={c.title}>{c.title}</option>
+            ))}
+          </select>
+
+          <select
+            value={selectedType}
+            onChange={(e) => setSelectedType(e.target.value)}
+            className="p-3 rounded-xl border shadow-sm"
+            style={{ background: "var(--card)", borderColor: "var(--border)", color: "var(--foreground)" }}
+          >
+            <option value="">All Types</option>
+            <option value="interactive">Interactive</option>
+            <option value="recorded">Recorded</option>
+          </select>
+
+          <input
+            type="text"
+            placeholder="Search student or course..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="p-3 rounded-xl border shadow-sm col-span-2"
+            style={{ background: "var(--card)", borderColor: "var(--border)", color: "var(--foreground)" }}
+          />
+        </div>
+
+        {/* Table */}
+        <div className="p-4 rounded-xl shadow-md overflow-auto" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+          <table className="w-full border-collapse">
+            <thead>
+              <tr style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}>
+                <th className="p-3 text-left">Student</th>
+                <th className="p-3 text-left">Email</th>
+                <th className="p-3 text-left">Course</th>
+                <th className="p-3 text-left">Type</th>
+                <th className="p-3 text-left">Price</th>
+                <th className="p-3 text-left">Purchased At</th>
+                <th className="p-3 text-left">Progress</th>
+                <th className="p-3 text-left">Lessons</th>
+                <th className="p-3 text-left">Quizzes</th>
+                <th className="p-3 text-left">Status</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {filteredData.map((row, idx) => (
+                <tr key={idx} className="border-b" style={{ borderColor: "var(--border)" }}>
+                  <td className="p-3" style={{ color: "var(--foreground)" }}>{row.userName}</td>
+                  <td className="p-3" style={{ color: "var(--muted-foreground)" }}>{row.email}</td>
+                  <td className="p-3">{row.courseTitle}</td>
+                  <td className="p-3 capitalize">
+                    <span
+                      className="px-3 py-1 rounded-full text-sm"
+                      style={{
+                        background: row.courseType === "interactive" ? "var(--secondary)" : "var(--muted)",
+                        color: "var(--foreground)",
+                      }}
+                    >
+                      {row.courseType}
+                    </span>
+                  </td>
+                  <td className="p-3">{row.coursePrice ? `$${row.coursePrice}` : "-"}</td>
+                  <td className="p-3">{row.purchasedAt ? new Date(row.purchasedAt.seconds * 1000).toLocaleDateString() : "-"}</td>
+                  <td className="p-3" style={{ fontWeight: "600", color: "var(--primary)" }}>{row.percent || 0}%</td>
+                  <td className="p-3">{row.completedLessonsCount || 0}</td>
+                  <td className="p-3">{row.quizzesTaken || 0}</td>
+                  <td className="p-3">
+                    <span
+                      className="px-3 py-1 rounded-full text-sm"
+                      style={getStatusStyle(row.status)}
+                    >
+                      {row.status}
+                    </span>
+                  </td>
+                </tr>
               ))}
-            </select>
-          </div>
-        </div>
+            </tbody>
+          </table>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <StatCard title="Total Students" value={totalStudents} />
-          <StatCard title="New This Month" value={newThisMonth} />
-          <StatCard title="Average Progress" value={`${avgProgress}%`} />
-        </div>
-
-        {/* Students List */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredStudents.map((student) => (
-            <StudentCard key={student.id} student={student} />
-          ))}
+          <p className="mt-4" style={{ color: "var(--foreground)", fontWeight: "600" }}>
+            Total Students: <span style={{ color: "var(--primary)" }}>{filteredData.length}</span>
+          </p>
         </div>
       </div>
     </div>

@@ -10,13 +10,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@langchain/google-genai": "^2.0.1",
     "@tailwindcss/line-clamp": "^0.4.4",
     "@tailwindcss/vite": "^4.1.17",
     "axios": "^1.13.2",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
-    "firebase": "^12.5.0",
+    "firebase": "^12.6.0",
     "firebase-admin": "^13.6.0",
+    "langchain": "^1.1.2",
     "lucide-react": "^0.553.0",
     "react": "^19.1.1",
     "react-datepicker": "^8.10.0",
