@@ -133,6 +133,13 @@ export function Navbar() {
           <span onClick={() => navigate("/contact")} className={`nav-item ${currentPage === "/contact" ? "active" : ""}`}>
             Contact
           </span>
+          
+            <span 
+                onClick={() => navigate("/about")} 
+                className={`nav-item ${currentPage === "/about" ? "active" : ""}`}
+              >
+                About Us
+            </span>
 
           <div className="relative">
             <span
