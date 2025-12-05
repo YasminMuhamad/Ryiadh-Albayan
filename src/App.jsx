@@ -26,6 +26,8 @@ import TeacherProfile from "./pages/Teacher/Profile";
 import AdminProfile from "./pages/Admin/AdminProfile";
 import NotFound from "./pages/Auth/NotFound";
 import ChatWidget from "./components/Chat";
+import AboutUs from "./pages/AboutUs";
+
 import { addNotification } from "./services/notificationService";
 
 // -------------------------
@@ -91,7 +93,7 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/courses/:id" element={<CourseDetails />} />
-
+            <Route path="/about" element={<AboutUs />} />
             {/* E-commerce */}
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout/:id" element={<Checkout />} />
