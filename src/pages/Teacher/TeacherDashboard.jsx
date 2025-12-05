@@ -29,14 +29,14 @@ const TeacherDashboard = ({ teacherId: propTeacherId }) => {
     {
       action: "createCourse",
       icon: BookOpen,
-      title: "Create Course",
+      title: "Create Modal",
       desc: "Start a new course",
       path: "/teacher/edit-course/", 
     },
     {
       action: "addAnnouncement",
       icon: Calendar,
-      title: "Add Announcement",
+      title: "Add Live Session",
       desc: "Post to your courses",
       path: "/Teacher/AddLiveSessions",
     },

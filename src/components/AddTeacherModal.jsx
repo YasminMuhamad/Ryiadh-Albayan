@@ -12,6 +12,7 @@ export function AddTeacherModal({ isOpen, onClose, teacher, onSave }) {
     const [arabicName, setArabicName] = useState("");
     const [email, setEmail] = useState("");
     const [loading, setLoading] = useState(false);
+    const [options, setOptions] = useState([]);
 
     const [errors, setErrors] = useState({
         fullName: "",
@@ -35,15 +36,26 @@ export function AddTeacherModal({ isOpen, onClose, teacher, onSave }) {
         }
     }, [teacher, isOpen]);
 
-    if (!isOpen) return null;
+    useEffect(() => {
+        if (!isOpen) return;
 
-    const options = [
-        { value: "quranic_studies", label: "Quranic Studies" },
-        { value: "hadith", label: "Hadith" },
-        { value: "fiqh", label: "Fiqh" },
-        { value: "arabic_language", label: "Arabic Language" },
-        { value: "islamic_studies", label: "Islamic Studies" },
-    ];
+        const fetchCategories = async () => {
+            try {
+                const snapshot = await getDocs(collection(db, "categories"));
+                const cats = snapshot.docs.map(doc => ({
+                    value: doc.id,
+                    label: doc.data().title
+                }));
+                setOptions(cats);
+            } catch (err) {
+                console.error("Failed to fetch categories:", err);
+            }
+        };
+
+        fetchCategories();
+    }, [isOpen]);
+
+    if (!isOpen) return null;
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -136,6 +148,7 @@ export function AddTeacherModal({ isOpen, onClose, teacher, onSave }) {
     };
 
     const handleSubmit = async (e) => {
+        if (loading) return;
         e.preventDefault();
 
         if (!validateAll()) return;
@@ -279,8 +292,37 @@ export function AddTeacherModal({ isOpen, onClose, teacher, onSave }) {
 
                     <div className="flex justify-end gap-2 mt-2">
                         <Button type="button" onClick={handleClose} className="btn-secondary" disabled={loading}>Cancel</Button>
-                        <Button type="submit" onClick={handleSubmit} className="btn-primary" disabled={loading}>
-                            {loading ? "Saving..." : teacher ? "Save" : "Create"}
+                        <Button
+                            type="submit"
+                            onClick={handleSubmit}
+                            className="btn-primary flex items-center justify-center gap-2"
+                            disabled={loading}
+                        >
+                            {loading ? (
+                                <>
+                                    <svg
+                                        className="animate-spin h-5 w-5 text-white"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <circle
+                                            className="opacity-25"
+                                            cx="12"
+                                            cy="12"
+                                            r="10"
+                                            stroke="currentColor"
+                                            strokeWidth="4"
+                                        ></circle>
+                                        <path
+                                            className="opacity-75"
+                                            fill="currentColor"
+                                            d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8z"
+                                        ></path>
+                                    </svg>
+                                    Saving...
+                                </>
+                            ) : teacher ? "Save" : "Create"}
                         </Button>
                     </div>
                 </form>

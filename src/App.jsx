@@ -1,9 +1,5 @@
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  useLocation,
-} from "react-router-dom";
+import React from "react";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { Navbar } from "./components/Navbar";
 import Home from "./pages/Home/Home";
 import Courses from "./pages/Courses/Courses";
@@ -42,6 +38,7 @@ import { addNotification } from "./services/notificationService";
 import TeachersCourses from "./pages/Teacher/TeachersCourses.jsx";
 import EditCourse from "./pages/Teacher/EditCourse.jsx";
 
+
 // -------------------------
 // Layout Component
 // -------------------------
@@ -79,6 +76,7 @@ function StudentDashboardWithUid() {
 
   return <StudentDashboard userId={uid} />;
 }
+
 
 // ---------------- Teacher Wrappers ----------------
 export const TeacherDashboardWithUid = () => {
@@ -153,6 +151,7 @@ export const TeacherProfileWithUid = () => {
   return <TeacherProfile teacherId={uid} />;
 };
 
+
 // -------------------------
 // MAIN APP
 // -------------------------
@@ -219,10 +218,23 @@ export default function App() {
               path="/teacher/dashboard"
               element={
                 <ProtectedRoute role="teacher">
+
                   <TeacherDashboardWithUid />
+
                 </ProtectedRoute>
               }
             />
+
+            <Route
+              path="/teacher/profile"
+              element={
+                <ProtectedRoute role="teacher">
+                  <TeacherProfile />
+
+                </ProtectedRoute>
+              }
+            />
+
 
             <Route
               path="/teacher/MyCourses"
@@ -303,6 +315,7 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+
 
             {/* 404 Page */}
             <Route path="*" element={<NotFound />} />
