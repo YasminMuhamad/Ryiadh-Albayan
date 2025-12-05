@@ -30,8 +30,6 @@ export function Footer() {
             <li>About Us</li>
             <li>Our Teachers</li>
             <li>All Courses</li>
-            <li>Testimonials</li>
-            <li>FAQs</li>
           </ul>
         </div>
 
@@ -54,13 +52,23 @@ export function Footer() {
       <div className="footer-bottom">
         <p className="footer-copy">© 2025 Riyad Al-Bayan Center. All rights reserved.</p>
 
-        <div className="footer-social">
-          <span className="icon"><FaFacebookF /></span>
-          <span className="icon"><FaTwitter /></span>
-          <span className="icon"><FaInstagram /></span>
-          <span className="icon"><FaYoutube /></span>
-        </div>
+       <div className="footer-social">
+  <a href="https://www.facebook.com/yourpage" target="_blank" rel="noopener noreferrer" className="icon">
+    <FaFacebookF />
+  </a>
+  <a href="https://twitter.com/yourhandle" target="_blank" rel="noopener noreferrer" className="icon">
+    <FaTwitter />
+  </a>
+  <a href="https://www.instagram.com/shabaan1770?igsh=ZzhieTJlZjhvZmV6&utm_source=qr" target="_blank" rel="noopener noreferrer" className="icon">
+    <FaInstagram />
+  </a>
+  <a href="https://youtube.com/channel/UCKOVvwGoqIfy0ffh9gWDexQ?si=JBQ70C6PlgGYDPpY" target="_blank" rel="noopener noreferrer" className="icon">
+    <FaYoutube />
+  </a>
+</div>
+
       </div>
+
 
     </footer>
   );

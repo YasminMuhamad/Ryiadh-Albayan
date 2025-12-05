@@ -1,17 +1,52 @@
 
 import React from "react";
-import photo1 from "../../assets/images/photo1.jpg";
-import photo2 from "../../assets/images/photo2.jpg";
-import photo3 from "../../assets/images/photo3.jpg";
-import photo4 from "../../assets/images/photo4.jpg";
-import photo5 from "../../assets/images/photo5.jpg";
-import photo6 from "../../assets/images/photo6.jpg";
+import photo1 from "../../assets/images/photo1.jpg"
+import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../../services/firebase";
+
+
+
 // import { addNotification } from "../../services/notificationService";
 
 const Home = () => {
+  
+  const navigate = useNavigate();
+  const [courses, setCourses] = useState([]);
+  const [teachers, setTeachers] = useState([]);
+  const [loadingCourses, setLoadingCourses] = useState(true);
+  const [reviews, setReviews] = useState([]);
+
+
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const coursesSnapshot = await getDocs(collection(db, "courses"));
+        const teachersSnapshot = await getDocs(collection(db, "teachers"));
+        const reviewsSnapshot = await getDocs(collection(db, "reviews"));
+
+        const coursesList = coursesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const teachersList = teachersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const reviewsList = reviewsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setReviews(reviewsList.slice(0, 3));
+
+        setCourses(coursesList.slice(3, 6)); // أول ٣ كورسات للـ Featured Courses
+        setTeachers(teachersList);
+      } catch (err) {
+        console.error("Error fetching courses:", err);
+      } finally {
+        setLoadingCourses(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
+
+
   return (
     <>
-     
       <section className="bg-[#faf6f2] min-h-screen flex flex-col justify-start items-center text-center px-4 pt-24 relative">
         
         
@@ -20,7 +55,7 @@ const Home = () => {
         </div>
 
         
-        <h1 className="text-4xl md:text-6xl text-gray-800 mb-4 font-normal">
+        <h1 className="text-4xl md:text-6xl text-[#21746c] mb-4 font-normal">
           Riyad Al-Bayan Center
         </h1>
 
@@ -49,14 +84,14 @@ const Home = () => {
             </button> */}
 
 
-        <div className="flex flex-col sm:flex-row gap-4 mb-10">
+        {/* <div className="flex flex-col sm:flex-row gap-4 mb-10">
           <button className="bg-[#21746c] hover:bg-[#1a5c56] text-white font-medium py-3 px-6 rounded-full transition duration-300">
             Start Learning Today
           </button>
           <button className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 font-medium py-3 px-6 rounded-full transition duration-300">
             Explore Courses
           </button>
-        </div>
+        </div> */}
 
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-[90%] md:w-[70%] mb-12">
@@ -193,188 +228,77 @@ const Home = () => {
   </div>
 
   {/* Courses Grid */}
-  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-[90%] md:w-[85%] mx-auto">
-
-    {/* === COURSE 1 === */}
-    <div className="bg-white rounded-2xl shadow-md hover:shadow-lg transition border border-gray-200">
-      {/* Image Box */}
-      <div className="relative">
-        <img 
-            src={photo3} alt="course"
-          className="rounded-t-2xl h-48 w-full object-cover"
-        />
-        {/* Badge */}
-        <span className="absolute top-3 right-3 bg-[#21746c] text-white text-xs px-3 py-1 rounded-full">
-          Recorded
-        </span>
-      </div>
-
-      {/* Content */}
-      <div className="p-6">
-        {/* Tag */}
-        <span className="bg-[#f7eecb] text-[#8a7a3a] text-xs px-3 py-1 rounded-full">
-          Quran
-        </span>
-
-        <h3 className="mt-3 text-lg font-semibold text-gray-800">
-          Tajweed Mastery – Complete Course
-        </h3>
-
-        <p className="text-gray-600 text-sm mt-2 mb-3">
-          Master the art of Quranic recitation with proper pronunciation and rules of Tajweed…
-        </p>
-
-        <p className="text-sm text-[#21746c] font-medium underline mb-4">
-          Instructor: Sheikh Ahmad Al-Mansouri
-        </p>
-
-        {/* Duration + Students */}
-        <div className="flex items-center gap-6 text-gray-600 text-sm mb-4">
-          <div className="flex items-center gap-1">
-            <span>⏳</span> 12 weeks
-          </div>
-          <div className="flex items-center gap-1">
-            <span>👥</span> 145 students
-          </div>
+ <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-[90%] md:w-[85%] mx-auto">
+  {loadingCourses ? (
+    <p>Loading courses...</p>
+  ) : courses.length === 0 ? (
+    <p>No courses available.</p>
+  ) : (
+    courses.map(course => (
+      <div key={course.id} className="bg-white rounded-2xl shadow-md hover:shadow-lg transition border border-gray-200">
+        <div className="relative">
+          <img 
+            src={course.thumbnail || "/api/placeholder/400/300"} 
+            alt={course.title} 
+            className="rounded-t-2xl h-48 w-full object-cover" 
+          />
+          <span className="absolute top-3 right-3 bg-[#21746c] text-white text-xs px-3 py-1 rounded-full">
+            {course.type || "Recorded"}
+          </span>
         </div>
 
-        {/* Price + Buttons */}
-        <div className="flex items-center justify-between">
-          <p className="text-[#21746c] font-semibold text-lg">$ 199</p>
+        <div className="p-6">
+          <span className="bg-[#f7eecb] text-[#8a7a3a] text-xs px-3 py-1 rounded-full">
+            {course.category || "General"}
+          </span>
 
-          <div className="flex gap-3">
-            <button className="px-5 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100 transition text-sm">
-              Details
-            </button>
-            <button className="px-5 py-2 rounded-full bg-[#21746c] text-white hover:bg-[#1a5c56] transition text-sm">
-              Enroll Now
-            </button>
-          </div>
+          <h3 className="mt-3 text-lg font-semibold text-gray-800">{course.title}</h3>
+          <p className="text-gray-600 text-sm mt-2 mb-3">{course.description?.slice(0, 80)}...</p>
+          <p className="text-sm text-[#21746c] font-medium underline mb-4">
+            Instructor: {teachers.find(t => t.id === course.teacherId)?.name || "Unknown"}
+          </p>
+
+          {/* <div className="flex items-center gap-6 text-gray-600 text-sm mb-4">
+            <div className="flex items-center gap-1">
+              <span>⏳</span> {course.totalWeeks || 8} weeks
+            </div>
+            <div className="flex items-center gap-1">
+              <span>👥</span> {course.studentsCount || 0} students
+            </div>
+          </div> */}
+
+          <div className="flex items-center justify-between">
+            <p className="text-[#21746c] font-semibold text-lg">${course.price || 149}</p>
+
+        <div className="flex gap-3">
+          <button 
+            onClick={() => navigate(`/courses/${course.id}`)}
+            className="px-6 py-3 rounded-full bg-[#21746c] text-white text-base font-medium hover:bg-[#1a5c56] transition-colors duration-300"
+          >
+            Show details
+          </button>
         </div>
 
-      </div>
-    </div>
 
-    {/* === COURSE 2 === */}
-    <div className="bg-white rounded-2xl shadow-md hover:shadow-lg transition border border-gray-200">
-      <div className="relative">
-        <img 
-          src={photo2} alt="course"
-          className="rounded-t-2xl h-48 w-full object-cover"
-        />
-        <span className="absolute top-3 right-3 bg-[#21746c] text-white text-xs px-3 py-1 rounded-full">
-          Recorded
-        </span>
-      </div>
-
-      <div className="p-6">
-        <span className="bg-[#f7eecb] text-[#8a7a3a] text-xs px-3 py-1 rounded-full">
-          Arabic Language
-        </span>
-
-        <h3 className="mt-3 text-lg font-semibold text-gray-800">
-          Arabic Grammar Fundamentals
-        </h3>
-
-        <p className="text-gray-600 text-sm mt-2 mb-3">
-          Learn Classical Arabic grammar from the ground up…
-        </p>
-
-        <p className="text-sm text-[#21746c] font-medium underline mb-4">
-          Instructor: Dr. Fatima Al-Zahra
-        </p>
-
-        <div className="flex items-center gap-6 text-gray-600 text-sm mb-4">
-          <div className="flex items-center gap-1">
-            <span>⏳</span> 10 weeks
-          </div>
-          <div className="flex items-center gap-1">
-            <span>👥</span> 98 students
           </div>
         </div>
-
-        <div className="flex items-center justify-between">
-          <p className="text-[#21746c] font-semibold text-lg">$ 149</p>
-
-          <div className="flex gap-3">
-            <button className="px-5 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100 transition text-sm">
-              Details
-            </button>
-            <button className="px-5 py-2 rounded-full bg-[#21746c] text-white hover:bg-[#1a5c56] transition text-sm">
-              Enroll Now
-            </button>
-          </div>
-        </div>
-
       </div>
-    </div>
+    ))
+  )}
+</div>
 
-    {/* === COURSE 3 === */}
-    <div className="bg-white rounded-2xl shadow-md hover:shadow-lg transition border border-gray-200">
-      <div className="relative">
-        <img 
-          src={photo1} alt="course"
-          className="rounded-t-2xl h-48 w-full object-cover"
-        />
-        <span className="absolute top-3 right-3 bg-[#21746c] text-white text-xs px-3 py-1 rounded-full">
-          Recorded
-        </span>
-      </div>
-
-      <div className="p-6">
-        <span className="bg-[#f7eecb] text-[#8a7a3a] text-xs px-3 py-1 rounded-full">
-          Islamic Studies
-        </span>
-
-        <h3 className="mt-3 text-lg font-semibold text-gray-800">
-          Introduction to Islamic Jurisprudence
-        </h3>
-
-        <p className="text-gray-600 text-sm mt-2 mb-3">
-          Understanding Fiqh principles and practical rulings…
-        </p>
-
-        <p className="text-sm text-[#21746c] font-medium underline mb-4">
-          Instructor: Dr. Fatima Al-Zahra
-        </p>
-
-        <div className="flex items-center gap-6 text-gray-600 text-sm mb-4">
-          <div className="flex items-center gap-1">
-            <span>⏳</span> 8 weeks
-          </div>
-          <div className="flex items-center gap-1">
-            <span>👥</span> 76 students
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <p className="text-[#21746c] font-semibold text-lg">$ 179</p>
-
-          <div className="flex gap-3">
-            <button className="px-5 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100 transition text-sm">
-              Details
-            </button>
-            <button className="px-5 py-2 rounded-full bg-[#21746c] text-white hover:bg-[#1a5c56] transition text-sm">
-              Enroll Now
-            </button>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-  </div>
 
   {/* View All Button */}
   <div className="flex justify-center mt-12">
-    <button className="px-8 py-3 rounded-full border border-gray-300 bg-white text-gray-800 hover:bg-gray-100 transition">
-      View All Courses
-    </button>
-  </div>
+  <button
+    onClick={() => navigate("/courses")}
+    className="px-8 py-3 rounded-full border border-gray-300 bg-white text-gray-800 hover:bg-gray-200 transition"
+  >
+    View All Courses
+  </button>
+</div>
+
 </section>
-
-
-
 
 
 
@@ -383,55 +307,31 @@ const Home = () => {
 {/* export default function TeachersTestimonials() { */}
   
     <div className="w-full bg-white font-['Inter']">
-      {/* Teachers Section */}
-      <section className="py-16 max-w-7xl mx-auto px-4">
-        <h2 className="text-center text-2xl font-semibold text-[#1D1D1F]">Meet Our Teachers</h2>
-        <p className="text-center text-[#6E6E73] mt-2">
-          Learn from qualified scholars with years of experience in Islamic education
-        </p>
+     {/* ===== Teachers Section ===== */}
+<section className="py-16 max-w-7xl mx-auto px-4">
+  <h2 className="text-center text-2xl font-semibold text-[#1D1D1F]">Meet Our Teachers</h2>
+  <p className="text-center text-[#6E6E73] mt-2">
+    Learn from qualified scholars with years of experience in Islamic education
+  </p>
 
-        <div className="grid md:grid-cols-3 gap-8 mt-12">
-          {/* Teacher Card */}
-          <div className="bg-white shadow-md rounded-xl p-6 border hover:shadow-lg transition">
-            <img
-             src={photo4} alt="course"
-              className="w-full h-56 object-cover rounded-lg"
-            />
-            <h3 className="mt-4 text-lg font-semibold text-[#1D1D1F]">Sheikh Ahmad Al-Mansouri</h3>
-            <p className="text-[#6E6E73] text-sm mt-2">
-              Expert in Quranic recitation and Tajweed with 15 years of teaching experience.
-              Graduated from Al-Azhar University.
-            </p>
-            <p className="text-[#0E9F9F] text-sm mt-3">ahmad@riyadulBayan.com</p>
-          </div>
+  <div className="grid md:grid-cols-3 gap-8 mt-12">
+    {teachers.slice(0, 3).map((teacher) => (
+      <div key={teacher.id} className="bg-white shadow-md rounded-xl p-6 border hover:shadow-lg transition">
+        <img
+          src={teacher.profile_pic}
+          alt={teacher.name_ar}
+          className="w-full h-56 object-fill rounded-lg"
+        />
+        <h3 className="mt-4 text-lg font-semibold text-[#1D1D1F]">{teacher.name_ar}</h3>
+        <p className="text-[#6E6E73] text-sm mt-2">{teacher.specialization}</p>
+        <p className="text-[#0E9F9F] text-sm mt-3">{teacher.email}</p>
+      </div>
+    ))}
+  </div>
+</section>
 
-          <div className="bg-white shadow-md rounded-xl p-6 border hover:shadow-lg transition">
-            <img
-             src={photo5} alt="course"
-              className="w-full h-56 object-cover rounded-lg"
-            />
-            <h3 className="mt-4 text-lg font-semibold text-[#1D1D1F]">Dr. Fatima Al-Zahra</h3>
-            <p className="text-[#6E6E73] text-sm mt-2">
-              Specialist in Arabic grammar and Islamic jurisprudence. PhD in Islamic Studies
-              from Madinah University.
-            </p>
-            <p className="text-[#0E9F9F] text-sm mt-3">fatima@riyadulBayan.com</p>
-          </div>
 
-          <div className="bg-white shadow-md rounded-xl p-6 border hover:shadow-lg transition">
-            <img
-             src={photo6} alt="course"
-              className="w-full h-56 object-cover rounded-lg"
-            />
-            <h3 className="mt-4 text-lg font-semibold text-[#1D1D1F]">Ustadh Omar Ibrahim</h3>
-            <p className="text-[#6E6E73] text-sm mt-2">
-              Certified Arabic language instructor specializing in modern standard Arabic
-              and classical texts.
-            </p>
-            <p className="text-[#0E9F9F] text-sm mt-3">omar@riyadulBayan.com</p>
-          </div>
-        </div>
-      </section>
+      
 
       {/* Testimonials Section */}
       <section className="py-16 bg-gray-50 mt-10">
@@ -442,73 +342,39 @@ const Home = () => {
           </p>
 
           <div className="grid md:grid-cols-3 gap-8 mt-12">
-            {/* Testimonial Card */}
-            <div className="bg-white rounded-xl p-6 border shadow-sm hover:shadow-md transition">
-              <p className="text-[#0E9F9F] text-4xl">“</p>
-              <p className="text-gray-700 mt-2 text-sm">
-                "This platform has transformed my understanding of Arabic. The teachers are
-                incredibly knowledgeable and patient. Alhamdulillah!"
-              </p>
+    {reviews.map((review) => (
+      <div
+        key={review.studentId}
+        className="bg-white rounded-xl p-6 border shadow-sm hover:shadow-md transition"
+      >
+        <p className="text-[#0E9F9F] text-4xl">“</p>
 
-              <div className="flex items-center gap-3 mt-4">
-                 <img
-                    src={photo3}
-                    className="w-10 h-10 rounded-full"
-                    alt="profile"
-                  />
-                <div>
-                  <p className="font-medium text-[#1D1D1F] text-sm">Aisha Mohammed</p>
-                  <p className="text-[#6E6E73] text-xs">United Kingdom</p>
-                </div>
-              </div>
-            </div>
+        <p className="text-gray-700 mt-2 text-sm">
+          {review.content || "No comment available."}
+        </p>
+                {/* ⭐⭐⭐ Display static rating (no half stars) */}
+         <div className="flex gap-1 mt-1">
+        {Array.from({ length: 5 }).map((_, index) => (
+        <span key={index} className="text-yellow-500 text-lg">
+          {index < review.rating ? "★" : "☆"}
+        </span>
+      ))}
+    </div>
 
-            <div className="bg-white rounded-xl p-6 border shadow-sm hover:shadow-md transition">
-              <p className="text-[#0E9F9F] text-4xl">“</p>
-              <p className="text-gray-700 mt-2 text-sm">
-                "The Tajweed course helped me recite the Quran with proper pronunciation.
-                Sheikh Ahmad is an excellent teacher. May Allah reward the team!"
-              </p>
-
-              <div className="flex items-center gap-3 mt-4">
-                 <img
-                    src={photo3}
-                    className="w-10 h-10 rounded-full"
-                    alt="profile"
-                  />
-                <div>
-                  <p className="font-medium text-[#1D1D1F] text-sm">Yusuf Abdullah</p>
-                  <p className="text-[#6E6E73] text-xs">Canada</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl p-6 border shadow-sm hover:shadow-md transition">
-              <p className="text-[#0E9F9F] text-4xl">“</p>
-              <p className="text-gray-700 mt-2 text-sm">
-                "Flexible learning schedule and comprehensive materials. The interactive
-                sessions are very engaging. Highly recommended!"
-              </p>
-
-              <div className="flex items-center gap-3 mt-4">
-                  <img
-                    src={photo3}
-                    className="w-10 h-10 rounded-full"
-                    alt="profile"
-                  />
-                <div>
-                  <p className="font-medium text-[#1D1D1F] text-sm">Maryam Khan</p>
-                  <p className="text-[#6E6E73] text-xs">United States</p>
-                </div>
-              </div>
-            </div>
-
-          
-          
-
-
-
+        <div className="flex items-center gap-3 mt-4">
+          <div>
+            <p className="font-medium text-[#1D1D1F] text-sm">
+              {review.name || "Unknown Name"}
+            </p>
+            <p className="text-[#6E6E73] text-xs">
+              {review.country || "Unknown Country"}
+            </p>
           </div>
+        </div>
+      </div>
+    ))}
+  </div>
+
           
         </div>
 
@@ -523,13 +389,14 @@ const Home = () => {
       Join our community of dedicated learners and start your path to Islamic knowledge
     </p>
 
-    <button className="mt-6 bg-white text-teal-700 font-medium px-6 py-2 rounded-full shadow hover:bg-gray-100 transition">
-      Enroll Now
-    </button>
+     <p className="mt-6 text-white text-lg font-medium italic">
+      "Knowledge lights the path to a better tomorrow."
+    </p>
   </div>
 </div>
 
       </section>
+
     </div>
 
     </>
