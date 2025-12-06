@@ -19,6 +19,7 @@ import ConfirmModal from "../../components/ConfirmModal";
 import Title from "../../components/Title";
 import Loader from "../../components/Loader";
 
+
 export function CourseContent({ courseId, setActiveTab }) {
     // original remote data
     const [course, setCourse] = useState(null);
@@ -443,6 +444,7 @@ export function CourseContent({ courseId, setActiveTab }) {
                 </div>
 
                 <div className="text-center">
+
                     <Title enTitle='Course Content' arTitle='محتوى الكورس' />
                     {/* <h2 className="text-lg font-bold">Course Content</h2> */}
                     <p className="text-sm text-gray-500">{course ? course.title : `Course ID: ${courseId}`}</p>
@@ -496,7 +498,9 @@ export function CourseContent({ courseId, setActiveTab }) {
                         className="w-full p-2 rounded border bg-[#F9FAFB] focus:outline-none"
                         disabled={loadingInitial || saving}
                     >
+
                         {/* <option value="">-- Select category --</option> */}
+
                         {categories.map(c => (
                             <option key={c.id} value={c.id}>{c.title}</option>
                         ))}
@@ -551,7 +555,9 @@ export function CourseContent({ courseId, setActiveTab }) {
             <div>
                 <h3 className="font-semibold mb-3">Modules (local edits)</h3>
 
+
                 {(loadingInitial) && <p className="text-sm text-gray-500"><Loader /></p>}
+
 
                 {(!loadingInitial && modulesLocal.length === 0) && (
                     <p className="text-sm text-gray-500">No modules yet. Add one above.</p>
@@ -562,7 +568,9 @@ export function CourseContent({ courseId, setActiveTab }) {
                         <div key={m.id} className={`bg-white border rounded p-4 ${m._state === 'deleted' ? 'opacity-50' : ''}`}>
                             <div className="flex items-start justify-between gap-4">
                                 <div className="flex-1">
+
                                     <Title className='font-bold' enTitle='Module:' />
+
                                     <input
                                         value={m.title}
                                         onChange={(e) => editModuleTitleLocal(m.id, e.target.value)}
@@ -593,7 +601,9 @@ export function CourseContent({ courseId, setActiveTab }) {
                                             {/* Lesson title & content */}
                                             <div className="flex items-start justify-between gap-2 mb-2">
                                                 <div className="flex-1">
+
                                                     <Title className='font-bold' enTitle='Lesson:' />
+
                                                     <input
                                                         value={ls.title}
                                                         onChange={(e) => editLessonLocal(m.id, ls.id, 'title', e.target.value)}

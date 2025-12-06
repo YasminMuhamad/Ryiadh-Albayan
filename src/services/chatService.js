@@ -3,6 +3,8 @@ import { collection, getDocs } from "firebase/firestore";
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 
 const embeddings = new GoogleGenerativeAIEmbeddings({
+
+
   apiKey: "AIzaSyAYA0X44TN8X3mNXwkCX2t-mHOC3hJB6bQ", 
   model: "text-embedding-004",
 });

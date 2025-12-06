@@ -7,6 +7,7 @@ import CourseRecommendations from "../../components/CourseRecommendations";
 import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 
+
 const normalizeReviews = (reviews) => {
   if (Array.isArray(reviews)) return reviews;
   if (reviews && typeof reviews === "object") return Object.values(reviews);
@@ -486,6 +487,7 @@ export default function Courses() {
       )}
 
       {/* AI Recommendations at bottom */}
+
       {!authLoading && uid && role === "student" && (
         <div className="mt-12">
           <CourseRecommendations
@@ -495,6 +497,7 @@ export default function Courses() {
           />
         </div>
       )}
+
     </div>
   );
 }

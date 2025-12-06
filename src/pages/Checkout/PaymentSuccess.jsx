@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import CheckoutStepper from '../../components/CheckoutStepper';
+import CheckoutStepper from "/src/components/CheckoutStepper.jsx";
 
 export default function PaymentSuccess() {
   const location = useLocation();

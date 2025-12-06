@@ -14,6 +14,7 @@ const computeAverageRating = (reviews = []) => {
   return Number((sum / nums.length).toFixed(1));
 };
 
+
 export default function Cart() {
   const navigate = useNavigate();
   const location = useLocation();

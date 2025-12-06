@@ -137,6 +137,7 @@ export default function Checkout() {
     const price = typeof item?.price === 'number' ? item.price : parseFloat(item?.price || 0);
     return sum + (isNaN(price) ? 0 : price);
   }, 0);
+  const safeAmount = Number.isFinite(totalAmount) && totalAmount > 0 ? Number(totalAmount.toFixed(2)) : 1;
 
   const normalizeReviews = (reviews) => {
     if (Array.isArray(reviews)) return reviews;
