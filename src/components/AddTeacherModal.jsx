@@ -158,6 +158,7 @@ export function AddTeacherModal({ isOpen, onClose, teacher, onSave }) {
     };
 
     const handleSubmit = async (e) => {
+        if (loading) return;
         e.preventDefault();
         if (loading) return;
         if (!validateAll()) return;

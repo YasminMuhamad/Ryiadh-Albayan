@@ -40,6 +40,7 @@ export default function CourseDetails() {
     return Number(avg.toFixed(1));
   };
 
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -270,6 +271,7 @@ export default function CourseDetails() {
     return () => unsub();
   }, [id]);
 
+
   // Sync cart status for this course
   useEffect(() => {
     const sync = () => {
@@ -298,6 +300,7 @@ export default function CourseDetails() {
       /* ignore */
     }
   }, [isEnrolled, id]);
+
 
   // Check enrollment for the current user and course
   // Consolidated enrollment detection: listen to enrollments and payments, and include payment-success state
@@ -348,7 +351,9 @@ export default function CourseDetails() {
 
   const getTeacherImage = (teacherId) => {
     const teacher = teachers.find((t) => t.id === teacherId);
+
     return teacher?.profile_pic || teacher?.image || teacher?.thumbnail || "/placeholder-avatar.png";
+
   };
 
   const getTeacherEmail = (teacherId) => {
@@ -1192,6 +1197,7 @@ export default function CourseDetails() {
                     <p className="text-gray-500">One-time payment</p>
                   </div>
                 )}
+
 
                 {!uid && (
                   <div className="mb-3 text-xs text-gray-600 text-center">

@@ -1,0 +1,130 @@
+{
+  "hash": "54b9cd11",
+  "configHash": "369e9866",
+  "lockfileHash": "d2e8547d",
+  "browserHash": "23d5a381",
+  "optimized": {
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "d4f514a1",
+      "needsInterop": true
+    },
+    "firebase/firestore": {
+      "src": "../../node_modules/firebase/firestore/dist/esm/index.esm.js",
+      "file": "firebase_firestore.js",
+      "fileHash": "b935e2b4",
+      "needsInterop": false
+    },
+    "lucide-react": {
+      "src": "../../node_modules/lucide-react/dist/esm/lucide-react.js",
+      "file": "lucide-react.js",
+      "fileHash": "906df369",
+      "needsInterop": false
+    },
+    "react-hot-toast": {
+      "src": "../../node_modules/react-hot-toast/dist/index.mjs",
+      "file": "react-hot-toast.js",
+      "fileHash": "db91791f",
+      "needsInterop": false
+    },
+    "react-beautiful-dnd": {
+      "src": "../../node_modules/react-beautiful-dnd/dist/react-beautiful-dnd.esm.js",
+      "file": "react-beautiful-dnd.js",
+      "fileHash": "8cdd5024",
+      "needsInterop": false
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "f711fa74",
+      "needsInterop": true
+    },
+    "firebase/auth": {
+      "src": "../../node_modules/firebase/auth/dist/esm/index.esm.js",
+      "file": "firebase_auth.js",
+      "fileHash": "1b29c7ab",
+      "needsInterop": false
+    },
+    "react-router-dom": {
+      "src": "../../node_modules/react-router-dom/dist/index.mjs",
+      "file": "react-router-dom.js",
+      "fileHash": "cd90bf3a",
+      "needsInterop": false
+    },
+    "firebase/app": {
+      "src": "../../node_modules/firebase/app/dist/esm/index.esm.js",
+      "file": "firebase_app.js",
+      "fileHash": "c1f0d9eb",
+      "needsInterop": false
+    },
+    "firebase/messaging": {
+      "src": "../../node_modules/firebase/messaging/dist/esm/index.esm.js",
+      "file": "firebase_messaging.js",
+      "fileHash": "48316c55",
+      "needsInterop": false
+    },
+    "react-icons/fa": {
+      "src": "../../node_modules/react-icons/fa/index.mjs",
+      "file": "react-icons_fa.js",
+      "fileHash": "1a310a6f",
+      "needsInterop": false
+    },
+    "date-fns": {
+      "src": "../../node_modules/date-fns/index.js",
+      "file": "date-fns.js",
+      "fileHash": "50c135ea",
+      "needsInterop": false
+    },
+    "firebase/analytics": {
+      "src": "../../node_modules/firebase/analytics/dist/esm/index.esm.js",
+      "file": "firebase_analytics.js",
+      "fileHash": "8615889c",
+      "needsInterop": false
+    },
+    "@langchain/google-genai": {
+      "src": "../../node_modules/@langchain/google-genai/dist/index.js",
+      "file": "@langchain_google-genai.js",
+      "fileHash": "0c9ce090",
+      "needsInterop": false
+    },
+    "sweetalert2": {
+      "src": "../../node_modules/sweetalert2/dist/sweetalert2.esm.all.js",
+      "file": "sweetalert2.js",
+      "fileHash": "3f6c37fa",
+      "needsInterop": false
+    },
+    "recharts": {
+      "src": "../../node_modules/recharts/es6/index.js",
+      "file": "recharts.js",
+      "fileHash": "25446a89",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "p-retry-TUBK7MAT": {
+      "file": "p-retry-TUBK7MAT.js"
+    },
+    "chunk-F5CMGOGG": {
+      "file": "chunk-F5CMGOGG.js"
+    },
+    "chunk-KDZ7CXOI": {
+      "file": "chunk-KDZ7CXOI.js"
+    },
+    "chunk-KP7BIHBJ": {
+      "file": "chunk-KP7BIHBJ.js"
+    },
+    "chunk-ULSRCYB6": {
+      "file": "chunk-ULSRCYB6.js"
+    },
+    "chunk-2LTAJOLT": {
+      "file": "chunk-2LTAJOLT.js"
+    },
+    "chunk-HY7UPOO6": {
+      "file": "chunk-HY7UPOO6.js"
+    },
+    "chunk-G3PMV62Z": {
+      "file": "chunk-G3PMV62Z.js"
+    }
+  }
+}

@@ -20,7 +20,7 @@ export function Footer() {
           </p>
 
           <p className="footer-quote">
-            "Seek knowledge from the cradle to the grave" – Prophet Muhammad ﷺ
+            "Seek knowledge from the cradle to the grave" Prophet Muhammad ﷺ
           </p>
         </div>
 

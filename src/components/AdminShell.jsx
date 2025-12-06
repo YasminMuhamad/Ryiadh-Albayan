@@ -1,4 +1,9 @@
+<<<<<<< HEAD
+// src/components/AdminShell.jsx
+import React, { useState } from 'react';
+=======
 import React, { useState, useEffect } from 'react';
+>>>>>>> 15a179aaeffad5a097623c34382bd3dac7718f07
 import '../styles/globals.css';
 import { Sidebar } from './SideBar';
 import { Layout } from './Layaout';
@@ -12,6 +17,10 @@ import AdminCourses from '../pages/Admin/Courses';
 import { CourseContent } from '../pages/Admin/CourseContent';
 
 export function AdminShell({ userRole = 'admin' }) {
+<<<<<<< HEAD
+const [activeTab, setActiveTab] = useState('dashboard');
+const [selectedCourseId, setSelectedCourseId] = useState(null);
+=======
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedCourseId, setSelectedCourseId] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -26,6 +35,7 @@ export function AdminShell({ userRole = 'admin' }) {
     window.addEventListener("resize", checkSize);
     return () => window.removeEventListener("resize", checkSize);
   }, []);
+>>>>>>> 15a179aaeffad5a097623c34382bd3dac7718f07
 
   const renderContent = () => {
     switch (activeTab) {
@@ -35,7 +45,11 @@ export function AdminShell({ userRole = 'admin' }) {
       case 'analytics': return <AdminAnalytics />;
       case 'revenue': return <AdminRevenue />;
       case 'settings': return <AdminSettings />;
+<<<<<<< HEAD
+      case 'content' : return <CourseContent setActiveTab={setActiveTab} courseId={selectedCourseId}/>;
+=======
       case 'content': return <CourseContent setActiveTab={setActiveTab} courseId={selectedCourseId} />;
+>>>>>>> 15a179aaeffad5a097623c34382bd3dac7718f07
       default: return <AdminDashboard />;
     }
   };
