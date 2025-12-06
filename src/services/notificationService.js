@@ -1,4 +1,4 @@
-import { db } from "./firebase";
+// import { db } from "./firebase";
 import {
   collection,
   addDoc,
@@ -10,6 +10,7 @@ import {
   updateDoc,
   doc,
 } from "firebase/firestore";
+import { db } from "../../firebase.config";
 
 export const addNotification = async ({
   title,

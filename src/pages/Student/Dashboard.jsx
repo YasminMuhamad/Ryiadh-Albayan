@@ -249,22 +249,38 @@ export default function StudentDashboard({ userId }) {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                <ProfileCard user={user} totalCoursesCount={totalCoursesCount} subscriptionStatus={subscriptionStatus} />
-                <StatsCards activeCoursesCount={activeCoursesCount} completedCoursesCount={completedCoursesCount} liveSessionsUpcomingCount={liveSessionsUpcoming.length} />
+                {/* Profile + Stats */}
+                <div className="lg:col-span-4 flex flex-col lg:flex-row gap-4 w-full">
+                    <ProfileCard
+                        user={user}
+                        totalCoursesCount={totalCoursesCount}
+                        subscriptionStatus={subscriptionStatus}
+                        className="w-full lg:w-1/4" // ثابت على 1/4 على الشاشات الكبيرة
+                    />
+                    <StatsCards
+                        activeCoursesCount={activeCoursesCount}
+                        completedCoursesCount={completedCoursesCount}
+                        liveSessionsUpcomingCount={liveSessionsUpcoming.length}
+                        className="flex-1" // ياخد باقي المساحة
+                    />
+                </div>
 
+                {/* باقي الـ layout */}
                 <div className="col-span-1 lg:col-span-3">
                     <Tab activeTab={activeTab} setActiveTab={setActiveTab} />
-
                     {activeTab === "progress" && (
-                        <div className="flex flex-wrap gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <AttendanceCard data={attendanceData} />
                             <GradesCard data={gradesData} />
                         </div>
                     )}
-
                     {activeTab !== "progress" && (
                         <div className="mt-4 space-y-3">
-                            {filteredEnrollments.length === 0 && <div className="text-sm text-muted-foreground">You are not enrolled in any course yet.</div>}
+                            {filteredEnrollments.length === 0 && (
+                                <div className="text-sm text-muted-foreground">
+                                    You are not enrolled in any course yet.
+                                </div>
+                            )}
                             {filteredEnrollments.map(e => (
                                 <EnrollmentCard key={e.courseId} enrollment={e} course={coursesMap[e.courseId]} />
                             ))}
@@ -277,6 +293,7 @@ export default function StudentDashboard({ userId }) {
                     <PaymentsCard payments={payments} coursesMap={coursesMap} />
                 </div>
             </div>
+
         </div>
     );
 }

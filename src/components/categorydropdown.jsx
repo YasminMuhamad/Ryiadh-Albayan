@@ -1,3 +1,4 @@
+import React from "react";
 import { useMemo, useState } from "react";
 
 export default function CategoryDropdown({ value, onChange, categories = [] }) {
