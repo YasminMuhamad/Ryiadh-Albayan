@@ -1,0 +1,151 @@
+users (collection)                  ← كل الطلاب
+ └─ userId (document)
+     ├─ name
+     ├─ name_ar
+     ├─ email
+     ├─ role          // student
+     ├─ subscriptionStatus        // active | cancelled
+     ├─ year
+     ├─ term
+     ├─ profile_pic
+     ├─ createdAt
+     ├─ coursesCount
+     ├─ progress
+     └─ enrollments (subcollection)     ← progress الطالب لكل كورس
+         └─ courseId (document)
+             ├─ enrolledAt
+             ├─ completedLessons: [ lessonId, lessonId ... ]
+             ├─ completedLessonsCount
+             ├─ quizzesTaken
+             ├─ percent
+             ├─ status        // in-progress, completed
+             └─ lessonsProgress (subcollection)
+                 └─ {lessonId} (document)
+                     ├─ videoStatus: "completed" | "notCompleted"
+                     ├─ liveStatus:  "attended" | "absent"
+                     ├─ completed: true | false
+                     └─ completedAt
+
+teachers (collection)
+ └─ teacherId (document)
+     ├─ name
+     ├─ name_ar
+     ├─ email
+     ├─ specialization: "Math" (optional)
+     ├─ status: "active" | "deactivated"
+     ├─ role: "teacher"
+     ├─ profile_pic
+     ├─ coursesCount
+     └─ createdAt
+
+admins (collection)
+ └─ adminId (document)
+     ├─ name
+     ├─ email
+     ├─ role: "admin"
+     ├─ profile_pic
+     └─ createdAt
+
+courses (collection)
+ └─ courseId (document)
+     ├─ title
+     ├─ title_ar
+     ├─ description
+     ├─ price
+     ├─ thumbnail
+     ├─ teacherId
+     ├─ category
+     ├─ totalLessons
+     ├─ totalModules
+     ├─ studentsCount
+     ├─ revenueTotal
+     ├─ avgCompletion
+     ├─ avgSatisfaction
+     └─ modules (subcollection)
+         └─ moduleId (document)
+             ├─ title
+             ├─ moduleOrder
+             └─ lessons (subcollection)
+                 └─ lessonId (document)
+                     ├─ title
+                     ├─ lessonOrder
+                     ├─ materials: [ { title, file } ]      ← array
+                     ├─ video: { title, file }         ← object, 
+                     ├─ liveSession 
+                     │    ├─ title
+                     │    ├─ dateTime
+                     │    ├─ duration
+                     │    ├─ link
+                     │    ├─ status: scheduled | completed | cancelled
+                     │    ├─ attendanceCount             
+                     │    └─ attendance (subcollection)
+                     │         └─ studentId (document)
+                     │              └─ status: "attended" | "absent"
+                                    └─ studentRef
+                                    └─ studentName
+                                    └─ timestamp         
+            └─ quizzes (subcollection)        ← كويز الموديول
+             └─ quiz (document)
+                 └─ title
+                 └─ totalMarks
+                 └─ questions
+                 └─ questionsList: [ { question, options[], correctAnswer } ]
+                 └─ submissionsCount
+                 └─ questions
+                 └─ submissions (subcollection)
+                     └─ studentId (document)
+                             └─ status: "submitted" | "notSubmitted"
+                             └─ studentRef
+                             └─ studentName
+                             └─ score
+                             └─ submittedAt              
+    ريفيوز للكورس
+    └─ reviews: [                         ← array
+            { studentId, rating, comment, createdAt } 
+    ]
+
+
+payments (collection)                     ← مستقل، لكل الدفعيات
+ └─ paymentId (document)
+     ├─ studentId
+     ├─ courseId
+     ├─ currency
+     ├─ amount
+     ├─ method
+     ├─ type: "one_time" | "subscription"
+     ├─ status: "paid" | "pending" | "refunded"
+     └─ date
+
+notifications (collection)                ← مستقل، لكل الإشعارات
+ └─ notificationId (document)
+     ├─ userId
+     ├─ title
+     ├─ message
+     ├─ type: "session" | "general"
+     ├─ read: true | false
+     └─ createdAt
+
+academic_schedules (collection)          ← مستقل، لكل السنة الدراسية
+ └─ scheduleId (document)
+     ├─ year
+     ├─ term
+     ├─ startDate
+     └─ endDate
+
+live_sessions (collection)               ← مستقل إذا عايزة تقرير شامل للجلسات
+ └─ sessionId (document)
+     ├─ courseId
+     ├─ teacherId
+     ├─ title
+     ├─ dateTime
+     ├─ duration
+     ├─ zoomLink
+     └─ status: "upcoming" | "completed" | "cancelled"
+
+
+analytics (collection)
+└─ monthly_revenue (document)
+     ├─ yearMonth
+     ├─ revenue
+     ├─ newStudents
+     └─ activeStudents

@@ -1,0 +1,75 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // قاعدة عامة: لا حد يقرأ أو يكتب إلا لو مسموح ليه
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // المستخدمين (users)
+    match /users/{userId} {
+      // المستخدم يقدر يقرأ بياناته فقط
+      allow read: if request.auth != null && request.auth.uid == userId;
+
+      // المستخدم يقدر يحدّث بياناته فقط (زي تعديل اسمه)
+      allow update: if request.auth != null && request.auth.uid == userId;
+
+      // الأدمن بس يقدر يضيف أو يحذف مستخدمين
+      allow create, delete: if request.auth != null && request.auth.token.role == "admin";
+    }
+
+    // المدرسين
+    match /teachers/{teacherId} {
+      allow read: if true; // أي مستخدم ممكن يشوف بروفايل المدرس
+      allow write: if request.auth != null && request.auth.token.role == "admin";
+    }
+
+    // الكورسات
+    match /courses/{courseId} {
+      allow read: if true; // أي حد ممكن يشوف تفاصيل الكورسات
+      // المدرس اللي بيملك الكورس أو الأدمن يقدر يعدل
+      allow write: if request.auth != null &&
+        (request.auth.token.role == "admin" ||
+         resource.data.teacherId == request.auth.uid);
+    }
+
+    // الجدول الدراسي
+    match /academic_schedules/{scheduleId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.role == "admin";
+    }
+
+    // المراجعات
+    match /reviews/{reviewId} {
+      allow read: if true;
+      // الطالب اللي كتب المراجعة يقدر يعدلها أو يحذفها
+      allow write: if request.auth != null &&
+        (request.auth.token.role == "admin" ||
+         request.auth.uid == resource.data.studentId);
+    }
+
+    // المدفوعات
+    match /payments/{paymentId} {
+      allow read: if request.auth != null &&
+        (request.auth.token.role == "admin" ||
+         request.auth.uid == resource.data.studentId);
+      allow write: if request.auth != null && request.auth.token.role == "admin";
+    }
+
+    // الإشعارات
+    match /notifications/{notifId} {
+      allow read: if request.auth != null &&
+        request.auth.uid == resource.data.userId;
+      allow write: if request.auth != null && request.auth.token.role == "admin";
+    }
+
+    // الجلسات المباشرة
+    match /live_sessions/{sessionId} {
+      allow read: if true;
+      allow write: if request.auth != null &&
+        (request.auth.token.role == "admin" ||
+         request.auth.token.role == "teacher");
+    }
+  }
+}

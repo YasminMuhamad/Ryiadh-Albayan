@@ -1,0 +1,39 @@
+{
+  "userId": "student_001",
+  "name": "Ahmed Ali",
+  "name_ar": "أحمد علي",
+  "email": "ahmed.ali@example.com",
+  "role": "student",
+  "subscriptionStatus": "active",
+  "profile_pic": "https://randomuser.me/api/portraits/men/32.jpg",
+  "createdAt": "2025-11-25T00:00:00Z",
+  "coursesCount": 1,
+  "progress": 50,
+  "enrollments": {
+    "4eCHiNDVVBwJceNp2bor": {
+      "courseId": "4eCHiNDVVBwJceNp2bor",
+      "enrolledAt": "2025-11-26T09:00:00Z",
+      "completedLessons": ["LCHR9jFRzTGvYCuZaxhR"],
+      "completedLessonsCount": 1,
+      "quizzesTaken": ["AgUbKo8IosHsnrUlDBdr"],
+      "percent": 50,
+      "status": "in-progress",
+      "lessonsProgress": {
+        "LCHR9jFRzTGvYCuZaxhR": {
+          "lessonId": "LCHR9jFRzTGvYCuZaxhR",
+          "videoStatus": "completed",
+          "liveStatus": "attended",
+          "completed": true,
+          "completedAt": "2025-11-27T10:00:00Z"
+        },
+        "pvbgMQJvFk5zEpKn8axi": {
+          "lessonId": "pvbgMQJvFk5zEpKn8axi",
+          "videoStatus": "notCompleted",
+          "liveStatus": "absent",
+          "completed": false,
+          "completedAt": null
+        }
+      }
+    }
+  }
+}
