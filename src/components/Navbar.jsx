@@ -1,18 +1,10 @@
-<<<<<<< HEAD
 import React, { useEffect, useRef, useMemo, useState } from "react";
-=======
-import React, { useEffect, useRef, useState } from "react";
->>>>>>> 15a179aaeffad5a097623c34382bd3dac7718f07
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   onNotificationsListener,
   markNotificationsAsRead,
 } from "../services/notificationService";
 import { toast } from "react-hot-toast";
-<<<<<<< HEAD
-
-import { BookOpen, ShoppingCart, UserCircle, LogOut, Bell, X, LayoutDashboardIcon, LayoutDashboard } from "lucide-react";
-=======
 import {
   BookOpen,
   ShoppingCart,
@@ -23,7 +15,6 @@ import {
   LayoutDashboard,
   Menu,
 } from "lucide-react";
->>>>>>> 15a179aaeffad5a097623c34382bd3dac7718f07
 import { Button } from "./Button";
 import { useAuth } from "../context/AuthContext";
 
@@ -32,31 +23,24 @@ export function Navbar() {
   const location = useLocation();
   const { user, profile, logout } = useAuth();
   const currentPage = location.pathname;
-<<<<<<< HEAD
-  const [cartCount, setCartCount] = useState();
   const [notifications, setNotifications] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
-  const displayedToastIds = useRef(new Set());
-=======
+  
   const [cartCount, setCartCount] = useState(0);
-  const [notifications, setNotifications] = useState([]);
-  const [showDropdown, setShowDropdown] = useState(false);
+ 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const displayedToastIds = useRef(new Set());
 
   const { role } = useAuth();
 
->>>>>>> 15a179aaeffad5a097623c34382bd3dac7718f07
   useEffect(() => {
     if (!user) return;
 
     const unsubscribe = onNotificationsListener(user.uid, (notifs) => {
       setNotifications(notifs);
 
-<<<<<<< HEAD
       // فلتر للإشعارات الغير مقروءة والتي لم يتم عرضها بعد
-=======
->>>>>>> 15a179aaeffad5a097623c34382bd3dac7718f07
+
       const unread = notifs.filter(
         (n) => !n.read && !displayedToastIds.current.has(n.id)
       );
@@ -65,14 +49,9 @@ export function Navbar() {
         toast.custom(
           (t) => (
             <div
-<<<<<<< HEAD
-              className={`p-3 rounded shadow-md bg-white border flex justify-between items-start gap-2 ${t.visible ? "animate-enter" : "animate-leave"
-                }`}
-=======
               className={`p-3 rounded shadow-md bg-white border flex justify-between items-start gap-2 ${
                 t.visible ? "animate-enter" : "animate-leave"
               }`}
->>>>>>> 15a179aaeffad5a097623c34382bd3dac7718f07
             >
               <div>
                 <strong>{n.title}</strong>
@@ -88,11 +67,6 @@ export function Navbar() {
           ),
           { duration: 4000, position: "top-right" }
         );
-<<<<<<< HEAD
-
-        // علم ان الاشعار ده اتعرض
-=======
->>>>>>> 15a179aaeffad5a097623c34382bd3dac7718f07
         displayedToastIds.current.add(n.id);
       });
     });
@@ -100,10 +74,7 @@ export function Navbar() {
     return () => unsubscribe();
   }, [user]);
 
-<<<<<<< HEAD
   // عند فتح dropdown علم الاشعارات الغير مقروءة كمقروءة
-=======
->>>>>>> 15a179aaeffad5a097623c34382bd3dac7718f07
   useEffect(() => {
     if (showDropdown && notifications.length > 0) {
       const unreadIds = notifications.filter((n) => !n.read).map((n) => n.id);
@@ -111,10 +82,7 @@ export function Navbar() {
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     }
   }, [showDropdown, notifications]);
-<<<<<<< HEAD
-=======
 
->>>>>>> 15a179aaeffad5a097623c34382bd3dac7718f07
   const updateCartCount = () => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
     setCartCount(cart.length);
@@ -158,113 +126,10 @@ export function Navbar() {
             >
               Riyad Al-Bayan
             </span>
-<<<<<<< HEAD
-          </div>
-
-          <div className="flex items-center gap-6">
-            {profile ? (
-              <>
-                <div className="relative">
-                  <button
-                    className="p-2 rounded-full hover:bg-gray-200 relative"
-                    onClick={() => setShowDropdown((prev) => !prev)}
-                  >
-                    <Bell className="text-gray-700" />
-                    {notifications.some((n) => !n.read) && (
-                      <span className="absolute top-0 right-0 inline-flex items-center justify-center w-4 h-4 text-xs font-bold text-white bg-red-500 rounded-full">
-                        {notifications.filter((n) => !n.read).length}
-                      </span>
-                    )}
-                  </button>
-
-                  {showDropdown && (
-                    <div className="absolute right-0 mt-2 w-80 bg-white text-black rounded shadow-lg z-50 max-h-96 overflow-y-auto">
-                      <div className="flex justify-end p-2">
-                        <button onClick={() => setShowDropdown(false)}>
-                          <X size={18} />
-                        </button>
-                      </div>
-                      {notifications.length === 0 ? (
-                        <div className="px-4 py-2 text-gray-500">
-                          لا توجد إشعارات
-                        </div>
-                      ) : (
-                        notifications.map((n) => (
-                          <div
-                            key={n.id}
-                            className={`border-b px-4 py-2 ${!n.read ? "bg-gray-100" : ""
-                              }`}
-                          >
-                            <strong>{n.title}</strong>
-                            <p>{n.message}</p>
-                            <small className="text-gray-500">{n.type}</small>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  )}
-                </div>
-                <span className="border-l border-gray-300 h-6"></span>
-                <span
-                  onClick={goToDashboard}
-                  className="cursor-pointer flex items-center gap-2"
-                >
-                  <LayoutDashboard size={20} className="text-teal-600" />
-                  <span className="nav-item">Dashboard</span>
-                </span>
-
-                <span
-                  onClick={goToProfile}
-                  className="cursor-pointer flex items-center gap-2"
-                >
-                  {profile.profile_pic ? (
-                    <img
-                      src="/placeholder-avatar.png"
-                      height={'20px'}
-                      width={'20px'}
-                      alt={profile.name || "User"}
-                      className="nav-item rounded-xl"
-                    />
-                  ) : (
-                    <UserCircle size={26} className="text-teal-600" />
-                  )}
-                  <span className="nav-item">
-                    {profile.name || "User"}
-                  </span>
-                </span>
-
-                {/* Logout */}
-                <span
-                  onClick={handleLogout}
-                  className="cursor-pointer flex items-center gap-1 text-gray-700 hover:text-red-600 transition"
-                >
-                  <LogOut size={18} />
-                  <span className="hidden sm:inline">Logout</span>
-                </span>
-              </>
-            ) : (
-              <>
-                <span
-                  onClick={() => navigate("/login")}
-                  className="cursor-pointer text-gray-700 hover:text-teal-700"
-                >
-                  Login
-                </span>
-
-                <Button onClick={() => navigate("/register")} className="btn-primary">
-                  Sign Up
-                </Button>
-              </>
-            )}
-=======
             <p className="text-sm text-gray-500">Arabic & Islamic Studies</p>
->>>>>>> 15a179aaeffad5a097623c34382bd3dac7718f07
           </div>
 
         </div>
-<<<<<<< HEAD
-      </div>
-=======
 
         {/* Desktop Links */}
         <div className="hidden lg:flex items-center gap-6">
@@ -278,6 +143,7 @@ export function Navbar() {
               >
                 Home
               </span>
+
               <span
                 onClick={() => navigate("/courses")}
                 className={`cursor-pointer ${
@@ -286,6 +152,7 @@ export function Navbar() {
               >
                 Courses
               </span>
+
               <span
                 onClick={() => navigate("/contact")}
                 className={`cursor-pointer ${
@@ -294,6 +161,17 @@ export function Navbar() {
               >
                 Contact
               </span>
+
+              <span 
+                onClick={() => navigate("/about")} 
+                className={`cursor-pointer ${
+                 currentPage === "/about" ? "text-[#0E7C7B]" : "text-gray-700" 
+                } hover:text-[#0E7C7B]`}
+              >
+                About Us
+            </span>
+
+
               <div className="relative">
                 <span
                   onClick={() => navigate("/cart")}
@@ -301,6 +179,10 @@ export function Navbar() {
                     currentPage === "/cart" ? "text-[#0E7C7B]" : "text-gray-700"
                   } hover:text-[#0E7C7B]`}
                 >
+
+
+
+
                   <ShoppingCart size={20} />
                   {cartCount > 0 && (
                     <span className="absolute -top-2 -right-2 bg-teal-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
@@ -536,7 +418,6 @@ export function Navbar() {
           )}
         </div>
       )}
->>>>>>> 15a179aaeffad5a097623c34382bd3dac7718f07
     </nav>
   );
 }

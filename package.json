@@ -25,7 +25,6 @@
 
     "lucide-react": "^0.553.0",
     "react": "^18.1.1",
-    "@hello-pangea/dnd": "^16.5.0",
     "react-datepicker": "^8.10.0",
     "react-dom": "^18.1.1",
     "react-hot-toast": "^2.6.0",
