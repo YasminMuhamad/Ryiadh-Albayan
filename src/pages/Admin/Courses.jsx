@@ -9,6 +9,7 @@ import { db } from '../../../firebase.config';
 import Toast from '../../components/Toast';
 import { AddCourseModal } from '../../components/AddCourseModal';
 import ConfirmModal from '../../components/ConfirmModal';
+import { addNotification } from '../../services/notificationService';
 
 export default function AdminCourses({ setActiveTab, setSelectedCourseId }) {
   const [isCourseModalOpen, setCourseModalOpen] = useState(false);
@@ -147,6 +148,13 @@ export default function AdminCourses({ setActiveTab, setSelectedCourseId }) {
                 thumbnail: payload.thumbnail || "",
                 createdAt: new Date()
               });
+
+              await addNotification({
+                title: "New Course Available!",
+                message: `A new course has just been added: ${payload.title}. Start learning now!`,
+                userIds: [],
+              });
+
             }
 
             setCourseModalOpen(false);

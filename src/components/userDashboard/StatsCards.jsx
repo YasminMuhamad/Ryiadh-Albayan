@@ -2,7 +2,7 @@ import React from "react";
 import { Card } from "../../components/Card";
 import { BookOpen, CheckCircle, Video } from "lucide-react";
 
-export default function StatsCards({ activeCoursesCount, completedCoursesCount, liveSessionsUpcomingCount }) {
+export default function StatsCards({ activeCoursesCount, completedCoursesCount, liveSessionsUpcomingCount, className }) {
   const stats = [
     { label: "Active Courses", value: activeCoursesCount, icon: <BookOpen className="w-6 h-6 text-teal-600" /> },
     { label: "Completed Courses", value: completedCoursesCount, icon: <CheckCircle className="w-6 h-6 text-green-600" /> },
@@ -10,12 +10,9 @@ export default function StatsCards({ activeCoursesCount, completedCoursesCount, 
   ];
 
   return (
-    <div className="col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className={`flex flex-col lg:flex-row gap-4 ${className}`}>
       {stats.map((s, i) => (
-        <Card
-          key={i}
-          className={`flex items-center gap-4 p-4 ${s.color}`}
-        >
+        <Card key={i} className="flex items-center gap-4 p-4 flex-1">
           <div className="flex-shrink-0">{s.icon}</div>
           <div className="flex flex-col">
             <div className="text-sm text-gray-500">{s.label}</div>

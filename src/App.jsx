@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { Navbar } from "./components/Navbar";
 import Home from "./pages/Home/Home";
@@ -13,7 +13,7 @@ import Checkout from "../src/pages/Checkout/Checkout.jsx";
 import PaymentSuccess from "../src/pages/Checkout/PaymentSuccess.jsx";
 import MyCourses from "./pages/Student/MyCourses.jsx";
 
-import ProtectedRoute from "../src/router.jsx";
+// import ProtectedRoute from "";
 import { AuthProvider, useAuth } from "../src/context/AuthContext.jsx";
 
 import './styles/globals.css';
@@ -29,6 +29,10 @@ import ChatWidget from "./components/Chat";
 import AboutUs from "./pages/AboutUs";
 
 import { addNotification } from "./services/notificationService";
+// import { addNotification } from "./services/notificationService";
+import ResetPassword from "./pages/Auth/ResetPassword.jsx";
+import ForgotPassword from "./pages/Auth/ForgotPassword.jsx";
+import ProtectedRoute from "./ProtectedRoute.jsx";
 
 // -------------------------
 // Layout Component
@@ -81,6 +85,31 @@ function StudentDashboardWithUid() {
 // MAIN APP
 // -------------------------
 export default function App() {
+  
+// -------------------------
+// Protection Layer for Entire Application
+// -------------------------
+useEffect(() => {
+  document.addEventListener("contextmenu", (e) => e.preventDefault());
+
+  document.addEventListener("keydown", (e) => {
+    if (
+      (e.ctrlKey &&
+        ["c", "s", "u", "p"].includes(e.key.toLowerCase())) ||
+      e.key === "PrintScreen"
+    ) {
+      e.preventDefault();
+    }
+  });
+
+  document.addEventListener("keyup", async (e) => {
+    if (e.key === "PrintScreen") {
+      await navigator.clipboard.writeText("");
+      alert("Screenshot disabled!");
+    }
+  });
+}, []);
+
   return (
     <AuthProvider>
       <Router>
@@ -94,6 +123,9 @@ export default function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/courses/:id" element={<CourseDetails />} />
             <Route path="/about" element={<AboutUs />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+
             {/* E-commerce */}
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout/:id" element={<Checkout />} />

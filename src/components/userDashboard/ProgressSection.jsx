@@ -13,7 +13,7 @@ export function AttendanceCard({ data }) {
   ).length;
 
   return (
-    <Card className="flex-1 w-1/2 p-4 flex flex-col justify-between">
+    <Card className="flex-1 p-4 flex flex-col justify-between">
       {/* محتوى الكارد */}
       <div className="space-y-5">
         <div>
@@ -75,7 +75,7 @@ export function GradesCard({ data }) {
   // }
 
   return (
-    <Card className="flex-1 w-1/2 p-4 space-y-4">
+    <Card className="flex-1 p-4 space-y-4">
       <div className="space-y-1">
         <h3 className="text-l font-semibold text-muted-foreground">Recent Grades</h3>
         <p className="text-md text-gray-600 mb-4">Your performance in assignments and quizzes</p>

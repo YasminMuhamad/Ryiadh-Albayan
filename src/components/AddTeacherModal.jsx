@@ -4,7 +4,17 @@ import { X } from 'lucide-react';
 import { db } from "../../firebase.config";
 import { collection, addDoc, query, where, getDocs, updateDoc, doc } from "firebase/firestore";
 import { CustomSelect } from "./CustomSelect";
-
+import { getAuth } from "firebase/auth";
+import toast from "react-hot-toast";
+import { initializeApp as initializeAppSecondary } from "firebase/app";
+import {
+    getAuth as getAuthSecondary,
+    createUserWithEmailAndPassword,
+    sendPasswordResetEmail,
+    setPersistence,
+    inMemoryPersistence
+} from "firebase/auth";
+import { setDoc } from "firebase/firestore";
 export function AddTeacherModal({ isOpen, onClose, teacher, onSave }) {
     const [specialization, setSpecialization] = useState("");
     const [isOpenDropdown, setIsOpenDropdown] = useState(false);
@@ -148,73 +158,269 @@ export function AddTeacherModal({ isOpen, onClose, teacher, onSave }) {
     };
 
     const handleSubmit = async (e) => {
-        if (loading) return;
         e.preventDefault();
-
+        if (loading) return;
         if (!validateAll()) return;
 
         const trimmedEmail = email.trim().toLowerCase();
         setLoading(true);
 
         try {
-            // --- 1) Check for duplicate email ---
             const q = query(collection(db, "teachers"), where("email", "==", trimmedEmail));
-            const snapshot = await getDocs(q);
-
-            if (!snapshot.empty) {
-                const emailOwnerId = snapshot.docs[0].id;
-
-                if (!teacher?.id || teacher.id !== emailOwnerId) {
-                    setErrors((prev) => ({ ...prev, email: "Email already exists" }));
-                    setLoading(false);
-                    return;
-                }
+            const existing = await getDocs(q);
+            if (!existing.empty) {
+                const authMain = getAuth();
+                await sendPasswordResetEmail(authMain, trimmedEmail);
+                toast(`${trimmedEmail} already exists. Password reset email sent.`);
+                resetState();
+                onClose();
+                return;
             }
 
-            // --- 2) Prepare payload ---
-            const payload = {
-                ...(teacher?.id ? { id: teacher.id } : {}),
+            const secondaryConfig = {
+                apiKey: "AIzaSyD9KLFnZmu4RwsFAgG_BX_psdAFofCOYyE",
+                authDomain: "grad-project-b11d3.firebaseapp.com",
+                databaseURL: "https://grad-project-b11d3-default-rtdb.firebaseio.com",
+                projectId: "grad-project-b11d3",
+                storageBucket: "grad-project-b11d3.firebasestorage.app",
+                messagingSenderId: "744759817993",
+                appId: "1:744759817993:web:191cb4ad7563291eec45d8",
+                measurementId: "G-ZVENF1PYSB",
+            };
+            const secondaryAppName = `secondary-${Date.now()}`;
+            const secondaryApp = initializeAppSecondary(secondaryConfig, secondaryAppName);
+
+            const secondaryAuth = getAuthSecondary(secondaryApp);
+            await setPersistence(secondaryAuth, inMemoryPersistence);
+
+            const tempPassword = "temporary123";
+            const userCred = await createUserWithEmailAndPassword(secondaryAuth, trimmedEmail, tempPassword);
+            const uid = userCred.user.uid;
+
+            await setDoc(doc(db, "teachers", uid), {
                 name: fullName.trim(),
                 name_ar: arabicName.trim(),
                 email: trimmedEmail,
                 specialization: specialization || null,
+                status: "Inactive",
+                role: "teacher",
+                profile_pic: "",
+                uid,
+                createdAt: new Date(),
+            });
+
+            const auth = getAuth();
+            const actionCodeSettings = {
+                // url: 'https://riyadh-albayan.com/reset-password',
+                url: 'https://grad-project-b11d3.web.app/reset-password',
+                handleCodeInApp: true,
             };
 
-            // --- 3) Call onSave from parent (if provided) ---
-            if (typeof onSave === "function") {
-                await onSave(payload);
-            } else {
-                // fallback: write directly to firestore
-                if (teacher?.id) {
-                    await updateDoc(doc(db, "teachers", teacher.id), {
-                        name: fullName.trim(),
-                        name_ar: arabicName.trim(),
-                        email: trimmedEmail,
-                        specialization: specialization || null,
-                    });
-                } else {
-                    await addDoc(collection(db, "teachers"), {
-                        name: fullName.trim(),
-                        name_ar: arabicName.trim(),
-                        email: trimmedEmail,
-                        specialization: specialization || null,
-                        status: "Inactive",
-                        role: "teacher",
-                        profile_pic: "",
-                        createdAt: new Date(),
-                    });
-                }
+            await sendPasswordResetEmail(auth, trimmedEmail, actionCodeSettings);
+
+            try {
+                await secondaryApp.delete(); // available in newer SDKs; if not, just let it be GC'd
+            } catch (e) {
+                console.warn("secondary app delete:", e);
             }
 
-            // --- 4) Reset internal state ---
+            toast(`Teacher created and password reset email sent to ${trimmedEmail}.`);
             resetState();
+            onClose();
         } catch (err) {
-            console.error("Error in modal handleSubmit:", err);
-            alert("Failed to save teacher. Try again.");
+            console.error("Failed to create teacher:", err);
+            if (err?.code === "auth/email-already-in-use") {
+                toast("This email is already in use. Sent password reset where possible.");
+            } else {
+                toast("Failed to create teacher.");
+            }
         } finally {
             setLoading(false);
         }
     };
+    // Sends Reset Password شغال 
+    // const handleSubmit = async (e) => {
+    //     e.preventDefault();
+    //     if (loading) return;
+    //     if (!validateAll()) return;
+
+    //     const trimmedEmail = email.trim().toLowerCase();
+    //     setLoading(true);
+
+    //     try {
+    //         const auth = getAuth();
+
+    //         // 1) تحقق سريع لو الايميل مسجل عند Firebase Auth
+    //         const methods = await fetchSignInMethodsForEmail(auth, trimmedEmail);
+
+    //         if (methods && methods.length > 0) {
+    //             // الايميل موجود بالفعل في Auth
+    //             // نرسل له رابط تغيير كلمة السر ونعلم الادمن بدل محاولة انشاء
+    //             await sendPasswordResetEmail(auth, trimmedEmail);
+
+    //             // (اختياري) - لو عايزة تخزني/تحدّثي doc في teachers عن وجود هذا الايميل:
+    //             // ابحثي عن doc teachers بالإيميل ثم حدّثيه أو انشئي واحد لو مش موجود
+    //             const q = query(collection(db, "teachers"), where("email", "==", trimmedEmail));
+    //             const snapshot = await getDocs(q);
+    //             if (snapshot.empty) {
+    //                 // انشئ doc مع وضع status يوضح أن المستخدم موجود في Auth لكن doc لم يُنشأ بعد
+    //                 await addDoc(collection(db, "teachers"), {
+    //                     name: fullName.trim(),
+    //                     name_ar: arabicName.trim(),
+    //                     email: trimmedEmail,
+    //                     specialization: specialization || null,
+    //                     status: "Pending-Auth-Exists",
+    //                     role: "teacher",
+    //                     profile_pic: "",
+    //                     createdAt: new Date(),
+    //                 });
+    //             } else {
+    //                 // لو فيه doc موجود حدث الحالة
+    //                 const docRef = snapshot.docs[0].ref;
+    //                 await updateDoc(docRef, { status: "Auth-Exists" });
+    //             }
+
+    //             alert(`${trimmedEmail} already exists. Sent password reset email instead.`);
+    //             resetState();
+    //             onClose();
+    //             return;
+    //         }
+
+    //         // 2) الايميل مش موجود — انشئ حساب مؤقت في Auth
+    //         const tempPassword = "temporary123"; // يمكن تغييره أو توليده عشوائياً
+    //         const userCred = await createUserWithEmailAndPassword(auth, trimmedEmail, tempPassword);
+    //         const uid = userCred.user.uid;
+
+    //         // 3) خزن بيانات المدرس في Firestore باستخدام uid (مفضل استخدام setDoc مع uid كـ id)
+    //         await setDoc(doc(db, "teachers", uid), {
+    //             name: fullName.trim(),
+    //             name_ar: arabicName.trim(),
+    //             email: trimmedEmail,
+    //             specialization: specialization || null,
+    //             status: "Inactive",
+    //             role: "teacher",
+    //             profile_pic: "",
+    //             uid,
+    //             createdAt: new Date(),
+    //         });
+
+    //         // 4) ابعث رابط إعادة تعيين كلمة السر للمستخدم ليغيّر الباسورد بنفسه
+    //         await sendPasswordResetEmail(auth, trimmedEmail);
+
+    //         alert(`Teacher created and password reset email sent to ${trimmedEmail}.`);
+    //         resetState();
+    //         onClose();
+    //     } catch (err) {
+    //         console.error("Failed to create teacher:", err);
+    //         // رسائل أكثر ودية اعتماداً على نوع الخطأ
+    //         if (err.code === "auth/email-already-in-use") {
+    //             alert("هذا الإيميل مستخدم بالفعل. أرسلت رابط استعادة كلمة السر إذا أمكن.");
+    //         } else {
+    //             alert("فشل إنشاء المدرس. تحقق من الكونسول لمعرفة التفاصيل.");
+    //         }
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
+
+    // Basic Create Teacher
+    // const handleSubmit = async (e) => {
+    //     if (loading) return;
+    //     e.preventDefault();
+
+    //     if (!validateAll()) return;
+
+    //     const trimmedEmail = email.trim().toLowerCase();
+    //     setLoading(true);
+
+    //     try {
+    //         // --- 1) Check for duplicate email ---
+    //         const q = query(collection(db, "teachers"), where("email", "==", trimmedEmail));
+    //         const snapshot = await getDocs(q);
+
+    //         if (!snapshot.empty) {
+    //             const emailOwnerId = snapshot.docs[0].id;
+
+    //             if (!teacher?.id || teacher.id !== emailOwnerId) {
+    //                 setErrors((prev) => ({ ...prev, email: "Email already exists" }));
+    //                 setLoading(false);
+    //                 return;
+    //             }
+    //         }
+
+    //         // --- 2) Prepare payload ---
+    //         const payload = {
+    //             ...(teacher?.id ? { id: teacher.id } : {}),
+    //             name: fullName.trim(),
+    //             name_ar: arabicName.trim(),
+    //             email: trimmedEmail,
+    //             specialization: specialization || null,
+    //         };
+
+    //         // --- 3) Call onSave from parent (if provided) ---
+    //         if (typeof onSave === "function") {
+    //             await onSave(payload);
+    //         } else {
+    //             // fallback: write directly to firestore
+    //             if (teacher?.id) {
+    //                 await updateDoc(doc(db, "teachers", teacher.id), {
+    //                     name: fullName.trim(),
+    //                     name_ar: arabicName.trim(),
+    //                     email: trimmedEmail,
+    //                     specialization: specialization || null,
+    //                 });
+    //             } else {
+    //                 await addDoc(collection(db, "teachers"), {
+    //                     name: fullName.trim(),
+    //                     name_ar: arabicName.trim(),
+    //                     email: trimmedEmail,
+    //                     specialization: specialization || null,
+    //                     status: "Inactive",
+    //                     role: "teacher",
+    //                     profile_pic: "",
+    //                     createdAt: new Date(),
+    //                 });
+    //             }
+    //         }
+
+    //         // --- 4) Reset internal state ---
+    //         resetState();
+    //     } catch (err) {
+    //         console.error("Error in modal handleSubmit:", err);
+    //         alert("Failed to save teacher. Try again.");
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
+
+    // Test Send Signin Link Works
+    // const handleSubmit = async (e) => {
+    //     e.preventDefault();
+    //     if (loading) return;
+    //     if (!validateAll()) return;
+
+    //     const trimmedEmail = email.trim().toLowerCase();
+    //     setLoading(true);
+
+    //     const auth = getAuth();
+    //     const actionCodeSettings = {
+    //         url: 'https://riyadh-albayan.com/finish-signup',
+    //         handleCodeInApp: true,
+    //     };
+
+    //     try {
+    //         await sendSignInLinkToEmail(auth, trimmedEmail, actionCodeSettings);
+    //         window.localStorage.setItem('teacherEmailForSignIn', trimmedEmail);
+    //         alert(`Invitation link sent to ${trimmedEmail}`);
+    //         resetState();
+    //         onClose();
+    //     } catch (err) {
+    //         console.error(err);
+    //         alert("Failed to send invitation link");
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
@@ -269,6 +475,7 @@ export function AddTeacherModal({ isOpen, onClose, teacher, onSave }) {
                             value={email}
                             onChange={handleEmailChange}
                             onBlur={() => validateField("email", email)}
+                            disabled={teacher && teacher.status === "Active"}
                             className={`w-full bg-[#F5F3ED] rounded-2xl p-2 border ${errors.email ? "border-red-400" : "border-[#DBE9E5]"} focus:outline-none focus:ring-2 focus:ring-[#0E7C7B]`}
                         />
                         {errors.email && (

@@ -112,8 +112,14 @@ const Login = () => {
         />
         {errors.pass && <p className="text-red-500 text-sm mb-2">{errors.pass}</p>}
 
+        <div className="text-right mb-4">
+          <Link to="/forgot-password" className="text-[var(--primary)] text-sm font-medium hover:underline">
+            Forgot your password?
+          </Link>
+        </div>
+
         <Button
-          className="btn-primary w-full mt-4 flex items-center justify-center gap-2"
+          className="btn-primary w-full mt-2 flex items-center justify-center gap-2"
           onClick={handleLogin}
           disabled={loading}
         >
