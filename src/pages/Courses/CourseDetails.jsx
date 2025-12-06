@@ -738,32 +738,30 @@ export default function CourseDetails() {
                     </div>
                   )}
                   {isInteractiveCourse ? (
-                    <div className="p-6 bg-white">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="text-sm font-semibold text-teal-600 uppercase">Live Session</p>
-                          <h4 className="text-lg font-bold text-gray-900 mt-1">
-                            {selectedLesson?.liveSession?.title || "Join the live session"}
-                          </h4>
-                          {liveSessionTime && (
-                            <p className="text-sm text-gray-600">Scheduled: {liveSessionTime}</p>
-                          )}
-                        </div>
-                        {liveSessionLink ? (
-                          <a
-                            href={liveSessionLink}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="px-4 py-2 rounded-full bg-teal-600 text-white text-sm font-semibold hover:bg-teal-700 transition"
-                          >
-                            Join Session
-                          </a>
-                        ) : (
-                          <span className="text-xs text-gray-500">Link not available yet</span>
+                    <div className="p-6 bg-white min-h-[240px] flex items-center justify-between gap-6">
+                      <div className="space-y-2">
+                        <p className="text-sm font-semibold text-teal-600 uppercase">Live Session</p>
+                        <h4 className="text-lg font-bold text-gray-900">
+                          {selectedLesson?.liveSession?.title || "Join the live session"}
+                        </h4>
+                        {liveSessionTime && (
+                          <p className="text-sm text-gray-600">Scheduled: {liveSessionTime}</p>
+                        )}
+                        {selectedLesson?.liveSession?.notes && (
+                          <p className="text-sm text-gray-700">{selectedLesson.liveSession.notes}</p>
                         )}
                       </div>
-                      {selectedLesson?.liveSession?.notes && (
-                        <p className="mt-3 text-sm text-gray-700">{selectedLesson.liveSession.notes}</p>
+                      {liveSessionLink ? (
+                        <a
+                          href={liveSessionLink}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-6 py-3 rounded-full bg-teal-600 text-white text-sm font-semibold hover:bg-teal-700 transition"
+                        >
+                          Join Session
+                        </a>
+                      ) : (
+                        <span className="text-xs text-gray-500">Link not available yet</span>
                       )}
                     </div>
                   ) : (

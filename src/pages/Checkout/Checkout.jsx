@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { collection, getDocs, doc, getDoc, addDoc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { db } from '../../../firebase.config';
 import PayPalButton from '../../components/PayPalButton';
 import CheckoutStepper from '../../components/CheckoutStepper';
@@ -170,17 +170,21 @@ export default function Checkout() {
     setPaymentError(null);
 
     try {
-      await addDoc(collection(db, 'payments'), {
-        paymentId: details.id,
+      const paymentDocId =
+        details?.id ||
+        (typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `payment_${Date.now()}`);
+
+      await setDoc(doc(db, "payments", paymentDocId), {
+        paymentId: details?.id || paymentDocId,
         payer: details?.payer || null,
         amount: totalAmount,
-        currency: details?.purchase_units?.[0]?.amount?.currency_code || 'USD',
-        status: details?.status || 'COMPLETED',
-        method: paymentMethod || 'paypal',
+        currency: details?.purchase_units?.[0]?.amount?.currency_code || "USD",
+        status: details?.status || "COMPLETED",
+        method: paymentMethod || "paypal",
         courses: checkoutItems.map((item) => ({
           id: item.id,
           title: item.title,
-          rating: item.reviews.rating ?? null,
+          rating: item.reviews?.rating ?? item.rating ?? null,
           price: item.price,
           category: item.category || null,
         })),
