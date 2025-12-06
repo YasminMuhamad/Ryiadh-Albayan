@@ -6,26 +6,53 @@ import { db } from "../../services/firebase";
 import toast from "react-hot-toast";
 import { Card } from "../../components/Card";
 import { Button } from "../../components/Button";
-import DatePicker from "react-datepicker";
 import { deleteUser } from "firebase/auth";
-import { auth } from "../../services/firebase";
+import { auth } from "../../services/firebase"; // لو عندك auth هنا
 import { deleteDoc } from "firebase/firestore";
+
+// import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format, parseISO, isValid } from "date-fns";
 import { fmtDateOnly } from "../../utils/formatDate";
+import DatePicker from "react-datepicker";
 import ConfirmModal from "../../components/ConfirmModal";
 
 export default function StudentProfile() {
   const { profile, uid } = useAuth();
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
+  // helper: compute age in years (integer)
+  const getAge = (d) => {
+    if (!d || !(d instanceof Date) || !isValid(d)) return null;
+    const today = new Date();
+    let age = today.getFullYear() - d.getFullYear();
+    const m = today.getMonth() - d.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < d.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  // age range: between 10 and 100
+  const MIN_AGE = 10;
+  const MAX_AGE = 100;
+
   // helper: convert profile.birthDate (maybe string) -> Date | null
   const toDate = (val) => {
     if (!val) return null;
-    if (val instanceof Date && isValid(val)) return val;
+    if (val instanceof Date && isValid(val)) {
+      const age = getAge(val);
+      if (age === null) return null;
+      if (age < MIN_AGE || age > MAX_AGE) return null;
+      return val;
+    }
     try {
       const parsed = typeof val === "string" ? parseISO(val) : new Date(val);
-      return isValid(parsed) ? parsed : null;
+      if (!isValid(parsed)) return null;
+      const age = getAge(parsed);
+      if (age === null) return null;
+      if (age < MIN_AGE || age > MAX_AGE) return null;
+      return parsed;
     } catch {
       return null;
     }
@@ -41,16 +68,19 @@ export default function StudentProfile() {
     gender: profile?.gender || "",
   });
 
+  // NOTE: only reset form from profile when NOT in edit mode
   useEffect(() => {
-    setForm({
-      name: profile?.name || "",
-      name_ar: profile?.name_ar || "",
-      email: profile?.email || "",
-      phone: profile?.phone || "",
-      birthDate: toDate(profile?.birthDate) || null,
-      gender: profile?.gender || "",
-    });
-  }, [profile]);
+    if (!editMode) {
+      setForm({
+        name: profile?.name || "",
+        name_ar: profile?.name_ar || "",
+        email: profile?.email || "",
+        phone: profile?.phone || "",
+        birthDate: toDate(profile?.birthDate) || null,
+        gender: profile?.gender || "",
+      });
+    }
+  }, [profile]); // keep dependency on profile (we don't add editMode here to avoid re-run while editing)
 
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -98,6 +128,23 @@ export default function StudentProfile() {
     if (!isValidPhone(form.phone)) {
       toast.error("Please enter a valid phone number (digits and + allowed).");
       return;
+    }
+
+    // Birth date validations: must be either null or a valid Date within range 10-100
+    if (form.birthDate) {
+      if (!(form.birthDate instanceof Date) || !isValid(form.birthDate)) {
+        toast.error("Please select a valid birth date.");
+        return;
+      }
+      const age = getAge(form.birthDate);
+      if (age === null) {
+        toast.error("Please select a valid birth date.");
+        return;
+      }
+      if (age < MIN_AGE || age > MAX_AGE) {
+        toast.error(`Age must be between ${MIN_AGE} and ${MAX_AGE} years.`);
+        return;
+      }
     }
 
     setLoading(true);
@@ -154,71 +201,81 @@ export default function StudentProfile() {
     }
   };
 
+  // DatePicker bounds: لا يسمح بتواريخ مستقبلية أو خارج النطاق 10-100 سنة
+  const oldestAllowed = new Date();
+  oldestAllowed.setFullYear(oldestAllowed.getFullYear() - MAX_AGE); // قبل 100 سنة
+  const newestAllowed = new Date();
+  newestAllowed.setFullYear(newestAllowed.getFullYear() - MIN_AGE); // قبل 10 سنوات
+
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-8">
       {/* Header */}
-      <Card className="p-6 rounded-2xl shadow flex items-center justify-between bg-white border">
-        <div className="flex items-center gap-4">
-          <img
-            src={profile.profile_pic || "/placeholder-avatar.png"}
-            alt={profile.name ? `Avatar of ${profile.name}` : "Profile avatar"}
-            className="w-20 h-20 rounded-full object-cover"
-          />
-          <div>
-            <h2 className="text-xl font-semibold">{form.name || "Unnamed"}</h2>
-            <p className="text-gray-500 text-sm">
-              Joined: {fmtDateOnly(profile.createdAt) || "Not available"}
-            </p>
-            <span className="inline-block mt-2 px-3 py-1 text-xs rounded-full bg-[#E9D8A6]">
-              {profile.subscriptionStatus || "Inactive"}
-            </span>
+      <Card className="p-6 rounded-2xl shadow bg-white border">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6">
+          <div className="flex items-center gap-4 w-full md:w-auto">
+            <img
+              src={profile.profile_pic || "/placeholder-avatar.png"}
+              alt={profile.name ? `Avatar of ${profile.name}` : "Profile avatar"}
+              className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover flex-shrink-0"
+            />
+            <div className="min-w-0">
+              <h2 className="text-lg md:text-xl font-semibold truncate">{form.name || "Unnamed"}</h2>
+              <p className="text-gray-500 text-xs md:text-sm">
+                Joined: {fmtDateOnly(profile.createdAt) || "Not available"}
+              </p>
+              <span className="inline-block mt-2 px-3 py-1 text-xs rounded-full bg-[#E9D8A6]">
+                {profile.subscriptionStatus || "Inactive"}
+              </span>
+            </div>
           </div>
+
+          {/* Header buttons: stack on small screens, inline on sm+ */}
+          {!editMode ? (
+            <div className="w-full md:w-auto">
+              <Button
+                className="btn-primary w-full md:w-auto"
+                onClick={() => setEditMode(true)}
+                disabled={loading}
+                aria-label="Edit profile"
+              >
+                Edit Profile
+              </Button>
+            </div>
+          ) : (
+            <div className="w-full md:w-auto flex flex-col sm:flex-row gap-3">
+              <Button
+                className="btn-primary flex items-center gap-2 w-full sm:w-auto justify-center"
+                onClick={handleSave}
+                disabled={loading}
+                aria-disabled={loading}
+                aria-busy={loading}
+              >
+                {loading && (
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                  </svg>
+                )}
+                {loading ? "Saving..." : "Save"}
+              </Button>
+
+              <Button
+                className="btn-secondary w-full sm:w-auto"
+                onClick={handleCancel}
+                disabled={loading}
+                aria-label="Cancel editing"
+              >
+                Cancel
+              </Button>
+            </div>
+          )}
         </div>
-
-        {/* Header buttons */}
-        {!editMode ? (
-          <Button
-            className="btn-primary"
-            onClick={() => setEditMode(true)}
-            disabled={loading}
-            aria-label="Edit profile"
-          >
-            Edit Profile
-          </Button>
-        ) : (
-          <div className="flex gap-3">
-            <Button
-              className="btn-primary flex items-center gap-2"
-              onClick={handleSave}
-              disabled={loading}
-              aria-disabled={loading}
-              aria-busy={loading}
-            >
-              {loading && (
-                <svg
-                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                </svg>
-              )}
-              {loading ? "Saving..." : "Save"}
-            </Button>
-
-            <Button
-              className="btn-secondary"
-              onClick={handleCancel}
-              disabled={loading}
-              aria-label="Cancel editing"
-            >
-              Cancel
-            </Button>
-          </div>
-        )}
       </Card>
 
       {/* Personal Information Form */}
@@ -316,7 +373,8 @@ export default function StudentProfile() {
               selected={form.birthDate}
               onChange={handleDateChange}
               dateFormat="yyyy-MM-dd"
-              maxDate={new Date()}
+              minDate={oldestAllowed}
+              maxDate={newestAllowed}
               showMonthDropdown
               showYearDropdown
               dropdownMode="select"

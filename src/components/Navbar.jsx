@@ -289,7 +289,7 @@ export function Navbar() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="absolute top-full left-0 w-full bg-white shadow-md flex flex-col md:hidden z-50">
+        <div className="absolute top-full left-0 w-full bg-white shadow-md flex flex-col lg:hidden z-50">
           {!(role === "admin" || role === "teacher") && (
             <>
               <span

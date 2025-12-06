@@ -168,10 +168,26 @@ export function AddTeacherModal({ isOpen, onClose, teacher, onSave }) {
         try {
             const q = query(collection(db, "teachers"), where("email", "==", trimmedEmail));
             const existing = await getDocs(q);
-            if (!existing.empty) {
+
+            if (!existing.empty && (!teacher || existing.docs[0].id !== teacher.uid)) {
                 const authMain = getAuth();
                 await sendPasswordResetEmail(authMain, trimmedEmail);
                 toast(`${trimmedEmail} already exists. Password reset email sent.`);
+                resetState();
+                onClose();
+                return;
+            }
+
+            if (teacher) {
+                await updateDoc(doc(db, "teachers", teacher.uid), {
+                    name: fullName.trim(),
+                    name_ar: arabicName.trim(),
+                    email: trimmedEmail,
+                    specialization: specialization || null,
+                    updatedAt: new Date(),
+                });
+
+                toast(`Teacher updated successfully.`);
                 resetState();
                 onClose();
                 return;
@@ -211,7 +227,6 @@ export function AddTeacherModal({ isOpen, onClose, teacher, onSave }) {
 
             const auth = getAuth();
             const actionCodeSettings = {
-                // url: 'https://riyadh-albayan.com/reset-password',
                 url: 'https://grad-project-b11d3.web.app/reset-password',
                 handleCodeInApp: true,
             };
@@ -219,21 +234,18 @@ export function AddTeacherModal({ isOpen, onClose, teacher, onSave }) {
             await sendPasswordResetEmail(auth, trimmedEmail, actionCodeSettings);
 
             try {
-                await secondaryApp.delete(); // available in newer SDKs; if not, just let it be GC'd
-            } catch (e) {
-                console.warn("secondary app delete:", e);
+                await secondaryApp.delete();
+            } catch (err) {
+                console.warn("secondary app delete:", err);
             }
 
             toast(`Teacher created and password reset email sent to ${trimmedEmail}.`);
             resetState();
             onClose();
+
         } catch (err) {
-            console.error("Failed to create teacher:", err);
-            if (err?.code === "auth/email-already-in-use") {
-                toast("This email is already in use. Sent password reset where possible.");
-            } else {
-                toast("Failed to create teacher.");
-            }
+            console.error("Failed to create/update teacher:", err);
+            toast("Failed to create/update teacher.");
         } finally {
             setLoading(false);
         }

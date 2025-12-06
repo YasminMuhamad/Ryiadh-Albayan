@@ -29,11 +29,11 @@
 /* input[placeholder*="email"], */
 /* input[placeholder*="Email"], */
 input[type="tel"],
-input[name*="phone"],
+/* input[name*="phone"],
 input[placeholder*="phone"],
 input[placeholder*="Phone"] {
   display: none !important;
-}
+} */
 
 /* PayPal button container styling */
 .paypal-button-container {
