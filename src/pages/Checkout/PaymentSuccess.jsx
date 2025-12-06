@@ -88,7 +88,7 @@ export default function PaymentSuccess() {
                 <button
                   onClick={() =>
                     navigate(primaryCourse?.id ? `/courses/${primaryCourse.id}` : '/courses', {
-                      state: { fromPaymentSuccess: true },
+                      state: { fromPaymentSuccess: true, courses },
                     })
                   }
                   className="flex-1 bg-teal-600 text-white py-3 rounded-xl font-semibold hover:bg-teal-700 transition-colors shadow-md"
@@ -96,7 +96,7 @@ export default function PaymentSuccess() {
                   Go to my course
                 </button>
                 <button
-                  onClick={() => navigate('/courses')}
+                  onClick={() => navigate('/courses', { state: { courses, fromPaymentSuccess: true } })}
                   className="flex-1 border border-gray-200 text-gray-800 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
                 >
                   Explore more courses
