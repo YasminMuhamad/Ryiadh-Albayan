@@ -28,7 +28,6 @@ import NotFound from "./pages/Auth/NotFound";
 import ChatWidget from "./components/Chat";
 import AboutUs from "./pages/AboutUs";
 
-import { addNotification } from "./services/notificationService";
 // import { addNotification } from "./services/notificationService";
 import ResetPassword from "./pages/Auth/ResetPassword.jsx";
 import ForgotPassword from "./pages/Auth/ForgotPassword.jsx";
@@ -100,6 +99,11 @@ useEffect(() => {
     ) {
       e.preventDefault();
     }
+
+    // Prevent Dev Tools
+    if (e.key === "F12") e.preventDefault();
+    if (e.ctrlKey && e.shiftKey && e.key.toUpperCase() === "I") e.preventDefault();
+    if (e.ctrlKey && e.shiftKey && e.key.toUpperCase() === "J") e.preventDefault();
   });
 
   document.addEventListener("keyup", async (e) => {
@@ -109,6 +113,7 @@ useEffect(() => {
     }
   });
 }, []);
+
 
   return (
     <AuthProvider>

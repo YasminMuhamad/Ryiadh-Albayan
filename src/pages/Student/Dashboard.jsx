@@ -236,7 +236,7 @@ export default function StudentDashboard({ userId }) {
                     </svg> */}
                     <LayoutDashboardIcon />
                     <div>
-                        <h1 className="text-2xl font-semibold text-gray-900">Student Dashboard</h1>
+                        <h1 className="text-2xl font-semibold text-gray-900">My Learning Dashboard</h1>
                         <p className="text-sm text-muted-foreground">
                             Quick overview of your progress, subscriptions, and content
                         </p>

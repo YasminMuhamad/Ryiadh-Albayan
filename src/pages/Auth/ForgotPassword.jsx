@@ -24,6 +24,19 @@ const ForgotPassword = () => {
     setLoading(true);
 
     try {
+      const emailLower = email.trim().toLowerCase();
+
+      const usersQuery = query(collection(db, "users"), where("email", "==", emailLower));
+      const usersSnapshot = await getDocs(usersQuery);
+
+      const teachersQuery = query(collection(db, "teachers"), where("email", "==", emailLower));
+      const teachersSnapshot = await getDocs(teachersQuery);
+
+      if (usersSnapshot.empty && teachersSnapshot.empty) {
+        toast.error("No user found with this email");
+        return;
+      }
+
       await sendPasswordResetEmail(auth, email.trim().toLowerCase());
       toast.success("Password reset email sent!");
 

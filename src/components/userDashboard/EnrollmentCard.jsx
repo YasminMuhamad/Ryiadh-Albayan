@@ -3,6 +3,7 @@ import { Button } from "../../components/Button";
 import { Calendar, Clock, Video } from "lucide-react";
 import { fmtDateOnly, fmtDateTime } from "../../utils/formatDate";
 import { Card } from "../Card";
+import { useNavigate } from "react-router-dom";
 
 export default function EnrollmentCard({ enrollment, course }) {
   const percent = enrollment.percent ?? 0;
@@ -12,6 +13,7 @@ export default function EnrollmentCard({ enrollment, course }) {
     "in-progress": "In Progress",
     "not-started": "Not Started"
   };
+  const navigate = useNavigate();
 
   return (
     <Card className="relative p-4">
@@ -96,7 +98,14 @@ export default function EnrollmentCard({ enrollment, course }) {
               className="btn-primary w-full md:w-auto py-2 px-4 text-sm"
               title={course.type === "interactive" ? "Join Session" : "Continue Learning"}
               icon={Video}
-            />
+              onClick={() => {
+                if (!course.id) {
+                  // optional safety fallback
+                  console.warn("No course id available for navigation", { enrollment, course });
+                  return;
+                }
+                navigate(`/courses/${course.id}`); // <-- navigate to course page
+              }} />
           </div>
         </div>
       </div>

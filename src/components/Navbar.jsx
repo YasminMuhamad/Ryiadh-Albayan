@@ -13,6 +13,7 @@ import {
   Bell,
   X,
   LayoutDashboard,
+  Menu,
 } from "lucide-react";
 import { Button } from "./Button";
 import { useAuth } from "../context/AuthContext";
@@ -281,7 +282,7 @@ export function Navbar() {
             onClick={() => setMobileMenuOpen((prev) => !prev)}
             className="p-2 rounded hover:bg-gray-200"
           >
-            {mobileMenuOpen ? <X size={24} /> : <LayoutDashboard size={24} />}
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </div>

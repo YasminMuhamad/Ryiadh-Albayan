@@ -6,19 +6,13 @@ import { db } from "../../services/firebase";
 import toast from "react-hot-toast";
 import { Card } from "../../components/Card";
 import { Button } from "../../components/Button";
-<<<<<<< HEAD
 import DatePicker from "react-datepicker";
-=======
 import { deleteUser } from "firebase/auth";
-import { auth } from "../../services/firebase"; // لو عندك auth هنا
+import { auth } from "../../services/firebase";
 import { deleteDoc } from "firebase/firestore";
-
-// import DatePicker from "react-datepicker";
->>>>>>> 156522c (Final editions on authentication & admin panel)
 import "react-datepicker/dist/react-datepicker.css";
 import { format, parseISO, isValid } from "date-fns";
 import { fmtDateOnly } from "../../utils/formatDate";
-import DatePicker from "react-datepicker";
 import ConfirmModal from "../../components/ConfirmModal";
 
 export default function StudentProfile() {

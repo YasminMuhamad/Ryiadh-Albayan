@@ -16,7 +16,6 @@ import {
 import { Plus, Trash } from 'lucide-react';
 import toast from "react-hot-toast";
 import ConfirmModal from "../../components/ConfirmModal";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import Title from "../../components/Title";
 import Loader from "../../components/Loader";
 
