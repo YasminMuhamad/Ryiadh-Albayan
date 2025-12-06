@@ -1,20 +1,14 @@
 // src/pages/Student/StudentProfile.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../../services/firebase";
 import toast from "react-hot-toast";
 import { Card } from "../../components/Card";
 import { Button } from "../../components/Button";
-<<<<<<< HEAD
-
-// import DatePicker from "react-datepicker";
-=======
 import DatePicker from "react-datepicker";
 import { deleteUser } from "firebase/auth";
 import { auth } from "../../services/firebase";
-import { deleteDoc } from "firebase/firestore";
->>>>>>> 15a179aaeffad5a097623c34382bd3dac7718f07
 import "react-datepicker/dist/react-datepicker.css";
 import { format, parseISO, isValid } from "date-fns";
 import { fmtDateOnly } from "../../utils/formatDate";
