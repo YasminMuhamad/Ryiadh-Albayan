@@ -111,7 +111,7 @@ export default function AdminTeachers() {
                 await updateDoc(doc(db, "teachers", data.id), data);
                 showToast("Teacher updated successfully", "success");
               } else {
-                await addDoc(collection(db, "teachers"), { ...data, status: "Active" });
+                await addDoc(collection(db, "teachers"), { ...data, status: "Inactive" });
                 showToast("Teacher added successfully", "success");
               }
             } catch (err) {
@@ -154,7 +154,7 @@ export default function AdminTeachers() {
                 <td className="p-2 whitespace-nowrap">{teacher.studentsCount || 0}</td>
                 <td className="p-2 whitespace-nowrap">
                   <span
-                    className={`rounded-2xl px-3 py-1 text-xs ${teacher.status
+                    className={`rounded-2xl px-3 py-1 text-xs ${teacher.status === 'Active'
                       ? "bg-[#E2ECE7] text-[#0E7C7B]"
                       : "bg-[#F5F3ED] text-gray-500"
                       }`}

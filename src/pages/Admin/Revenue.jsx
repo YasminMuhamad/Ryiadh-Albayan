@@ -56,13 +56,21 @@ export default function AdminRevenue() {
         avgPerStudent
       });
 
+      // Fetch Category
+      const categoriesSnapshot = await getDocs(collection(db, "categories"));
+      const categoriesMap = {};
+      categoriesSnapshot.docs.forEach(doc => {
+        const cat = doc.data();
+        categoriesMap[doc.id] = cat.title || "Unknown"; // لو عندك title_ar ممكن تضيفه هنا
+      });
+
       // Category Revenue
       const categoryRevenue = {};
       courses.forEach(c => {
-        if (c.category) {
-          categoryRevenue[c.category] = (categoryRevenue[c.category] || 0) + (c.revenueTotal || 0);
-        }
+        const catName = categoriesMap[c.category] || "Unknown"; // استخدم map بدل id
+        categoryRevenue[catName] = (categoryRevenue[catName] || 0) + (c.revenueTotal || 0);
       });
+
       setCategoryItems(Object.entries(categoryRevenue).map(([name, value], i) => ({
         name,
         value: `USD ${value.toLocaleString()}`,

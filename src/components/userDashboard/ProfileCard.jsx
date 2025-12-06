@@ -2,13 +2,13 @@ import React from "react";
 import { fmtDateOnly } from "../../utils/formatDate";
 import { Card } from "../Card";
 
-export default function ProfileCard({ user, totalCoursesCount, subscriptionStatus }) {
+export default function ProfileCard({ user, totalCoursesCount, subscriptionStatus, className }) {
   let statusColor = "text-gray-500 bg-gray-100";
   if (subscriptionStatus === "Active") statusColor = "text-green-700 bg-green-100";
   else if (subscriptionStatus === "Inactive") statusColor = "text-red-700 bg-red-100";
 
   return (
-    <Card className="p-6">
+    <Card className={`p-6 ${className}`}>
       <div className="flex items-center gap-4">
         <img
           src={user?.profile_pic || "/placeholder-avatar.png"}

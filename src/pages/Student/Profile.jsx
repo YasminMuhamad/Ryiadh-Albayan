@@ -7,12 +7,17 @@ import toast from "react-hot-toast";
 import { Card } from "../../components/Card";
 import { Button } from "../../components/Button";
 import DatePicker from "react-datepicker";
+import { deleteUser } from "firebase/auth";
+import { auth } from "../../services/firebase";
+import { deleteDoc } from "firebase/firestore";
 import "react-datepicker/dist/react-datepicker.css";
 import { format, parseISO, isValid } from "date-fns";
 import { fmtDateOnly } from "../../utils/formatDate";
+import ConfirmModal from "../../components/ConfirmModal";
 
 export default function StudentProfile() {
   const { profile, uid } = useAuth();
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   // helper: convert profile.birthDate (maybe string) -> Date | null
   const toDate = (val) => {
@@ -131,6 +136,23 @@ export default function StudentProfile() {
     { key: "female", label: "Female" },
     { key: "male", label: "Male" },
   ];
+  const handleDeleteAccount = async () => {
+    try {
+      // 1) احذف الدوكيومنت من Firestore
+      await deleteDoc(doc(db, "users", uid));
+
+      // 2) احذف اليوزر من Firebase Auth
+      if (auth.currentUser) {
+        await deleteUser(auth.currentUser);
+      }
+
+      toast.success("Your account has been deleted.");
+      window.location.href = "/"; // رجعيه للهوم أو لصفحة تسجيل الدخول
+    } catch (err) {
+      console.error("Delete account error:", err);
+      toast.error("Error deleting account. Please re-login and try again.");
+    }
+  };
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-8">
@@ -323,9 +345,8 @@ export default function StudentProfile() {
                     role="tab"
                     aria-selected={active}
                     onClick={() => setForm((s) => ({ ...s, gender: g.key }))}
-                    className={`px-3 py-1 rounded-full text-sm focus:outline-none ${
-                      active ? "bg-white shadow text-gray-900" : "text-gray-600"
-                    }`}
+                    className={`px-3 py-1 rounded-full text-sm focus:outline-none ${active ? "bg-white shadow text-gray-900" : "text-gray-600"
+                      }`}
                   >
                     {g.label}
                   </button>
@@ -344,6 +365,23 @@ export default function StudentProfile() {
           {loading ? "Saving profile..." : ""}
         </div>
       </Card>
+      {/* Delete Account Button */}
+      <div className="text-right">
+        <button
+          className="px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600"
+          onClick={() => setDeleteModalOpen(true)}
+        >
+          Delete My Account
+        </button>
+      </div>
+      <ConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleDeleteAccount}
+        title="Delete Account"
+        message="Are you sure you want to permanently delete your account? This action cannot be undone."
+        confirmText="Delete"
+      />
     </div>
   );
 }

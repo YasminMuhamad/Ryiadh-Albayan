@@ -9,7 +9,7 @@ import {
   Tooltip,
 } from "recharts";
 import { getFirestore, collection, getDocs } from "firebase/firestore";
-import { app } from "../../firebase.config"; // عدلي المسار حسب مشروعك
+import { app } from "../../firebase.config";
 
 export default function RevenueTrendChart() {
   const [data, setData] = useState([]);
@@ -21,7 +21,7 @@ export default function RevenueTrendChart() {
       const chartData = snapshot.docs.map(doc => {
         const d = doc.data();
         return {
-          month: d.yearMonth, // تأكدي إن عندك yearMonth بالشكل "Jan" أو "2025-01"
+          month: d.yearMonth,
           revenue: d.revenue || 0,
         };
       });

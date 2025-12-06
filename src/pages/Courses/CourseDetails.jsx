@@ -208,20 +208,20 @@ export default function CourseDetails() {
         const modulesWithLessons =
           modulesData.length > 0
             ? modulesData.map((mod) => ({
-                ...mod,
-                lessons: lessonsMap[mod.id] || [],
-                quizzes: quizzesMap[mod.id] || [],
-              }))
+              ...mod,
+              lessons: lessonsMap[mod.id] || [],
+              quizzes: quizzesMap[mod.id] || [],
+            }))
             : looseLessons.length > 0
               ? [
-                  {
-                    id: "un-grouped",
-                    title: "Lessons",
-                    description: "All lessons",
-                    lessons: looseLessons,
-                    quizzes: [],
-                  },
-                ]
+                {
+                  id: "un-grouped",
+                  title: "Lessons",
+                  description: "All lessons",
+                  lessons: looseLessons,
+                  quizzes: [],
+                },
+              ]
               : [];
 
         setModules(modulesWithLessons);
@@ -441,7 +441,7 @@ export default function CourseDetails() {
       const updated = { ...prev, [selectedLesson.id]: true };
       try {
         localStorage.setItem(progressKey, JSON.stringify(updated));
-      } catch {}
+      } catch { }
       return updated;
     });
     setPlayingLessonId(null);
@@ -472,7 +472,7 @@ export default function CourseDetails() {
         createdAt: serverTimestamp(),
       });
       setReviewText("");
-      toast.success("Your comment has been successfully added." );
+      toast.success("Your comment has been successfully added.");
     } catch (err) {
       console.error("Failed to add review", err);
       toast.error("Failed to save your review. Please try again.");
@@ -768,7 +768,11 @@ export default function CourseDetails() {
                           key={currentVideoUrl}
                           src={currentVideoUrl}
                           controls
+                          controlsList="nodownload noremoteplayback"
+                          disablePictureInPicture
                           className="w-full h-64 md:h-96 bg-black"
+                          draggable="false"
+                          onContextMenu={(e) => e.preventDefault()}
                           onPlay={() => {
                             if (selectedLesson?.id) setPlayingLessonId(selectedLesson.id);
                           }}
@@ -844,16 +848,14 @@ export default function CourseDetails() {
                                           setSelectedLesson(lesson);
                                           setPlayingLessonId(null);
                                         }}
-                                        className={`w-full text-left px-3 py-3 flex items-center gap-3 transition ${
-                                          isActive ? "bg-teal-50 border-l-4 border-teal-500" : "hover:bg-gray-50"
-                                        }`}
+                                        className={`w-full text-left px-3 py-3 flex items-center gap-3 transition ${isActive ? "bg-teal-50 border-l-4 border-teal-500" : "hover:bg-gray-50"
+                                          }`}
                                       >
                                         <div
-                                          className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-                                            isActive
+                                          className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${isActive
                                               ? "bg-teal-500 text-white"
                                               : "bg-gray-200 text-gray-700"
-                                          }`}
+                                            }`}
                                         >
                                           <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -879,13 +881,12 @@ export default function CourseDetails() {
                                             </span>
                                           )}
                                           <div
-                                            className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border ${
-                                              isDone
+                                            className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border ${isDone
                                                 ? "bg-teal-600 text-white border-teal-600"
                                                 : isPlaying
                                                   ? "bg-teal-50 text-teal-700 border-teal-200"
                                                   : "bg-white text-gray-400 border-gray-200"
-                                            }`}
+                                              }`}
                                           >
                                             ✓
                                           </div>
@@ -900,9 +901,8 @@ export default function CourseDetails() {
                               )}
                               {(module.quizzes || []).length > 0 && (
                                 <div
-                                  className={`${
-                                    isInteractiveCourse ? "bg-[#f8fafc]" : "bg-gray-50"
-                                  } px-3 py-3 ${!isInteractiveCourse ? "" : "border-t border-gray-100"}`}
+                                  className={`${isInteractiveCourse ? "bg-[#f8fafc]" : "bg-gray-50"
+                                    } px-3 py-3 ${!isInteractiveCourse ? "" : "border-t border-gray-100"}`}
                                 >
                                   <p className="text-xs uppercase font-semibold mb-3 text-slate-500 tracking-wide">
                                     Quizzes
@@ -911,9 +911,8 @@ export default function CourseDetails() {
                                     {module.quizzes.map((quiz) => (
                                       <div
                                         key={quiz.id}
-                                        className={`w-full bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition cursor-pointer ${
-                                          selectedQuiz?.id === quiz.id ? "ring-1 ring-teal-200" : ""
-                                        }`}
+                                        className={`w-full bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition cursor-pointer ${selectedQuiz?.id === quiz.id ? "ring-1 ring-teal-200" : ""
+                                          }`}
                                         onClick={() => {
                                           setSelectedQuiz((prev) => (prev?.id === quiz.id ? null : quiz));
                                           // reset selections when opening a different quiz
@@ -951,11 +950,10 @@ export default function CourseDetails() {
                                               </span>
                                               {quiz.result && (
                                                 <span
-                                                  className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${
-                                                    quiz.result === "passed"
+                                                  className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${quiz.result === "passed"
                                                       ? "bg-teal-50 text-teal-700"
                                                       : "bg-red-50 text-red-600"
-                                                  }`}
+                                                    }`}
                                                 >
                                                   {quiz.result}
                                                 </span>
@@ -1011,26 +1009,24 @@ export default function CourseDetails() {
                                                                 },
                                                               }));
                                                             }}
-                                                            className={`w-full text-left px-4 py-3 rounded-xl border transition-all duration-150 flex items-center gap-3 ${
-                                                              isCorrectOption
+                                                            className={`w-full text-left px-4 py-3 rounded-xl border transition-all duration-150 flex items-center gap-3 ${isCorrectOption
                                                                 ? "border-emerald-300 bg-emerald-50 text-emerald-800 shadow-sm"
                                                                 : isWrongSelection
                                                                   ? "border-red-200 bg-red-50 text-red-800"
                                                                   : isSelected
                                                                     ? "border-teal-200 bg-white shadow-sm"
                                                                     : "border-gray-200 bg-white hover:border-teal-200 hover:shadow-sm"
-                                                            }`}
+                                                              }`}
                                                           >
                                                             <span
-                                                              className={`w-6 h-6 rounded-full flex items-center justify-center border ${
-                                                                isCorrectOption
+                                                              className={`w-6 h-6 rounded-full flex items-center justify-center border ${isCorrectOption
                                                                   ? "bg-emerald-500 border-emerald-500 text-white"
                                                                   : isWrongSelection
                                                                     ? "bg-red-500 border-red-500 text-white"
                                                                     : isSelected
                                                                       ? "border-teal-500 text-teal-600"
                                                                       : "border-gray-300 text-gray-500"
-                                                              }`}
+                                                                }`}
                                                             >
                                                               {isCorrectOption ? "✓" : isWrongSelection ? "✕" : i + 1}
                                                             </span>
@@ -1049,11 +1045,10 @@ export default function CourseDetails() {
                                                       )}
                                                       {userAns != null && correct != null && (
                                                         <span
-                                                          className={`px-2 py-0.5 rounded-full font-semibold ${
-                                                            isCorrect
+                                                          className={`px-2 py-0.5 rounded-full font-semibold ${isCorrect
                                                               ? "bg-teal-100 text-teal-700"
                                                               : "bg-red-100 text-red-700"
-                                                          }`}
+                                                            }`}
                                                         >
                                                           {isCorrect ? "Correct" : "Wrong"}
                                                         </span>
@@ -1198,7 +1193,7 @@ export default function CourseDetails() {
                   </div>
                 )}
 
-                { !uid && (
+                {!uid && (
                   <div className="mb-3 text-xs text-gray-600 text-center">
                     Please sign in to proceed to checkout.
                   </div>
@@ -1214,11 +1209,10 @@ export default function CourseDetails() {
                       if (requireLoginForPayment()) return;
                       navigate(`/checkout/${course.id}`);
                     }}
-                    className={`flex-1 py-3 rounded-xl font-semibold transition-all duration-300 ease-in-out ${
-                      isEnrolled
+                    className={`flex-1 py-3 rounded-xl font-semibold transition-all duration-300 ease-in-out ${isEnrolled
                         ? "bg-teal-600 text-white hover:bg-teal-700 hover:scale-105 hover:shadow-xl hover:-translate-y-1 transform"
                         : "bg-teal-600 text-white hover:bg-teal-700 hover:scale-105 hover:shadow-xl hover:-translate-y-1 transform"
-                    }`}
+                      }`}
                   >
                     {isEnrolled ? "View Course" : "Enroll Now"}
                   </button>
@@ -1226,11 +1220,10 @@ export default function CourseDetails() {
                     <button
                       type="button"
                       onClick={toggleCart}
-                      className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
-                        inCart
+                      className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${inCart
                           ? "bg-teal-600 border-teal-600 text-white shadow-[0_8px_20px_rgba(13,148,136,0.2)] hover:bg-teal-700"
                           : "border-teal-600 text-teal-700 hover:bg-teal-50 hover:shadow-[0_6px_16px_rgba(13,148,136,0.12)]"
-                      }`}
+                        }`}
                       title={inCart ? "Remove from cart" : "Add to cart"}
                     >
                       <svg

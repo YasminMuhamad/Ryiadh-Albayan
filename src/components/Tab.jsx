@@ -1,3 +1,4 @@
+import React from "react";
 export function Tab({ activeTab, setActiveTab }) {
   const tabs = [
     { key: "recorded", title: "Recorded Courses" },
@@ -11,7 +12,7 @@ export function Tab({ activeTab, setActiveTab }) {
         <button
           key={tab.key}
           onClick={() => setActiveTab(tab.key)}
-          className={`px-20 py-1.5 font-medium rounded-full
+          className={`px-6 sm:px-10 lg:px-20 py-1.5 font-medium rounded-full
             ${activeTab === tab.key ? "bg-white text-black" : "text-black"}
           `}
         >

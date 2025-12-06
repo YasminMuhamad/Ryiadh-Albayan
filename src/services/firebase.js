@@ -1,4 +1,4 @@
-import { getAuth } from "firebase/auth";
+import { getAuth, sendSignInLinkToEmail, sendPasswordResetEmail } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { app } from "../../firebase.config";
 // Reuse the root firebase.config app to avoid duplicate initialization errors
