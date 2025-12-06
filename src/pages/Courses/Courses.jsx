@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { collection, getDocs } from "firebase/firestore";
+import { useNavigate, useLocation } from "react-router-dom";
+import { collection, getDocs, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "../../../firebase.config";
 import CategoryDropdown from "../../components/categorydropdown";
 import CourseRecommendations from "../../components/CourseRecommendations";
@@ -27,6 +27,7 @@ const computeAverageRating = (rawReviews = []) => {
 
 export default function Courses() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { uid, role, loading: authLoading } = useAuth();
   const [courses, setCourses] = useState([]);
   const [teachers, setTeachers] = useState([]);
@@ -38,6 +39,20 @@ export default function Courses() {
   const [categories, setCategories] = useState(["All Categories"]);
   const [enrolledIds, setEnrolledIds] = useState([]);
   const [activeSegment, setActiveSegment] = useState("recorded");
+
+  // Include freshly purchased courses passed via navigation state (e.g., after payment success)
+  useEffect(() => {
+    const purchasedCourses = location.state?.courses || [];
+    if (purchasedCourses.length) {
+      setEnrolledIds((prev) => {
+        const merged = new Set(prev);
+        purchasedCourses.forEach((c) => {
+          if (c?.id || c?.courseId) merged.add(c.id || c.courseId);
+        });
+        return Array.from(merged);
+      });
+    }
+  }, [location.state]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -134,20 +149,55 @@ export default function Courses() {
   }, []);
 
   useEffect(() => {
-    const fetchEnrollments = async () => {
-      if (!uid) {
-        setEnrolledIds([]);
-        return;
-      }
-      try {
-        const snap = await getDocs(collection(db, "users", uid, "enrollments"));
-        const ids = snap.docs.map((d) => d.data().courseId).filter(Boolean);
-        setEnrolledIds(ids);
-      } catch (err) {
-        console.error("Failed to fetch enrollments", err);
-      }
+    if (!uid) {
+      setEnrolledIds([]);
+      return;
+    }
+
+    const enrollmentRef = collection(db, "users", uid, "enrollments");
+    const paymentsQuery = query(collection(db, "payments"), where("studentId", "==", uid));
+
+    let enrollmentIds = [];
+    let paymentIds = [];
+
+    const mergeAndSet = () => {
+      const merged = new Set([...enrollmentIds, ...paymentIds]);
+      setEnrolledIds(Array.from(merged));
     };
-    fetchEnrollments();
+
+    const unsubEnrollments = onSnapshot(
+      enrollmentRef,
+      (snap) => {
+        enrollmentIds = snap.docs
+          .map((d) => d.data().courseId || d.id)
+          .filter(Boolean);
+        mergeAndSet();
+      },
+      (err) => console.error("Failed to fetch enrollments", err)
+    );
+
+    const unsubPayments = onSnapshot(
+      paymentsQuery,
+      (snap) => {
+        paymentIds = [];
+        snap.docs.forEach((d) => {
+          const courses = d.data()?.courses;
+          if (Array.isArray(courses)) {
+            courses.forEach((c) => {
+              const cid = c.id || c.courseId;
+              if (cid) paymentIds.push(cid);
+            });
+          }
+        });
+        mergeAndSet();
+      },
+      (err) => console.error("Failed to watch payments for enrollment", err)
+    );
+
+    return () => {
+      unsubEnrollments();
+      unsubPayments();
+    };
   }, [uid]);
 
   const getTeacherName = (teacherId) => {
@@ -414,26 +464,27 @@ export default function Courses() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between mt-auto">
+                <div className="flex items-center justify-between gap-4 mt-auto">
                   <div className="text-xl font-bold text-teal-600">
                     $ {typeof course.price === "number" ? course.price : course.price || 149}
                   </div>
-                  <div className="flex gap-3">
+                  {enrolledIds.includes(course.id) ? (
                     <button
                       onClick={() =>
-                        navigate(`/courses/${course.id}`, {
-                          state: enrolledIds.includes(course.id) ? { fromPaymentSuccess: true } : {},
-                        })
+                        navigate(`/courses/${course.id}`, { state: { fromPaymentSuccess: true } })
                       }
-                      className={`px-8 py-3 rounded-full text-base font-medium transition-colors border ${
-                        enrolledIds.includes(course.id)
-                          ? "bg-teal-600 text-white hover:bg-teal-700 border-teal-600"
-                          : "bg-white hover:bg-amber-200 text-black hover:text-black border-gray-200 hover:border-amber-300"
-                      }`}
+                      className="px-5 py-2.5 rounded-full text-sm font-semibold transition-colors border bg-teal-600 text-white hover:bg-teal-700 border-teal-600 min-w-[140px]"
                     >
-                      {enrolledIds.includes(course.id) ? "View Course" : "Details"}
+                      View Course
                     </button>
-                    {!enrolledIds.includes(course.id) && (
+                  ) : (
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => navigate(`/courses/${course.id}`)}
+                        className="px-8 py-3 rounded-full text-base font-medium transition-colors border bg-white hover:bg-amber-200 text-black hover:text-black border-gray-200 hover:border-amber-300"
+                      >
+                        Details
+                      </button>
                       <button
                         onClick={() => toggleCart(course.id)}
                         className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
@@ -461,8 +512,8 @@ export default function Courses() {
 </svg>
 
                       </button>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

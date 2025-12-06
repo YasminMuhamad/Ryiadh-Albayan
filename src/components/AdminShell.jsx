@@ -36,7 +36,9 @@ export function AdminShell({ userRole = 'admin' }) {
       case 'analytics': return <AdminAnalytics />;
       case 'revenue': return <AdminRevenue />;
       case 'settings': return <AdminSettings />;
-      case 'content': return <CourseContent setActiveTab={setActiveTab} courseId={selectedCourseId} />;
+
+      case 'content' : return <CourseContent setActiveTab={setActiveTab} courseId={selectedCourseId}/>;
+
       default: return <AdminDashboard />;
     }
   };

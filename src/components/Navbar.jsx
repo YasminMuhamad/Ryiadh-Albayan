@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
+
+import React, { useEffect, useRef, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   onNotificationsListener,
@@ -24,18 +25,22 @@ export function Navbar() {
   const { user, profile, logout, role } = useAuth();
   const currentPage = location.pathname;
 
-  const [cartCount, setCartCount] = useState(0);
   const [notifications, setNotifications] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  
+  const [cartCount, setCartCount] = useState(0);
+ 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const displayedToastIds = useRef(new Set());
 
-  // ---------------- Notifications Listener ----------------
+
+
   useEffect(() => {
     if (!user) return;
 
     const unsubscribe = onNotificationsListener(user.uid, (notifs) => {
       setNotifications(notifs);
+
 
       const unread = notifs.filter(
         (n) => !n.read && !displayedToastIds.current.has(n.id)
@@ -70,7 +75,7 @@ export function Navbar() {
     return () => unsubscribe();
   }, [user]);
 
-  // ---------------- Auto Mark as Read ----------------
+
   useEffect(() => {
     if (showDropdown && notifications.length > 0) {
       const unreadIds = notifications.filter((n) => !n.read).map((n) => n.id);
@@ -79,7 +84,6 @@ export function Navbar() {
     }
   }, [showDropdown, notifications]);
 
-  // ---------------- Cart ----------------
   const updateCartCount = () => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
     setCartCount(cart.length);
@@ -157,13 +161,28 @@ export function Navbar() {
                 Contact
               </span>
 
-              <div className="relative cursor-pointer">
+
+              <span 
+                onClick={() => navigate("/about")} 
+                className={`cursor-pointer ${
+                 currentPage === "/about" ? "text-[#0E7C7B]" : "text-gray-700" 
+                } hover:text-[#0E7C7B]`}
+              >
+                About Us
+            </span>
+
+
+              <div className="relative">
                 <span
                   onClick={() => navigate("/cart")}
                   className={`flex items-center ${
                     currentPage === "/cart" ? "text-[#0E7C7B]" : "text-gray-700"
                   } hover:text-[#0E7C7B]`}
                 >
+
+
+
+
                   <ShoppingCart size={20} />
                   {cartCount > 0 && (
                     <span className="absolute -top-2 -right-2 bg-teal-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
