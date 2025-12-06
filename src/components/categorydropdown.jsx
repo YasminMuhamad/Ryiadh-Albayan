@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React from "react";
+import { useMemo, useState } from "react";
 
 export default function CategoryDropdown({ value, onChange, categories = [] }) {
   const [isOpen, setIsOpen] = useState(false);

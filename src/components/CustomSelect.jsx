@@ -34,7 +34,7 @@ export function CustomSelect({ options = [], value, onChange, placeholder = "Sel
       </div>
 
       {isOpen && (
-        <ul className="absolute z-50 w-full bg-white border border-[#DBE9E5] rounded-2xl shadow-lg mt-1 max-h-60 bottom-10">
+        <ul className="absolute z-50 w-full bg-white border border-[#DBE9E5] rounded-2xl shadow-lg mt-1 max-h-60 bottom-10 overflow-y-auto">
           {options.map((option) => (
             <li
               key={option.value}

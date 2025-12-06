@@ -159,7 +159,7 @@ body {
   direction: rtl;
 }
 
-.navbar {
+/* .navbar {
   position: fixed;
   top: 0;
   left: 0;
@@ -210,7 +210,7 @@ body {
 
 .nav-item.active {
   color: var(--primary);
-}
+} */
 
 /* Cart Badge Styles */
 .cart-badge {
@@ -299,7 +299,7 @@ body {
   opacity: 0.9;
 }
 
-/* sidebar.css */
+/* sidebar.css
 .sidebar {
   width: 240px;
   height: calc(100vh - 60px);
@@ -358,7 +358,7 @@ body {
 .sidebar-icon {
   margin-right: 10px;
   font-size: 20px;
-}
+} */
 
 .card {
   display: inline-block;
@@ -420,4 +420,9 @@ input:focus {
 .animate-fadeIn {
   animation: fadeIn 0.2s ease-out forwards;
   animation-fill-mode: both;
+}
+
+* {
+  user-select: none;
+  -webkit-user-select: none;
 }

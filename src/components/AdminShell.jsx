@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 // src/components/AdminShell.jsx
 import React, { useState } from 'react';
+=======
+import React, { useState, useEffect } from 'react';
+>>>>>>> 15a179aaeffad5a097623c34382bd3dac7718f07
 import '../styles/globals.css';
 import { Sidebar } from './SideBar';
 import { Layout } from './Layaout';
@@ -13,8 +17,25 @@ import AdminCourses from '../pages/Admin/Courses';
 import { CourseContent } from '../pages/Admin/CourseContent';
 
 export function AdminShell({ userRole = 'admin' }) {
+<<<<<<< HEAD
 const [activeTab, setActiveTab] = useState('dashboard');
 const [selectedCourseId, setSelectedCourseId] = useState(null);
+=======
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [selectedCourseId, setSelectedCourseId] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check screen size on mount + resize
+  useEffect(() => {
+    const checkSize = () => {
+      setIsMobile(window.innerWidth < 1024); // أقل من لابتوب
+    };
+
+    checkSize();
+    window.addEventListener("resize", checkSize);
+    return () => window.removeEventListener("resize", checkSize);
+  }, []);
+>>>>>>> 15a179aaeffad5a097623c34382bd3dac7718f07
 
   const renderContent = () => {
     switch (activeTab) {
@@ -24,15 +45,37 @@ const [selectedCourseId, setSelectedCourseId] = useState(null);
       case 'analytics': return <AdminAnalytics />;
       case 'revenue': return <AdminRevenue />;
       case 'settings': return <AdminSettings />;
+<<<<<<< HEAD
       case 'content' : return <CourseContent setActiveTab={setActiveTab} courseId={selectedCourseId}/>;
+=======
+      case 'content': return <CourseContent setActiveTab={setActiveTab} courseId={selectedCourseId} />;
+>>>>>>> 15a179aaeffad5a097623c34382bd3dac7718f07
       default: return <AdminDashboard />;
     }
   };
 
+  // If screen is mobile → show message only
+  if (isMobile) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen px-6 text-center">
+        <img
+          src="/admin-desktop-only.png"
+          alt="Desktop Only"
+          className="w-40 mb-4 opacity-80"
+        />
+        <h2 className="text-xl font-semibold mb-2">Desktop Only</h2>
+        <p className="text-gray-600 max-w-sm">
+          The admin dashboard is not available on mobile devices.
+          <br />
+          Please use a desktop or laptop for the best experience.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <>
-    {/* <Sidebar /> */}
-      <Sidebar onNavigate={setActiveTab} /> 
+      <Sidebar onNavigate={setActiveTab} />
       <Layout>
         {renderContent()}
       </Layout>

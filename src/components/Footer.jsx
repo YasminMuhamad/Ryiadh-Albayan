@@ -1,6 +1,7 @@
 import React from "react";
 import "../styles/footer.css";
 import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaFacebookF, FaTwitter, FaInstagram, FaYoutube } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 export function Footer() {
   return (
@@ -19,7 +20,7 @@ export function Footer() {
           </p>
 
           <p className="footer-quote">
-            "Seek knowledge from the cradle to the grave" – Prophet Muhammad ﷺ
+            "Seek knowledge from the cradle to the grave" Prophet Muhammad ﷺ
           </p>
         </div>
 
@@ -27,7 +28,7 @@ export function Footer() {
         <div className="footer-col">
           <h4 className="footer-subtitle">Quick Links</h4>
           <ul className="footer-links">
-            <li>About Us</li>
+            <li onClick={() => useNavigate('/about')}>About Us</li>
             <li>Our Teachers</li>
             <li>All Courses</li>
           </ul>

@@ -1,77 +1,75 @@
-// src/components/Sidebar.jsx
-import React from 'react';
-import { Users, BarChart, DollarSign, BookOpen, Settings, CircleUser, ChartColumnIcon } from 'lucide-react';
-import "../styles/globals.css";
+import React, { useState } from 'react';
+import { Users, BarChart, DollarSign, BookOpen, CircleUser, ChartColumnIcon } from 'lucide-react';
 import Title from './Title';
 
 export function Sidebar({ userRole = 'admin', onNavigate }) {
-  // onNavigate: function expected (e.g. setActiveTab)
+  const [activeTab, setActiveTab] = useState('dashboard');
+
+  const handleNavigate = (tab) => {
+    setActiveTab(tab);
+    if (onNavigate) onNavigate(tab);
+  };
+
+  const sidebarItemClasses = (tab) =>
+    `flex items-center justify-start text-left px-3 py-2 mb-2 rounded-2xl text-sm cursor-pointer transition-colors duration-300
+     ${activeTab === tab ? 'bg-teal-700 text-white' : 'text-gray-900 hover:bg-[#E9D8A6]'}`;
 
   return (
-    <div className="sidebar">
-      <div className="sidebar-links">
+    <div className="w-60 h-[calc(100vh-60px)] fixed top-[60px] left-0 bg-white border-r border-gray-200 p-5 overflow-y-auto">
+      <div className="flex flex-col">
         <button
           type="button"
-          onClick={() => onNavigate('dashboard')}
-          className="sidebar-item justify-start text-left"
+          onClick={() => handleNavigate('dashboard')}
+          className={sidebarItemClasses('dashboard')}
         >
-          <BarChart className="sidebar-icon" />
-          <Title enTitle='Dashboard' arTitle='لوحة القيادة' />
+          <BarChart className="mr-3 text-lg" />
+          <Title enTitle="Dashboard" arTitle="لوحة القيادة" />
         </button>
 
         <button
           type="button"
-          onClick={() => onNavigate('teachers')}
-          className="sidebar-item justify-start text-left"
+          onClick={() => handleNavigate('teachers')}
+          className={sidebarItemClasses('teachers')}
         >
-          <CircleUser className="sidebar-icon" />
-          <Title enTitle='Teachers Management' arTitle='إدارة المعلمين' />
+          <CircleUser className="mr-3 text-lg" />
+          <Title enTitle="Teachers Management" arTitle="إدارة المعلمين" />
         </button>
 
         <button
           type="button"
-          onClick={() => onNavigate('courses')}
-          className="sidebar-item justify-start text-left"
+          onClick={() => handleNavigate('courses')}
+          className={sidebarItemClasses('courses')}
         >
-          <BookOpen className="sidebar-icon" />
-          <Title enTitle='Courses Management' arTitle='إدارة الدورات' />
+          <BookOpen className="mr-3 text-lg" />
+          <Title enTitle="Courses Management" arTitle="إدارة الدورات" />
         </button>
 
         <button
           type="button"
-          onClick={() => onNavigate('users')}
-          className="sidebar-item justify-start text-left"
+          onClick={() => handleNavigate('users')}
+          className={sidebarItemClasses('users')}
         >
-          <Users className="sidebar-icon" />
-          <Title enTitle='Users Management' arTitle='إدارة المستخدمين' />
+          <Users className="mr-3 text-lg" />
+          <Title enTitle="Users Management" arTitle="إدارة المستخدمين" />
         </button>
 
         <button
           type="button"
-          onClick={() => onNavigate('analytics')}
-          className="sidebar-item justify-start text-left"
+          onClick={() => handleNavigate('analytics')}
+          className={sidebarItemClasses('analytics')}
         >
-          <ChartColumnIcon className="sidebar-icon" />
-          <Title enTitle='Analytics & Statistics' arTitle='التحليلات والإحصائيات' />
+          <ChartColumnIcon className="mr-3 text-lg" />
+          <Title enTitle="Analytics & Statistics" arTitle="التحليلات والإحصائيات" />
         </button>
 
         <button
           type="button"
-          onClick={() => onNavigate('revenue')}
-          className="sidebar-item justify-start text-left"
+          onClick={() => handleNavigate('revenue')}
+          className={sidebarItemClasses('revenue')}
         >
-          <DollarSign className="sidebar-icon" />
-          <Title enTitle='Revenue Overview' arTitle='نظرة عامة على الإيرادات' />
+          <DollarSign className="mr-3 text-lg" />
+          <Title enTitle="Revenue Overview" arTitle="نظرة عامة على الإيرادات" />
         </button>
-
-          {/* <button
-            type="button"
-            onClick={() => onNavigate('settings')}
-            className="sidebar-item justify-start text-left"
-          >
-            <Settings className="sidebar-icon" />
-            Settings
-          </button> */}
       </div>
     </div>
   );

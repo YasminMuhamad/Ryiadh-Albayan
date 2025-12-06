@@ -189,3 +189,4 @@ export default function PayPalButton({ amount, onSuccess, onError, clientId }) {
     </div>
   );
 }
+

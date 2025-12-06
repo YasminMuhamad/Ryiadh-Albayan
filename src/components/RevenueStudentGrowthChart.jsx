@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { getFirestore, collection, getDocs } from 'firebase/firestore';
-import { app } from '../../firebase.config'; // عدلي المسار حسب مكان ملف الكونفيج
+import { app } from '../../firebase.config';
 
 export default function RevenueStudentGrowthChart() {
   const [data, setData] = useState([]);
@@ -12,17 +12,15 @@ export default function RevenueStudentGrowthChart() {
       const db = getFirestore(app);
       const analyticsSnapshot = await getDocs(collection(db, "analytics"));
 
-      // تحويل الداتا للشكل المطلوب للشارت
       const chartData = analyticsSnapshot.docs.map(doc => {
         const d = doc.data();
         return {
-          month: d.yearMonth, // مثلا '2025-01'
+          month: d.yearMonth,
           newStudents: d.newStudents || 0,
           revenue: d.revenue || 0,
         };
       });
 
-      // ترتيب الداتا حسب التاريخ
       chartData.sort((a, b) => (a.month > b.month ? 1 : -1));
 
       console.log("Revenue Chart Data:", chartData);
