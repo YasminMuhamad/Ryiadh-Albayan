@@ -163,7 +163,6 @@ export default function Checkout() {
       reviewsCount: item.reviewsCount ?? reviews.length,
     };
   });
-  const safeAmount = Number.isFinite(totalAmount) && totalAmount > 0 ? Number(totalAmount.toFixed(2)) : 1;
 
   const handlePaymentSuccess = async (details) => {
     console.log('Payment successful:', details);
