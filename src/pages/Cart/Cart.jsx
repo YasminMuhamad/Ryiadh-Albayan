@@ -1,15 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../../firebase.config';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../context/AuthContext';
+
+const computeAverageRating = (reviews = []) => {
+  const nums = reviews
+    .map((r) => (typeof r?.rating === 'number' ? r.rating : parseFloat(r?.rating)))
+    .filter((n) => !Number.isNaN(n));
+  if (!nums.length) return 0;
+  const sum = nums.reduce((acc, n) => acc + n, 0);
+  return Number((sum / nums.length).toFixed(1));
+};
+
 
 export default function Cart() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { uid: userId, role } = useAuth();
   const [cartCourses, setCartCourses] = useState([]);
   const [allCourses, setAllCourses] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [categoriesMap, setCategoriesMap] = useState({});
 
   useEffect(() => {
     fetchData();
@@ -17,12 +32,46 @@ export default function Cart() {
 
   const fetchData = async () => {
     try {
-      // Fetch courses
-      const coursesSnapshot = await getDocs(collection(db, 'courses'));
-      const coursesList = coursesSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const [coursesSnapshot, categoriesSnap] = await Promise.all([
+        getDocs(collection(db, 'courses')),
+        getDocs(collection(db, 'categories')),
+      ]);
+      const catMap = categoriesSnap.docs.reduce((acc, d) => {
+        const data = d.data();
+        acc[d.id] = data.title || data.name || d.id;
+        return acc;
+      }, {});
+      setCategoriesMap(catMap);
+
+      const courseDocs = coursesSnapshot.docs.map((doc) => ({ id: doc.id, data: doc.data() }));
+      const reviewsByCourse = {};
+
+      await Promise.all(
+        courseDocs.map(async ({ id }) => {
+          try {
+            const snap = await getDocs(collection(db, 'courses', id, 'reviews'));
+            reviewsByCourse[id] = snap.docs.map((d) => d.data()).filter(Boolean);
+          } catch (err) {
+            reviewsByCourse[id] = [];
+            console.error('Failed to fetch reviews for course', id, err);
+          }
+        })
+      );
+
+      const coursesList = coursesSnapshot.docs.map(doc => {
+        const data = doc.data();
+        const reviews = reviewsByCourse[doc.id] || [];
+        const categoryId = data.categoryId || data.category;
+        const categoryLabel = catMap[categoryId] || data.category || 'Course';
+        return {
+          id: doc.id,
+          ...data,
+          categoryId,
+          category: categoryLabel,
+          rating: computeAverageRating(reviews),
+          reviewsCount: reviews.length
+        };
+      });
 
       // Fetch teachers
       const teachersSnapshot = await getDocs(collection(db, 'teachers'));
@@ -77,32 +126,55 @@ export default function Cart() {
   };
 
   // Render stars
-  const renderStars = (rating) => {
-    const stars = [];
-    const fullStars = Math.floor(rating);
-    
-    for (let i = 0; i < 5; i++) {
-      if (i < fullStars) {
-        stars.push(
-          <svg key={i} className="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 24 24">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+  const renderStars = (rating = 0) => {
+    const value = Math.max(0, Math.min(5, Number(rating) || 0));
+    const full = Math.floor(value);
+    const hasHalf = value % 1 !== 0;
+    const empty = 5 - full - (hasHalf ? 1 : 0);
+
+    return (
+      <div className="flex items-center space-x-0.5">
+        {Array.from({ length: full }).map((_, i) => (
+          <svg key={`full-${i}`} className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.785.57-1.84-.197-1.54-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.88 8.72c-.783-.57-.38-1.81.588-1.81H6.93a1 1 0 00.95-.69l1.07-3.292z" />
           </svg>
-        );
-      } else {
-        stars.push(
-          <svg key={i} className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+        ))}
+        {hasHalf && (
+          <svg key="half" className="w-4 h-4 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
+            <defs>
+              <linearGradient id="half-star">
+                <stop offset="50%" stopColor="currentColor" />
+                <stop offset="50%" stopColor="transparent" />
+              </linearGradient>
+            </defs>
+            <path
+              fill="url(#half-star)"
+              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.785.57-1.84-.197-1.54-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.88 8.72c-.783-.57-.38-1.81.588-1.81H6.93a1 1 0 00.95-.69l1.07-3.292z"
+            />
+            <path
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1"
+              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.785.57-1.84-.197-1.54-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.88 8.72c-.783-.57-.38-1.81.588-1.81H6.93a1 1 0 00.95-.69l1.07-3.292z"
+            />
           </svg>
-        );
-      }
-    }
-    return stars;
+        )}
+        {Array.from({ length: empty }).map((_, i) => (
+          <svg key={`empty-${i}`} className="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.785.57-1.84-.197-1.54-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.88 8.72c-.783-.57-.38-1.81.588-1.81H6.93a1 1 0 00.95-.69l1.07-3.292z" />
+          </svg>
+        ))}
+      </div>
+    );
   };
 
   // Proceed to checkout (all courses)
   const proceedToCheckout = () => {
     if (cartCourses.length === 0) return;
-    
+    if (!userId || role !== 'student') {
+      setShowLoginModal(true);
+      return;
+    }
     // Send all cart courses to checkout via navigation state (first ID used for route)
     navigate(`/checkout/${cartCourses[0].id}`, { state: { cartCourses } });
   };
@@ -174,7 +246,7 @@ export default function Cart() {
                               {renderStars(typeof course.rating === 'number' ? course.rating : 0)}
                             </div>
                             <span className="text-sm font-semibold text-gray-700 mr-1">
-                              {typeof course.rating === 'number' ? course.rating : '0'}
+                              {typeof course.rating === 'number' ? course.rating.toFixed(1) : '0.0'}
                             </span>
                             <span className="text-xs text-gray-500">
                               ({typeof course.reviewsCount === 'number' ? course.reviewsCount : '0'})
@@ -215,7 +287,13 @@ export default function Cart() {
                             View Details
                           </button>
                           <button
-                            onClick={() => navigate(`/checkout/${course.id}`)}
+                            onClick={() => {
+                              if (!userId || role !== 'student') {
+                                setShowLoginModal(true);
+                                return;
+                              }
+                              navigate(`/checkout/${course.id}`);
+                            }}
                             className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm"
                           >
                             Buy Individual
@@ -261,7 +339,7 @@ export default function Cart() {
                   disabled={cartCourses.length === 0}
                   className="w-full bg-teal-600 text-white py-3 rounded-xl font-semibold hover:bg-teal-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Proceed to Checkout ({cartCourses.length} courses)
+                  {`Proceed to Checkout (${cartCourses.length} courses)`}
                 </button>
 
                 <p className="text-xs text-gray-500 text-center mt-4">
@@ -291,6 +369,40 @@ export default function Cart() {
           </div>
         )}
       </div>
+
+      {showLoginModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-fadeIn" onClick={() => setShowLoginModal(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl p-8 animate-slideUp">
+            <div className="flex items-start gap-4 mb-6">
+              <div className="w-12 h-12 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-xl font-bold">
+                !
+              </div>
+              <div>
+                <h4 className="text-xl font-semibold text-gray-900">Sign in required</h4>
+                <p className="text-sm text-gray-600">Please sign in with a student account before checkout.</p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowLoginModal(false)}
+                className="px-4 py-2 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition transform hover:-translate-y-0.5"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowLoginModal(false);
+                  navigate('/login', { state: { from: location.pathname } });
+                }}
+                className="px-5 py-2.5 rounded-xl bg-teal-600 text-white font-semibold hover:bg-teal-700 transition shadow-md transform hover:-translate-y-0.5"
+              >
+                Login
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

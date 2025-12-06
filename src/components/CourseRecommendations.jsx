@@ -145,7 +145,7 @@ export default function CourseRecommendations({ courses, enrolledIds = [], cartI
   }
 
   return (
-    <div className="mt-10 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+    <div className="mt-10 bg-white rounded-2xl shadow-sm border border-gray-100 p-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-xl font-bold text-gray-900">Recommended for you</h3>
@@ -162,15 +162,15 @@ export default function CourseRecommendations({ courses, enrolledIds = [], cartI
       {recommended.length === 0 ? (
         <p className="text-sm text-gray-600">Sign in and enroll to see tailored picks.</p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {recommended.map((course) => (
             <div
               key={course.id}
-              className="border border-gray-100 rounded-2xl p-4 hover:shadow-md transition cursor-pointer overflow-hidden"
+              className="border border-gray-100 rounded-3xl p-4 hover:shadow-md transition cursor-pointer overflow-hidden bg-white"
               onClick={() => navigate(`/courses/${course.id}`)}
             >
               <div className="flex gap-4 items-start">
-                <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-gradient-to-br from-amber-100 to-orange-100 flex-shrink-0">
+                <div className="relative w-24 h-24 rounded-2xl overflow-hidden bg-gradient-to-br from-amber-100 to-orange-100 flex-shrink-0">
                   <img
                     src={course.thumbnail || course.image || "/api/placeholder/300/300"}
                     alt={course.title}
@@ -186,14 +186,14 @@ export default function CourseRecommendations({ courses, enrolledIds = [], cartI
                       {course.category || "Course"}
                     </span>
                   </div>
-                  <h4 className="font-semibold text-gray-900 mb-1 line-clamp-2">{course.title}</h4>
+                  <h4 className="font-semibold text-gray-900 mb-1 line-clamp-2 text-lg">{course.title}</h4>
                   <p className="text-sm text-gray-600 line-clamp-2 mb-2">
                     {course.description || "Hand-picked for you."}
                   </p>
                 </div>
               </div>
               <div className="flex items-center justify-between mt-3">
-                <span className="text-lg font-bold text-teal-600">
+                <span className="text-xl font-bold text-teal-600">
                   ${typeof course.price === "number" ? course.price : course.price || "—"}
                 </span>
                 <div className="flex gap-3 items-center">
@@ -222,16 +222,30 @@ export default function CourseRecommendations({ courses, enrolledIds = [], cartI
                       setLocalCart(updated);
                       window.dispatchEvent(new Event("cartUpdated"));
                     }}
-                    className={`p-3 rounded-full transition-colors border-2 ${
+                    className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
                       localCart.includes(course.id)
-                        ? "bg-teal-600 border-teal-600 text-white"
-                        : "bg-white border-teal-600 text-teal-600 hover:bg-teal-50"
+                        ? "bg-teal-600 border-teal-600 text-white shadow-[0_8px_20px_rgba(13,148,136,0.2)] hover:bg-teal-700"
+                        : "border-teal-600 text-teal-700 hover:bg-teal-50 hover:shadow-[0_6px_16px_rgba(13,148,136,0.12)]"
                     }`}
                     title="Add to cart"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.293 2.293a1 1 0 00-.293.707v0a1 1 0 001 1h9m-1 0a2 2 0 104 0 2 2 0 00-4 0zm-9-4a2 2 0 100 4 2 2 0 000-4z"/>
-                    </svg>
+                    <svg 
+  xmlns="http://www.w3.org/2000/svg" 
+  className="w-6 h-6" 
+  fill="none" 
+  viewBox="0 0 24 24" 
+  stroke="currentColor" 
+  strokeWidth="2"
+>
+  <path 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    d="M2 3h3l3.6 9.59a2 2 0 001.88 1.31H17a2 2 0 001.9-1.4l2.1-7H6" 
+  />
+  <circle cx="9" cy="20" r="1.5" />
+  <circle cx="17" cy="20" r="1.5" />
+</svg>
+
                   </button>
                 </div>
               </div>

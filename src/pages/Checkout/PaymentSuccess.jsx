@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import CheckoutStepper from '../../components/CheckoutStepper';
+import CheckoutStepper from "/src/components/CheckoutStepper.jsx";
 
 export default function PaymentSuccess() {
   const location = useLocation();
@@ -47,17 +47,40 @@ export default function PaymentSuccess() {
               </div>
 
               <div className="grid sm:grid-cols-3 gap-4">
-                <div className="p-4 rounded-2xl border border-gray-100 bg-gray-50">
-                  <p className="text-xs text-gray-500 uppercase">Amount paid</p>
-                  <p className="text-xl font-semibold text-gray-900 mt-1">{formattedAmount}</p>
+                <div className="group relative overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition hover:shadow-md">
+                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-white to-white opacity-0 group-hover:opacity-100 transition" />
+                  <div className="relative p-5 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[11px] tracking-[0.12em] text-gray-500 uppercase">Amount paid</p>
+                      <span className="px-2 py-1 rounded-full text-[11px] font-semibold text-emerald-700 bg-emerald-50">Paid</span>
+                    </div>
+                    <p className="text-3xl font-bold text-slate-900">{formattedAmount}</p>
+                    <p className="text-xs text-gray-500">Includes all taxes and fees</p>
+                  </div>
                 </div>
-                <div className="p-4 rounded-2xl border border-gray-100 bg-gray-50">
-                  <p className="text-xs text-gray-500 uppercase">Reference</p>
-                  <p className="text-sm font-medium text-gray-800 mt-1">{referenceId}</p>
+
+                <div className="group relative overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition hover:shadow-md">
+                  <div className="absolute inset-0 bg-gradient-to-br from-sky-50 via-white to-white opacity-0 group-hover:opacity-100 transition" />
+                  <div className="relative p-5 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[11px] tracking-[0.12em] text-gray-500 uppercase">Reference</p>
+                      <span className="px-2 py-1 rounded-full text-[11px] font-semibold text-sky-700 bg-sky-50">Receipt</span>
+                    </div>
+                    <p className="text-lg font-semibold text-gray-900 break-all">{referenceId}</p>
+                    <p className="text-xs text-gray-500">Keep this ID for support</p>
+                  </div>
                 </div>
-                <div className="p-4 rounded-2xl border border-gray-100 bg-gray-50">
-                  <p className="text-xs text-gray-500 uppercase">Status</p>
-                  <p className="text-sm font-medium text-emerald-600 mt-1">Confirmed</p>
+
+                <div className="group relative overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition hover:shadow-md">
+                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-white to-white opacity-0 group-hover:opacity-100 transition" />
+                  <div className="relative p-5 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[11px] tracking-[0.12em] text-gray-500 uppercase">Status</p>
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    </div>
+                    <p className="text-xl font-bold text-emerald-700">Confirmed</p>
+                    <p className="text-xs text-gray-500">Your payment is fully processed</p>
+                  </div>
                 </div>
               </div>
 
@@ -65,7 +88,7 @@ export default function PaymentSuccess() {
                 <button
                   onClick={() =>
                     navigate(primaryCourse?.id ? `/courses/${primaryCourse.id}` : '/courses', {
-                      state: { fromPaymentSuccess: true },
+                      state: { fromPaymentSuccess: true, courses },
                     })
                   }
                   className="flex-1 bg-teal-600 text-white py-3 rounded-xl font-semibold hover:bg-teal-700 transition-colors shadow-md"
@@ -73,7 +96,7 @@ export default function PaymentSuccess() {
                   Go to my course
                 </button>
                 <button
-                  onClick={() => navigate('/courses')}
+                  onClick={() => navigate('/courses', { state: { courses, fromPaymentSuccess: true } })}
                   className="flex-1 border border-gray-200 text-gray-800 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
                 >
                   Explore more courses
