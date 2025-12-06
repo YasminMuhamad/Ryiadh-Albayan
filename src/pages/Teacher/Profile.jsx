@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import "../../styles/globals.css";
 import { db } from "../../services/firebase";
 import Sidebar from "../../components/TeacherSidebar.jsx";
+import React from "react";
 
 // ---------------- Button ----------------
 function Button({ children, variant = "default", ...props }) {
@@ -18,6 +19,7 @@ function Button({ children, variant = "default", ...props }) {
     </button>
   );
 }
+
 
 export default function TeacherProfile() {
   const { profile, uid } = useAuth();

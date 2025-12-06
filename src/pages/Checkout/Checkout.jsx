@@ -21,14 +21,45 @@ export default function Checkout() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [paymentError, setPaymentError] = useState(null);
+  const [categoriesMap, setCategoriesMap] = useState({});
+
+  const fetchCourseReviews = async (courseId) => {
+    try {
+      const snap = await getDocs(collection(db, 'courses', courseId, 'reviews'));
+      return snap.docs.map((d) => d.data()).filter(Boolean);
+    } catch (err) {
+      console.error('Failed to fetch reviews for course', courseId, err);
+      return [];
+    }
+  };
 
   useEffect(() => {
     const fetchCourseData = async () => {
       try {
-        // Fetch course details
-        const courseDoc = await getDoc(doc(db, 'courses', id));
+        const [courseDoc, categoriesSnap, reviewsSnap] = await Promise.all([
+          getDoc(doc(db, 'courses', id)),
+          getDocs(collection(db, 'categories')),
+          getDocs(collection(db, 'courses', id, 'reviews')),
+        ]);
+        const catMap = categoriesSnap.docs.reduce((acc, d) => {
+          const data = d.data();
+          acc[d.id] = data.title || data.name || d.id;
+          return acc;
+        }, {});
+        setCategoriesMap(catMap);
+
         if (courseDoc.exists()) {
-          const courseData = { id: courseDoc.id, ...courseDoc.data() };
+          const raw = courseDoc.data();
+          const reviews = reviewsSnap.docs.map((d) => d.data()).filter(Boolean);
+          const categoryId = raw.categoryId || raw.category;
+          const courseData = {
+            id: courseDoc.id,
+            ...raw,
+            categoryId,
+            category: catMap[categoryId] || raw.category || 'Course',
+            rating: computeAverageRating(reviews),
+            reviewsCount: reviews.length,
+          };
           setCourse(courseData);
 
           // Fetch teacher details
@@ -71,7 +102,17 @@ export default function Checkout() {
             const snap = await getDoc(doc(db, 'courses', item.id));
             if (snap.exists()) {
               const data = snap.data();
-              return { ...item, ...data, id: snap.id };
+              const reviews = await fetchCourseReviews(item.id);
+              const categoryId = data.categoryId || data.category;
+              return {
+                ...item,
+                ...data,
+                id: snap.id,
+                categoryId,
+                category: categoriesMap[categoryId] || data.category || 'Course',
+                rating: computeAverageRating(reviews),
+                reviewsCount: reviews.length,
+              };
             }
           } catch (err) {
             console.error('Failed to fetch rating for cart item', item.id, err);
@@ -98,6 +139,32 @@ export default function Checkout() {
   }, 0);
   const safeAmount = Number.isFinite(totalAmount) && totalAmount > 0 ? Number(totalAmount.toFixed(2)) : 1;
 
+  const normalizeReviews = (reviews) => {
+    if (Array.isArray(reviews)) return reviews;
+    if (reviews && typeof reviews === 'object') return Object.values(reviews);
+    return [];
+  };
+
+  const computeAverageRating = (reviews = []) => {
+    const nums = reviews
+      .map((r) => (typeof r?.rating === 'number' ? r.rating : parseFloat(r?.rating)))
+      .filter((n) => !Number.isNaN(n));
+    if (!nums.length) return 0;
+    const sum = nums.reduce((acc, n) => acc + n, 0);
+    return Number((sum / nums.length).toFixed(1));
+  };
+
+  const displayItems = checkoutItems.map((item) => {
+    const reviews = normalizeReviews(item.reviews);
+    const rating = item.rating != null ? item.rating : computeAverageRating(reviews);
+    return {
+      ...item,
+      rating,
+      reviewsCount: item.reviewsCount ?? reviews.length,
+    };
+  });
+  const safeAmount = Number.isFinite(totalAmount) && totalAmount > 0 ? Number(totalAmount.toFixed(2)) : 1;
+
   const handlePaymentSuccess = async (details) => {
     console.log('Payment successful:', details);
     setPaymentError(null);
@@ -113,7 +180,7 @@ export default function Checkout() {
         courses: checkoutItems.map((item) => ({
           id: item.id,
           title: item.title,
-          rating: item.rating ?? null,
+          rating: item.reviews.rating ?? null,
           price: item.price,
           category: item.category || null,
         })),
@@ -211,7 +278,7 @@ export default function Checkout() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Course Summary */}
           <div className="order-1 lg:order-2 lg:ml-8">
-            <OrderSummaryCard items={checkoutItems} teacher={teacher} totalAmount={totalAmount} />
+            <OrderSummaryCard items={displayItems} teacher={teacher} totalAmount={totalAmount} />
           </div>
 
           {/* Payment Section */}

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { Navbar } from "./components/Navbar";
 import Home from "./pages/Home/Home";
@@ -13,7 +13,7 @@ import Checkout from "../src/pages/Checkout/Checkout.jsx";
 import PaymentSuccess from "../src/pages/Checkout/PaymentSuccess.jsx";
 import MyCourses from "./pages/Student/MyCourses.jsx";
 
-import ProtectedRoute from "../src/router.jsx";
+// import ProtectedRoute from "";
 import { AuthProvider, useAuth } from "../src/context/AuthContext.jsx";
 
 import "./styles/globals.css";
@@ -34,9 +34,14 @@ import AssignmentsPage from "./pages/Teacher/Assignments.jsx";
 
 import NotFound from "./pages/Auth/NotFound";
 import ChatWidget from "./components/Chat";
-import { addNotification } from "./services/notificationService";
 import TeachersCourses from "./pages/Teacher/TeachersCourses.jsx";
 import EditCourse from "./pages/Teacher/EditCourse.jsx";
+import AboutUs from "./pages/AboutUs";
+
+// import { addNotification } from "./services/notificationService";
+import ResetPassword from "./pages/Auth/ResetPassword.jsx";
+import ForgotPassword from "./pages/Auth/ForgotPassword.jsx";
+import ProtectedRoute from "./ProtectedRoute.jsx";
 
 
 // -------------------------
@@ -50,6 +55,14 @@ function Layout({ children }) {
 
   // Show ChatWidget only for students & guests
   const showChat = !isAdminPage && !isTeacherPage;
+
+
+// Send notification once
+//  addNotification({ 
+//    title: "App Started",
+//    message: " Test notification.",
+//   type: "info",
+//  });
 
   return (
     <>
@@ -156,6 +169,37 @@ export const TeacherProfileWithUid = () => {
 // MAIN APP
 // -------------------------
 export default function App() {
+  
+// -------------------------
+// Protection Layer for Entire Application
+// -------------------------
+useEffect(() => {
+  document.addEventListener("contextmenu", (e) => e.preventDefault());
+
+  document.addEventListener("keydown", (e) => {
+    if (
+      (e.ctrlKey &&
+        ["c", "s", "u", "p"].includes(e.key.toLowerCase())) ||
+      e.key === "PrintScreen"
+    ) {
+      e.preventDefault();
+    }
+
+    // Prevent Dev Tools
+    if (e.key === "F12") e.preventDefault();
+    if (e.ctrlKey && e.shiftKey && e.key.toUpperCase() === "I") e.preventDefault();
+    if (e.ctrlKey && e.shiftKey && e.key.toUpperCase() === "J") e.preventDefault();
+  });
+
+  document.addEventListener("keyup", async (e) => {
+    if (e.key === "PrintScreen") {
+      await navigator.clipboard.writeText("");
+      alert("Screenshot disabled!");
+    }
+  });
+}, []);
+
+
   return (
     <AuthProvider>
       <Router>
@@ -168,6 +212,11 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/courses/:id" element={<CourseDetails />} />
+
+            <Route path="/about" element={<AboutUs />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+
 
             {/* E-commerce */}
             <Route path="/cart" element={<Cart />} />
@@ -315,6 +364,7 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+
 
 
             {/* 404 Page */}
