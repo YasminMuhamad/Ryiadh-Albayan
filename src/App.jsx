@@ -13,6 +13,7 @@ import Checkout from "../src/pages/Checkout/Checkout.jsx";
 import PaymentSuccess from "../src/pages/Checkout/PaymentSuccess.jsx";
 import MyCourses from "./pages/Student/MyCourses.jsx";
 
+
 // import ProtectedRoute from "";
 import { AuthProvider, useAuth } from "../src/context/AuthContext.jsx";
 
@@ -26,11 +27,13 @@ import TeacherProfile from "./pages/Teacher/Profile";
 import AdminProfile from "./pages/Admin/AdminProfile";
 import AddQuizPage from "./pages/Teacher/AddQuize.jsx";
 import AddLiveSession from "./pages/Teacher/AddLiveSessions.jsx";
-import ReportsPage from "./pages/Teacher/Report.jsx";
+// import ReportsPage from "./pages/Teacher/Report.jsx";
 import students from "./pages/Teacher/Students.jsx";
 import LiveSessions from "./pages/Teacher/LiveSessions.jsx";
 import StudentsPage from "./pages/Teacher/Students.jsx";
-import AssignmentsPage from "./pages/Teacher/Assignments.jsx";
+// import AssignmentsPage from "./pages/Teacher/Assignments.jsx";
+import InstructorsPage from "./pages/Instractor/Instructor.jsx";
+import InstructorsDetails from "./pages/Instractor/InstructorDetails.jsx";
 
 import NotFound from "./pages/Auth/NotFound";
 import ChatWidget from "./components/Chat";
@@ -132,13 +135,13 @@ export const AddLiveSessionWithUid = () => {
   return <AddLiveSession teacherId={uid} />;
 };
 
-export const ReportsWithUid = () => {
-  const { uid, profile, loading } = useAuth();
-  if (loading) return <Loader />;
-  if (!profile || !uid) return <div>Unauthorized</div>;
+// export const ReportsWithUid = () => {
+//   const { uid, profile, loading } = useAuth();
+//   if (loading) return <Loader />;
+//   if (!profile || !uid) return <div>Unauthorized</div>;
 
-  return <ReportsPage teacherId={uid} />;
-};
+//   return <ReportsPage teacherId={uid} />;
+// };
 
 export const StudentsWithUid = () => {
   const { uid, profile, loading } = useAuth();
@@ -148,13 +151,13 @@ export const StudentsWithUid = () => {
   return <StudentsPage teacherId={uid} />;
 };
 
-export const AssignmentsWithUid = () => {
-  const { uid, profile, loading } = useAuth();
-  if (loading) return <Loader />;
-  if (!profile || !uid) return <div>Unauthorized</div>;
+// export const AssignmentsWithUid = () => {
+//   const { uid, profile, loading } = useAuth();
+//   if (loading) return <Loader />;
+//   if (!profile || !uid) return <div>Unauthorized</div>;
 
-  return <AssignmentsPage teacherId={uid} />;
-};
+//   return <AssignmentsPage teacherId={uid} />;
+// };
 
 export const TeacherProfileWithUid = () => {
   const { uid, profile, loading } = useAuth();
@@ -216,6 +219,8 @@ useEffect(() => {
             <Route path="/about" element={<AboutUs />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/Instructors" element={<InstructorsPage />} />
+            <Route path="/Instructors/:id" element={<InstructorsDetails />} />
 
 
             {/* E-commerce */}
@@ -321,14 +326,14 @@ useEffect(() => {
               }
             />
 
-            <Route
+            {/* <Route
               path="/teacher/report"
               element={
                 <ProtectedRoute role="teacher">
                   <ReportsWithUid />
                 </ProtectedRoute>
               }
-            />
+            /> */}
 
             <Route
               path="/teacher/students"
@@ -339,14 +344,14 @@ useEffect(() => {
               }
             />
 
-            <Route
+            {/* <Route
               path="/teacher/assignments"
               element={
                 <ProtectedRoute role="teacher">
                   <AssignmentsWithUid />
                 </ProtectedRoute>
               }
-            />
+            /> */}
 
             <Route
               path="/teacher/profile"

@@ -39,14 +39,18 @@ export default function InteractiveCourses() {
 
             lessonsSnap.docs.forEach(lessonDoc => {
               const lesson = lessonDoc.data();
-              if (lesson.liveSession || lesson.dateTime) {
+              // جلب dateTime و duration من أي مكان موجود
+              const lessonDateTime = lesson.dateTime || lesson.liveSession?.dateTime || null;
+              const lessonDuration = lesson.duration || lesson.liveSession?.duration || 0;
+
+              if (lessonDateTime || lesson.liveSession) {
                 liveLessons.push({
                   ...lesson,
                   lessonTitle: lesson.title,
                   link: lesson.liveSession?.link || "",
                   materials: lesson.materials || [],
-                  duration: lesson.duration || 0,
-                  dateTime: lesson.dateTime,
+                  duration: lessonDuration,
+                  dateTime: lessonDateTime,
                 });
               }
             });
@@ -74,8 +78,10 @@ export default function InteractiveCourses() {
     let start;
     if (lesson.dateTime?.seconds) {
       start = new Date(lesson.dateTime.seconds * 1000);
-    } else {
+    } else if (lesson.dateTime) {
       start = new Date(lesson.dateTime);
+    } else {
+      start = new Date();
     }
 
     const end = new Date(start.getTime() + lesson.duration * 60000);
@@ -96,7 +102,7 @@ export default function InteractiveCourses() {
 
         {courses.length === 0 && <p className="paragraph">No interactive courses found.</p>}
 
-        {courses.map((course) => (
+        {courses.map((course, courseIdx) => (
           <div key={course.id} className="card animate-fadeIn">
             {/* Course Header */}
             <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
@@ -120,7 +126,12 @@ export default function InteractiveCourses() {
                 let start = lesson.dateTime?.seconds
                   ? new Date(lesson.dateTime.seconds * 1000)
                   : new Date(lesson.dateTime);
-                const showJoinButton = status === "Ongoing" && lesson.link;
+
+                // Show Join Now for the first lesson of the first course
+                const showJoinNow = courseIdx === 0 && i === 0 && lesson.link;
+
+                // Show Join Session if ongoing
+                const showJoinSession = status === "Ongoing" && lesson.link;
 
                 return (
                   <div key={i} className="card p-4 flex flex-col justify-between">
@@ -132,10 +143,33 @@ export default function InteractiveCourses() {
                       <p className="text-sm text-muted-foreground">Date: {start.toLocaleString()}</p>
                       <p className="text-sm text-muted-foreground">Duration: {lesson.duration} mins</p>
 
-                      {/* Materials */}
-                      {lesson.materials?.length > 0 ? (
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {lesson.materials.map((mat, idx) => (
+                      {/* All buttons in the same row */}
+                      <div className="flex flex-wrap gap-2 items-center mt-3">
+                        {/* Join Now / Join Session */}
+                        {showJoinNow && (
+                          <a
+                            href={lesson.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn-primary px-3 py-1 text-sm rounded hover:scale-105 transition-transform"
+                          >
+                            Join Now
+                          </a>
+                        )}
+                        {showJoinSession && !showJoinNow && (
+                          <a
+                            href={lesson.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn-primary px-3 py-1 text-sm rounded hover:scale-105 transition-transform"
+                          >
+                            Join Session
+                          </a>
+                        )}
+
+                        {/* Materials */}
+                        {lesson.materials?.length > 0 ? (
+                          lesson.materials.map((mat, idx) => (
                             <button
                               key={idx}
                               onClick={() => window.open(mat.file, "_blank")}
@@ -143,24 +177,15 @@ export default function InteractiveCourses() {
                             >
                               {mat.title}
                             </button>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-sm text-muted-foreground italic text-red-500 mt-2">Notes Not Found</p>
-                      )}
-                    </div>
+                          ))
+                        ) : (
+                          <span className="text-sm text-red-500 italic">Notes Not Found</span>
+                        )}
 
-                    {/* Join Button */}
-                    {showJoinButton ? (
-                      <a
-                        href={lesson.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn-primary mt-3 text-center hover:scale-105 transition-transform"
-                      >
-                        Join Session
-                      </a>
-                    ) : null}
+                        {/* Test Button (if needed) */}
+                        {/* <button className="btn-accent px-3 py-1 text-sm rounded hover:bg-accent hover:text-accent-foreground transition">Test</button> */}
+                      </div>
+                    </div>
                   </div>
                 );
               })}

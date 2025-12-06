@@ -8,10 +8,10 @@ const Sidebar = () => {
     { to: "/teacher/dashboard", label: "TeacherDashboard", icon: LayoutDashboard },
     { to: "/teacher/students", label: "Students", icon: Users },
     { to: "/teacher/live", label: "Live Sessions", icon: Video },
-    { to: "/teacher/Assignments", label: "Assignments", icon: FileCheck },
-    { to: "/teacher/report", label: "Reports", icon: FileText },
-    { to: "/teacher/profile", label: "Profile", icon: UserCircle },
+    // { to: "/teacher/Assignments", label: "Assignments", icon: FileCheck },
+    // { to: "/teacher/report", label: "Reports", icon: FileText },
     { to: "/teacher/MyCourses", label: "MyCourses", icon: UserCircle },
+    { to: "/teacher/profile", label: "Profile", icon: UserCircle },
 
   ];
 TeacherDashboard

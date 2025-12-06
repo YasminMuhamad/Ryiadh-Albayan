@@ -4,7 +4,6 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import "../../styles/globals.css";
 import { db } from "../../services/firebase";
 import Sidebar from "../../components/TeacherSidebar.jsx";
-import React from "react";
 
 // ---------------- Button ----------------
 function Button({ children, variant = "default", ...props }) {
@@ -20,26 +19,12 @@ function Button({ children, variant = "default", ...props }) {
   );
 }
 
-
 export default function TeacherProfile() {
   const { profile, uid } = useAuth();
   const [editing, setEditing] = useState(false);
   const [teacher, setTeacher] = useState(null);
   const [formData, setFormData] = useState(null);
-
-  const [theme, setTheme] = useState("light");
-  const [language, setLanguage] = useState("en");
-
-  useEffect(() => {
-    if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
-      document.documentElement.setAttribute("data-theme", systemTheme);
-    } else {
-      document.documentElement.setAttribute("data-theme", theme);
-    }
-  }, [theme]);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     const loadTeacher = async () => {
@@ -51,10 +36,12 @@ export default function TeacherProfile() {
       if (snap.exists()) {
         const data = snap.data();
         const mapped = {
-          name: data.name,
-          email: data.email,
+          name: data.name || "",
+          email: data.email || "",
+          password: data.password || "",
           bio: data.specialization || "",
-          avatar: data.profile_pic,
+          about: data.about || "",
+          avatar: data.profile_pic || "",
         };
         setTeacher(mapped);
         setFormData(mapped);
@@ -68,13 +55,29 @@ export default function TeacherProfile() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const validate = () => {
+    const newErrors = {};
+    if (!formData.name.trim()) newErrors.name = "Name is required.";
+    if (!formData.email.trim()) newErrors.email = "Email is required.";
+    else if (!/\S+@\S+\.\S+/.test(formData.email))
+      newErrors.email = "Email is invalid.";
+    if (!formData.password.trim())
+      newErrors.password = "Password cannot be empty.";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const saveChanges = async () => {
+    if (!validate()) return;
+
     const ref = doc(db, "teachers", uid);
 
     await updateDoc(ref, {
       name: formData.name,
       email: formData.email,
+      password: formData.password,
       specialization: formData.bio,
+      about: formData.about,
       profile_pic: formData.avatar,
     });
 
@@ -92,10 +95,7 @@ export default function TeacherProfile() {
 
   return (
     <div className="flex">
-      {/* ← ← Sidebar */}
       <Sidebar />
-
-      {/* ----------- Main Content ----------- */}
       <div className="flex-1 min-h-screen bg-[var(--background)] p-6 flex flex-col items-center">
         {/* Profile Card */}
         <div className="bg-white shadow-md rounded-xl p-6 w-full max-w-xl">
@@ -108,75 +108,102 @@ export default function TeacherProfile() {
             <h2 className="mt-3 text-2xl font-semibold">{teacher.name}</h2>
             <p className="text-gray-600">{teacher.email}</p>
           </div>
+
           <div className="mt-4">
-            <h3 className="text-lg font-medium mb-1">About</h3>
+            <h3 className="text-lg font-medium mb-1">Specialization</h3>
             <p className="text-gray-700">{teacher.bio}</p>
           </div>
+
+          <div className="mt-4">
+            <h3 className="text-lg font-medium mb-1">About</h3>
+            <p className="text-gray-700">{teacher.about}</p>
+          </div>
+
           <div className="mt-6 flex justify-end">
             <Button onClick={() => setEditing(true)}>Edit Profile</Button>
           </div>
         </div>
 
-        {/* Settings */}
-        <div className="bg-white shadow-md rounded-xl p-6 w-full max-w-xl mt-6">
-          <h3 className="text-xl font-semibold mb-4">Settings</h3>
-
-          {/* Theme */}
-          <div className="mb-6">
-            <h4 className="text-lg font-medium mb-2">Theme</h4>
-            <div className="flex flex-col gap-2">
-              <label className="flex items-center gap-2">
-                <input type="radio" name="theme" value="light" checked={theme === "light"} onChange={() => setTheme("light")} />
-                Light
-              </label>
-              <label className="flex items-center gap-2">
-                <input type="radio" name="theme" value="dark" checked={theme === "dark"} onChange={() => setTheme("dark")} />
-                Dark
-              </label>
-            </div>
-          </div>
-
-          {/* Language */}
-          <div>
-            <h4 className="text-lg font-medium mb-2">Language</h4>
-            <div className="flex flex-col gap-2">
-              <label className="flex items-center gap-2">
-                <input type="radio" name="language" value="en" checked={language === "en"} onChange={() => setLanguage("en")} />
-                English
-              </label>
-              <label className="flex items-center gap-2">
-                <input type="radio" name="language" value="ar" checked={language === "ar"} onChange={() => setLanguage("ar")} />
-                العربية
-              </label>
-            </div>
-          </div>
-        </div>
-
         {/* Edit Modal */}
         {editing && (
-          <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
+          <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
             <div className="bg-white p-6 rounded-xl w-full max-w-lg shadow-lg">
               <h2 className="text-xl font-semibold mb-4">Edit Profile</h2>
               <div className="flex flex-col gap-4">
                 <label className="flex flex-col">
                   <span className="text-sm font-medium">Name</span>
-                  <input type="text" name="name" value={formData.name} onChange={handleChange} className="border rounded-md p-2" />
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="border rounded-md p-2"
+                  />
+                  {errors.name && <span className="text-red-500 text-sm">{errors.name}</span>}
                 </label>
+
                 <label className="flex flex-col">
                   <span className="text-sm font-medium">Email</span>
-                  <input type="email" name="email" value={formData.email} onChange={handleChange} className="border rounded-md p-2" />
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="border rounded-md p-2"
+                  />
+                  {errors.email && <span className="text-red-500 text-sm">{errors.email}</span>}
                 </label>
+
                 <label className="flex flex-col">
-                  <span className="text-sm font-medium">Bio</span>
-                  <textarea name="bio" value={formData.bio} onChange={handleChange} className="border rounded-md p-2" rows="3" />
+                  <span className="text-sm font-medium">Password</span>
+                  <input
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    className="border rounded-md p-2"
+                  />
+                  {errors.password && <span className="text-red-500 text-sm">{errors.password}</span>}
                 </label>
+
+                <label className="flex flex-col">
+                  <span className="text-sm font-medium">Specialization</span>
+                  <input
+                    type="text"
+                    name="bio"
+                    value={formData.bio}
+                    onChange={handleChange}
+                    className="border rounded-md p-2"
+                  />
+                </label>
+
+                <label className="flex flex-col">
+                  <span className="text-sm font-medium">About</span>
+                  <textarea
+                    name="about"
+                    value={formData.about}
+                    onChange={handleChange}
+                    className="border rounded-md p-2"
+                    rows="3"
+                  />
+                </label>
+
                 <label className="flex flex-col">
                   <span className="text-sm font-medium">Avatar Image URL</span>
-                  <input type="text" name="avatar" value={formData.avatar} onChange={handleChange} className="border rounded-md p-2" />
+                  <input
+                    type="text"
+                    name="avatar"
+                    value={formData.avatar}
+                    onChange={handleChange}
+                    className="border rounded-md p-2"
+                  />
                 </label>
               </div>
+
               <div className="flex justify-end gap-2 mt-6">
-                <Button variant="outline" onClick={() => setEditing(false)}>Cancel</Button>
+                <Button variant="outline" onClick={() => setEditing(false)}>
+                  Cancel
+                </Button>
                 <Button onClick={saveChanges}>Save</Button>
               </div>
             </div>

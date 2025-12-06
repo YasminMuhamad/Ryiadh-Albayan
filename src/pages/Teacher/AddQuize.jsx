@@ -17,7 +17,6 @@ export const AddQuiz = () => {
   const [modules, setModules] = useState([]);
   const [questions, setQuestions] = useState([{ question: "", options: ["", "", "", ""], correct: 0 }]);
 
-  // Fetch teacher's courses
   useEffect(() => {
     const fetchCourses = async () => {
       try {
@@ -27,13 +26,12 @@ export const AddQuiz = () => {
         setCourses(data);
         if (data.length > 0) setSelectedCourse(data[0].id);
       } catch (err) {
-        console.error("Failed to fetch courses:", err);
+        console.error(err);
       }
     };
     fetchCourses();
   }, [teacherId]);
 
-  // Fetch modules for selected course
   useEffect(() => {
     const fetchModules = async () => {
       if (!selectedCourse) return;
@@ -44,7 +42,7 @@ export const AddQuiz = () => {
         setModules(data);
         if (data.length > 0) setSelectedModule(data[0].id);
       } catch (err) {
-        console.error("Failed to fetch modules:", err);
+        console.error(err);
       }
     };
     fetchModules();
@@ -63,10 +61,25 @@ export const AddQuiz = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!selectedCourse || !selectedModule) {
       toast("Please select a course and module!");
       return;
     }
+    if (!title.trim()) {
+      toast("Please enter a quiz title!");
+      return;
+    }
+
+    for (let i = 0; i < questions.length; i++) {
+      const q = questions[i];
+      if (!q.question.trim()) { toast(`Question ${i + 1} is empty!`); return; }
+      for (let j = 0; j < 4; j++) {
+        if (!q.options[j].trim()) { toast(`Option ${j + 1} of question ${i + 1} is empty!`); return; }
+      }
+      if (q.correct < 0 || q.correct > 3) { toast(`Correct option of question ${i + 1} must be between 0 and 3!`); return; }
+    }
+
     try {
       await addDoc(collection(db, `courses/${selectedCourse}/modules/${selectedModule}/quizzes`), {
         title,
@@ -78,16 +91,24 @@ export const AddQuiz = () => {
       navigate("/teacher/dashboard");
     } catch (err) {
       console.error(err);
-     toast("Failed to add quiz.");
+      toast("Failed to add quiz.");
     }
   };
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="heading-1">Add New Quiz</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="heading-1 text-center flex-1">Add New Quiz</h1>
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="btn-primary px-4 py-2 rounded"
+        >
+          Back
+        </button>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Course Selection */}
         <div className="flex flex-col">
           <label className="font-medium mb-1">Select Course:</label>
           <select
@@ -101,7 +122,6 @@ export const AddQuiz = () => {
           </select>
         </div>
 
-        {/* Module Selection */}
         <div className="flex flex-col">
           <label className="font-medium mb-1">Select Module:</label>
           <select
@@ -115,7 +135,6 @@ export const AddQuiz = () => {
           </select>
         </div>
 
-        {/* Quiz Title */}
         <div>
           <label className="font-medium mb-1">Quiz Title:</label>
           <input
@@ -128,7 +147,6 @@ export const AddQuiz = () => {
           />
         </div>
 
-        {/* Questions */}
         {questions.map((q, index) => (
           <div key={index} className="card animate-fadeIn">
             <div className="flex justify-between items-center mb-2">

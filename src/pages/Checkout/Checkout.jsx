@@ -62,7 +62,6 @@ export default function Checkout() {
           };
           setCourse(courseData);
 
-          // Fetch teacher details
           if (courseData.teacherId) {
             const teacherDoc = await getDoc(doc(db, 'teachers', courseData.teacherId));
             if (teacherDoc.exists()) {
@@ -80,12 +79,9 @@ export default function Checkout() {
       }
     };
 
-    if (id) {
-      fetchCourseData();
-    }
+    if (id) fetchCourseData();
   }, [id]);
 
-  // Ensure ratings for cart items come from Firestore when missing
   useEffect(() => {
     const fetchRatingsForCart = async () => {
       if (cartCoursesFromState.length === 0) {
@@ -127,17 +123,17 @@ export default function Checkout() {
     fetchRatingsForCart();
   }, [cartCoursesFromState]);
 
-  const checkoutItems = enrichedCartCourses.length > 0
-    ? enrichedCartCourses
-    : course
-      ? [course]
-      : [];
+  const checkoutItems =
+    enrichedCartCourses.length > 0 ? enrichedCartCourses : course ? [course] : [];
 
   const totalAmount = checkoutItems.reduce((sum, item) => {
     const price = typeof item?.price === 'number' ? item.price : parseFloat(item?.price || 0);
     return sum + (isNaN(price) ? 0 : price);
   }, 0);
-  const safeAmount = Number.isFinite(totalAmount) && totalAmount > 0 ? Number(totalAmount.toFixed(2)) : 1;
+
+  const safeAmount = Number.isFinite(totalAmount) && totalAmount > 0
+    ? Number(totalAmount.toFixed(2))
+    : 1;
 
   const normalizeReviews = (reviews) => {
     if (Array.isArray(reviews)) return reviews;
@@ -163,7 +159,6 @@ export default function Checkout() {
       reviewsCount: item.reviewsCount ?? reviews.length,
     };
   });
-  const safeAmount = Number.isFinite(totalAmount) && totalAmount > 0 ? Number(totalAmount.toFixed(2)) : 1;
 
   const handlePaymentSuccess = async (details) => {
     console.log('Payment successful:', details);
@@ -180,7 +175,7 @@ export default function Checkout() {
         courses: checkoutItems.map((item) => ({
           id: item.id,
           title: item.title,
-          rating: item.reviews.rating ?? null,
+          rating: item.reviews?.rating ?? null,
           price: item.price,
           category: item.category || null,
         })),
@@ -189,19 +184,22 @@ export default function Checkout() {
         createdAt: serverTimestamp(),
       });
 
-      // Save enrollment for the student so it appears in My Courses
       if (uid) {
         const enrollmentsRef = collection(db, 'users', uid, 'enrollments');
         await Promise.all(
           checkoutItems.map((item) =>
-            setDoc(doc(enrollmentsRef, item.id), {
-              courseId: item.id,
-              purchasedAt: serverTimestamp(),
-              price: item.price ?? null,
-              status: 'active',
-              title: item.title ?? '',
-              category: item.category ?? '',
-            }, { merge: true })
+            setDoc(
+              doc(enrollmentsRef, item.id),
+              {
+                courseId: item.id,
+                purchasedAt: serverTimestamp(),
+                price: item.price ?? null,
+                status: 'active',
+                title: item.title ?? '',
+                category: item.category ?? '',
+              },
+              { merge: true }
+            )
           )
         );
       }
@@ -209,12 +207,12 @@ export default function Checkout() {
       console.error('Failed to log payment to Firestore:', logErr);
     }
 
-    navigate('/payment-success', { 
-      state: { 
+    navigate('/payment-success', {
+      state: {
         courses: checkoutItems,
         paymentId: details.id,
-        amount: totalAmount
-      }
+        amount: totalAmount,
+      },
     });
   };
 
@@ -238,7 +236,7 @@ export default function Checkout() {
       <div className="max-w-2xl mx-auto mt-8 text-center">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-600">{error}</p>
-          <button 
+          <button
             onClick={() => navigate('/courses')}
             className="bg-teal-600 text-white px-6 py-2 rounded-lg hover:bg-teal-700"
           >
@@ -266,22 +264,19 @@ export default function Checkout() {
             className="inline-flex items-center text-teal-600 hover:text-teal-700 font-semibold text-sm"
           >
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"/>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
             </svg>
             Back
           </button>
         </div>
 
-        {/* Steps Progress */}
         <CheckoutStepper currentStep={currentStep} className="justify-center mb-12" />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Course Summary */}
           <div className="order-1 lg:order-2 lg:ml-8">
             <OrderSummaryCard items={displayItems} teacher={teacher} totalAmount={totalAmount} />
           </div>
 
-          {/* Payment Section */}
           <div className="bg-white rounded-2xl shadow-sm p-6 order-2 lg:order-1">
             <h2 className="text-xl font-bold text-gray-900 mb-6">Choose Payment Method</h2>
 
@@ -289,7 +284,7 @@ export default function Checkout() {
               <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700 text-sm">
                 <div className="flex items-start gap-2">
                   <svg className="w-5 h-5 mt-0.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                   </svg>
                   <div>
                     <p className="font-semibold">Payment couldn’t be completed</p>
@@ -298,27 +293,26 @@ export default function Checkout() {
                 </div>
               </div>
             )}
-            
-            {/* Payment Options - Only show in step 1 */}
+
             {currentStep === 1 && (
-            <div className="space-y-4 mb-6">
-              {/* PayPal Option */}
-              <div 
-                onClick={() => {
-                  setPaymentMethod('paypal');
-                  setCurrentStep(2);
-                }}
-                className={`group p-5 border-2 rounded-3xl cursor-pointer transition-all duration-200 flex items-center gap-4 ${
-                  paymentMethod === 'paypal'
-                    ? 'border-teal-600 shadow-[0_8px_24px_rgba(13,148,136,0.15)] bg-white'
-                    : 'border-gray-200 hover:border-teal-200 bg-white'
-                }`}
-              >
-                <div className="flex items-center justify-between gap-4 flex-1">
+              <div className="space-y-4 mb-6">
+                <div
+                  onClick={() => {
+                    setPaymentMethod('paypal');
+                    setCurrentStep(2);
+                  }}
+                  className={`group p-5 border-2 rounded-3xl cursor-pointer transition-all duration-200 flex items-center gap-4 ${
+                    paymentMethod === 'paypal'
+                      ? 'border-teal-600 shadow-[0_8px_24px_rgba(13,148,136,0.15)] bg-white'
+                      : 'border-gray-200 hover:border-teal-200 bg-white'
+                  }`}
+                >
                   <div className="flex items-center gap-3">
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-                      paymentMethod === 'paypal' ? 'border-teal-600 bg-teal-50' : 'border-gray-300'
-                    }`}>
+                    <div
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                        paymentMethod === 'paypal' ? 'border-teal-600 bg-teal-50' : 'border-gray-300'
+                      }`}
+                    >
                       {paymentMethod === 'paypal' && <div className="w-2 h-2 rounded-full bg-teal-600" />}
                     </div>
                     <div>
@@ -336,20 +330,14 @@ export default function Checkout() {
                   </div>
                 </div>
               </div>
-
-
-
-
-            </div>
             )}
 
-            {/* Step 2: Payment Form */}
             {currentStep === 2 && (
               <div>
                 <div className="mb-6 text-center">
                   <h3 className="font-semibold text-gray-900 mb-2">Payment Information</h3>
                   <p className="text-gray-600 text-sm">
-                    Selected payment method: 
+                    Selected payment method:
                     {paymentMethod === 'paypal' && ' PayPal'}
                     {paymentMethod === 'bank' && ' Bank Transfer'}
                   </p>
@@ -357,7 +345,7 @@ export default function Checkout() {
 
                 {paymentMethod === 'paypal' && (
                   <div>
-                    <PayPalButton 
+                    <PayPalButton
                       amount={safeAmount}
                       onSuccess={handlePaymentSuccess}
                       onError={handlePaymentError}
@@ -367,50 +355,15 @@ export default function Checkout() {
                     )}
                     {safeAmount !== totalAmount && (
                       <p className="text-amber-600 text-xs mt-2">
-                        Using minimum charge amount because course price is missing. Please contact support if this is unexpected.
+                        Using minimum charge amount because course price is missing.
                       </p>
                     )}
                   </div>
                 )}
 
-                {paymentMethod === 'bank' && (
-                  <div className="bg-teal-50 border-2 border-teal-200 rounded-2xl p-6 text-center">
-                    <div className="p-4 bg-teal-100 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
-                      <svg className="w-10 h-10 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                      </svg>
-                    </div>
-                    <h4 className="text-xl font-semibold text-teal-800 mb-3">Bank Transfer</h4>
-                    <div className="bg-white rounded-xl p-4 mb-4">
-                      <p className="text-gray-700 font-medium mb-2">Transfer Details:</p>
-                      <p className="text-gray-600 text-sm">Account Number: 1234567890</p>
-                      <p className="text-gray-600 text-sm">Bank Name: National Bank</p>
-                      <p className="text-gray-600 text-sm">Beneficiary: Riyadh Al-Bayan</p>
-                    </div>
-                    <p className="text-teal-700 text-sm mb-4">Please send transfer receipt via WhatsApp</p>
-                    <div className="flex gap-3">
-                      <button 
-                        onClick={() => setCurrentStep(1)}
-                        className="flex-1 bg-white border border-teal-600 text-teal-600 py-3 rounded-2xl font-semibold hover:bg-teal-50 transition-colors"
-                      >
-                        Previous
-                      </button>
-                      <button 
-                        onClick={() => {
-                          handlePaymentSuccess({ id: 'bank_transfer', status: 'pending' });
-                          setCurrentStep(3);
-                        }}
-                        className="flex-1 bg-teal-600 text-white py-3 rounded-2xl font-semibold hover:bg-teal-700 transition-colors"
-                      >
-                        Complete Payment
-                      </button>
-                    </div>
-                  </div>
-                )}
-
                 {paymentMethod === 'paypal' && (
                   <div className="mt-4 text-center">
-                    <button 
+                    <button
                       onClick={() => setCurrentStep(1)}
                       className="text-teal-600 text-sm hover:text-teal-700 font-medium"
                     >
@@ -420,16 +373,13 @@ export default function Checkout() {
                 )}
               </div>
             )}
-
-
           </div>
         </div>
 
-        {/* Security Notice */}
         <div className="text-center mt-8">
           <div className="inline-flex items-center text-sm text-gray-500">
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
             Your payment information is secure and encrypted
           </div>

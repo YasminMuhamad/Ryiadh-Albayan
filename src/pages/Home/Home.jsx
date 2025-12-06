@@ -4,9 +4,9 @@ import photo1 from "../../assets/images/photo1.jpg";
 import photo2 from "../../assets/images/photo2.jpg";
 import photo3 from "../../assets/images/photo3.jpg";
 import photo4 from "../../assets/images/photo4.jpg";
-import photo5 from "../../assets/images/photo5.jpg";
 import photo6 from "../../assets/images/photo6.jpg";
-import photo1 from "../../assets/images/photo1.jpg"
+// import photo5 from "../../assets/images/photo5.jpeg";
+
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
@@ -323,7 +323,7 @@ const Home = () => {
 
       <div className="w-full bg-white font-['Inter']">
         {/* ===== Teachers Section ===== */}
-        <section className="py-16 max-w-7xl mx-auto px-4">
+        <section className="py-16 max-w-7xl mx-auto px-4 ">
           <h2 className="text-center text-2xl font-semibold text-[#1D1D1F]">Meet Our Teachers</h2>
           <p className="text-center text-[#6E6E73] mt-2">
             Learn from qualified scholars with years of experience in Islamic education
@@ -342,6 +342,18 @@ const Home = () => {
                 <p className="text-[#0E9F9F] text-sm mt-3">{teacher.email}</p>
               </div>
             ))}
+             </div>
+
+            {/* View All Button */}
+        <div className="flex justify-center mt-12">
+          <button
+            onClick={() => navigate("/Instructors")}
+            className="px-8 py-3 rounded-full border border-gray-300 bg-white text-gray-800 hover:bg-gray-200 transition"
+          >
+            View All Instractors
+          </button>
+       
+
           </div>
         </section>
 

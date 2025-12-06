@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { collection, doc, getDocs, query, where, updateDoc, Timestamp } from "firebase/firestore";
 import { db } from "../../services/firebase.js";
 import { useAuth } from "../../context/AuthContext.jsx";
-import Toast from "../../components/Toast.jsx";
 import toast from "react-hot-toast";
 
 const AddLiveSession = () => {
@@ -44,7 +43,6 @@ const AddLiveSession = () => {
   // Fetch modules when course changes
   useEffect(() => {
     if (!selectedCourse) return;
-
     const fetchModules = async () => {
       try {
         const q = collection(db, `courses/${selectedCourse}/modules`);
@@ -62,7 +60,6 @@ const AddLiveSession = () => {
   // Fetch lessons when module changes
   useEffect(() => {
     if (!selectedCourse || !selectedModule) return;
-
     const fetchLessons = async () => {
       try {
         const q = collection(db, `courses/${selectedCourse}/modules/${selectedModule}/lessons`);
@@ -84,24 +81,46 @@ const AddLiveSession = () => {
       toast("Please select course, module, and lesson!");
       return;
     }
+    if (!title.trim()) {
+      toast("Please enter a title for the live session!");
+      return;
+    }
+    if (!dateTime) {
+      toast("Please select date and time!");
+      return;
+    }
+    const sessionDate = new Date(dateTime);
+    if (sessionDate <= new Date()) {
+      toast("Date & Time must be in the future!");
+      return;
+    }
+    if (!duration || duration <= 0) {
+      toast("Please enter a valid duration in minutes!");
+      return;
+    }
+    if (!link.trim()) {
+      toast("Please enter a session link!");
+      return;
+    }
+    try {
+      new URL(link);
+    } catch {
+      toast("Please enter a valid URL for the session link!");
+      return;
+    }
 
     try {
       const lessonRef = doc(db, `courses/${selectedCourse}/modules/${selectedModule}/lessons/${selectedLesson}`);
-
       const liveSessionObj = {
         title,
-        dateTime: Timestamp.fromDate(new Date(dateTime)),
+        dateTime: Timestamp.fromDate(sessionDate),
         duration: Number(duration),
         link,
         status,
         attendanceCount: 0,
         attendance: [],
       };
-
-      await updateDoc(lessonRef, {
-        liveSession: liveSessionObj,
-      });
-
+      await updateDoc(lessonRef, { liveSession: liveSessionObj });
       toast("Live session added successfully!");
       navigate(`/teacher/dashboard`);
     } catch (err) {
@@ -112,10 +131,18 @@ const AddLiveSession = () => {
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="heading-1 mb-4">Add Live Session</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="heading-1 text-center flex-1">Add Live Session</h1>
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="btn-primary px-4 py-2 rounded"
+        >
+          Back
+        </button>
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-4">
-        
-        {/* Select Course */}
         <div>
           <label className="font-medium">Select Course:</label>
           <select
@@ -131,7 +158,6 @@ const AddLiveSession = () => {
           </select>
         </div>
 
-        {/* Select Module */}
         <div>
           <label className="font-medium">Select Module:</label>
           <select
@@ -147,7 +173,6 @@ const AddLiveSession = () => {
           </select>
         </div>
 
-        {/* Select Lesson */}
         <div>
           <label className="font-medium">Select Lesson:</label>
           <select
@@ -163,7 +188,6 @@ const AddLiveSession = () => {
           </select>
         </div>
 
-        {/* Live session details */}
         <div>
           <label className="font-medium">Title:</label>
           <input
@@ -222,7 +246,7 @@ const AddLiveSession = () => {
           </select>
         </div>
 
-        <button type="submit" className="btn-primary mt-4">
+        <button type="submit" className="btn-primary mt-4 w-full">
           Add Live Session
         </button>
       </form>

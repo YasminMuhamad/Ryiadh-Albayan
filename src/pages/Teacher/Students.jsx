@@ -1,3 +1,4 @@
+// src/pages/StudentsDashboard.jsx
 import React, { useEffect, useState } from "react";
 import Sidebar from "../../components/TeacherSidebar.jsx";
 import { collection, getDocs, query, where } from "firebase/firestore";
@@ -17,15 +18,17 @@ export default function StudentsDashboard() {
     fetchCourses();
   }, [user]);
 
+  // ------------------- Fetch Teacher's Courses -------------------
   async function fetchCourses() {
     const coursesRef = collection(db, "courses");
     const q = query(coursesRef, where("teacherId", "==", user.uid));
     const snap = await getDocs(q);
-    const data = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-    setCourses(data);
-    fetchEnrollments(data);
+    const coursesData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    setCourses(coursesData);
+    fetchEnrollments(coursesData);
   }
 
+  // ------------------- Fetch Enrollments -------------------
   async function fetchEnrollments(coursesData) {
     const usersSnap = await getDocs(collection(db, "users"));
     let allEnrollments = [];
@@ -36,13 +39,14 @@ export default function StudentsDashboard() {
 
       enrollSnap.forEach((enr) => {
         const course = coursesData.find((c) => c.id === enr.data().courseId);
+        // ✅ فقط الطلاب المشتركين في كورسات المعلم
         if (course) {
           allEnrollments.push({
             userId: userDoc.id,
             userName: userDoc.data().name || "No Name",
-            email: userDoc.data().email,
-            gender: userDoc.data().gender || "",
-            phone: userDoc.data().phone || "",
+            email: userDoc.data().email || "-",
+            gender: userDoc.data().gender || "-",
+            phone: userDoc.data().phone || "-",
             profile_pic: userDoc.data().profile_pic || "",
             courseTitle: course.title,
             courseType: course.type,
@@ -60,7 +64,7 @@ export default function StudentsDashboard() {
     setEnrollments(allEnrollments);
   }
 
-  // ---------------- FILTERS ----------------
+  // ------------------- FILTERS -------------------
   const filteredData = enrollments
     .filter((item) => {
       const byCourse = selectedCourse ? item.courseTitle === selectedCourse : true;
@@ -94,13 +98,12 @@ export default function StudentsDashboard() {
       <Sidebar />
 
       <div className="flex-1 p-6">
-        <h1 className="text-3xl mb-6" style={{ color: "var(--primary)", fontWeight: "700" }}>
+        <h1 className="text-3xl mb-6 text-center" style={{ color: "var(--primary)", fontWeight: "700" }}>
           Students Enrollments Dashboard
         </h1>
 
         {/* Filters */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-
           <select
             value={selectedCourse}
             onChange={(e) => setSelectedCourse(e.target.value)}

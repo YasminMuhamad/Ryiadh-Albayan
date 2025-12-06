@@ -45,6 +45,10 @@ export default function EditCourseFull() {
   const [material, setMaterial] = useState({ title: "", file: "" });
   const [selectedModuleId, setSelectedModuleId] = useState("");
 
+  // Edit states
+  const [editingModule, setEditingModule] = useState(null);
+  const [editingLesson, setEditingLesson] = useState(null);
+
   // Fetch Course + Modules
   useEffect(() => {
     const fetchData = async () => {
@@ -94,7 +98,14 @@ export default function EditCourseFull() {
 
   // Add Module
   const handleAddModule = async () => {
-    if (!moduleData.title) return;
+    if (!moduleData.title.trim()) {
+      toast.error("Module title is required!");
+      return;
+    }
+    if (moduleData.moduleOrder <= 0) {
+      toast.error("Module order must be greater than 0!");
+      return;
+    }
 
     const modulesCol = collection(db, "courses", courseId, "modules");
     await addDoc(modulesCol, {
@@ -110,6 +121,31 @@ export default function EditCourseFull() {
     setModuleData({ title: "", createdAt: new Date(), moduleOrder: 1 });
   };
 
+  // Update Module
+  const handleUpdateModule = async () => {
+    if (!editingModule.title.trim()) {
+      toast.error("Module title is required!");
+      return;
+    }
+    if (editingModule.moduleOrder <= 0) {
+      toast.error("Module order must be greater than 0!");
+      return;
+    }
+
+    const moduleRef = doc(db, "courses", courseId, "modules", editingModule.id);
+    await updateDoc(moduleRef, {
+      title: editingModule.title,
+      moduleOrder: editingModule.moduleOrder,
+    });
+
+    toast.success("Module updated!");
+    setEditingModule(null);
+
+    const modulesCol = collection(db, "courses", courseId, "modules");
+    const modulesSnap = await getDocs(modulesCol);
+    setModulesList(modulesSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+  };
+
   // Material field update
   const handleMaterialChange = (field, value) => {
     setMaterial({ ...material, [field]: value });
@@ -122,7 +158,30 @@ export default function EditCourseFull() {
 
   // Add Lesson
   const handleAddLesson = async () => {
-    if (!lessonData.title || !selectedModuleId) return;
+    if (!lessonData.title.trim()) {
+      toast.error("Lesson title is required!");
+      return;
+    }
+    if (!selectedModuleId) {
+      toast.error("Please select a module!");
+      return;
+    }
+    if (lessonData.lessonOrder <= 0) {
+      toast.error("Lesson order must be greater than 0!");
+      return;
+    }
+    if (!lessonData.link.trim()) {
+      toast.error("Lesson link is required!");
+      return;
+    }
+    if (lessonData.dateTime < new Date()) {
+      toast.error("Lesson date and time must be in the future!");
+      return;
+    }
+    if (lessonData.materials.some((m) => !m.title.trim() || !m.file.trim())) {
+      toast.error("All materials must have a title and file URL!");
+      return;
+    }
 
     const lessonsCol = collection(
       db,
@@ -169,6 +228,44 @@ export default function EditCourseFull() {
     setMaterial({ title: "", file: "" });
   };
 
+  // Update Lesson
+  const handleUpdateLesson = async () => {
+    const { moduleId, id, title, lessonOrder, liveSession, materials } = editingLesson;
+
+    if (!title.trim()) {
+      toast.error("Lesson title is required!");
+      return;
+    }
+    if (lessonOrder <= 0) {
+      toast.error("Lesson order must be greater than 0!");
+      return;
+    }
+    if (!liveSession.link.trim()) {
+      toast.error("Lesson link is required!");
+      return;
+    }
+    if (liveSession.dateTime.toDate() < new Date()) {
+      toast.error("Lesson date and time must be in the future!");
+      return;
+    }
+    if (materials.some((m) => !m.title.trim() || !m.file.trim())) {
+      toast.error("All materials must have a title and file URL!");
+      return;
+    }
+
+    const lessonRef = doc(db, "courses", courseId, "modules", moduleId, "lessons", id);
+    await updateDoc(lessonRef, {
+      title,
+      lessonOrder,
+      liveSession,
+      materials,
+    });
+
+    toast.success("Lesson updated!");
+    setEditingLesson(null);
+    fetchLessonsForModule(editingLesson.moduleId);
+  };
+
   // Delete Module
   const deleteModule = async (moduleId) => {
     await deleteDoc(doc(db, "courses", courseId, "modules", moduleId));
@@ -201,7 +298,7 @@ export default function EditCourseFull() {
 
       <h2 className="text-3xl font-bold text-[var(--primary)]">{course.title}</h2>
 
-      {/* ============ MODULES DISPLAY ============ */}
+      {/* Modules Display */}
       <div className="bg-[var(--card)] p-6 rounded-lg shadow-md space-y-4">
         <h3 className="text-xl font-semibold mb-2">All Modules</h3>
 
@@ -225,7 +322,7 @@ export default function EditCourseFull() {
             <div className="flex gap-2 px-4 py-2 bg-gray-50">
               <button
                 className="text-blue-600"
-                onClick={() => alert("Edit module functionality")}
+                onClick={() => setEditingModule(mod)}
               >
                 Edit
               </button>
@@ -248,7 +345,9 @@ export default function EditCourseFull() {
                       <div className="flex gap-2">
                         <button
                           className="text-blue-600"
-                          onClick={() => alert("Edit lesson functionality")}
+                          onClick={() =>
+                            setEditingLesson({ ...lesson, moduleId: mod.id })
+                          }
                         >
                           Edit
                         </button>
@@ -274,7 +373,7 @@ export default function EditCourseFull() {
         ))}
       </div>
 
-      {/* ============ ADD MODULE ============ */}
+      {/* Add Module */}
       <div className="bg-[var(--card)] p-6 rounded-lg shadow-md space-y-4">
         <h3 className="text-xl font-semibold">Add New Module</h3>
 
@@ -311,7 +410,7 @@ export default function EditCourseFull() {
         </div>
       </div>
 
-      {/* ============ ADD LESSON ============ */}
+      {/* Add Lesson */}
       <div className="bg-[var(--card)] p-6 rounded-lg shadow-md space-y-4">
         <h3 className="text-xl font-semibold">Add New Lesson</h3>
 
@@ -430,6 +529,101 @@ export default function EditCourseFull() {
           Add Lesson
         </button>
       </div>
+
+      {/* Edit Module Modal */}
+      {editingModule && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center">
+          <div className="bg-white p-6 rounded shadow-md w-96">
+            <h3 className="text-xl font-semibold mb-4">Edit Module</h3>
+            <input
+              type="text"
+              className="border p-2 rounded w-full mb-2"
+              value={editingModule.title}
+              onChange={(e) =>
+                setEditingModule({ ...editingModule, title: e.target.value })
+              }
+            />
+            <input
+              type="number"
+              className="border p-2 rounded w-full mb-4"
+              value={editingModule.moduleOrder}
+              onChange={(e) =>
+                setEditingModule({ ...editingModule, moduleOrder: Number(e.target.value) })
+              }
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                className="px-4 py-2 bg-gray-300 rounded"
+                onClick={() => setEditingModule(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-blue-600 text-white rounded"
+                onClick={handleUpdateModule}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Lesson Modal */}
+      {editingLesson && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center">
+          <div className="bg-white p-6 rounded shadow-md w-96">
+            <h3 className="text-xl font-semibold mb-4">Edit Lesson</h3>
+
+            <input
+              type="text"
+              className="border p-2 rounded w-full mb-2"
+              value={editingLesson.title}
+              onChange={(e) =>
+                setEditingLesson({ ...editingLesson, title: e.target.value })
+              }
+            />
+            <input
+              type="number"
+              className="border p-2 rounded w-full mb-2"
+              value={editingLesson.lessonOrder}
+              onChange={(e) =>
+                setEditingLesson({ ...editingLesson, lessonOrder: Number(e.target.value) })
+              }
+            />
+
+            <input
+              type="datetime-local"
+              className="border p-2 rounded w-full mb-4"
+              value={editingLesson.liveSession.dateTime.toDate().toISOString().slice(0, 16)}
+              onChange={(e) =>
+                setEditingLesson({
+                  ...editingLesson,
+                  liveSession: {
+                    ...editingLesson.liveSession,
+                    dateTime: Timestamp.fromDate(new Date(e.target.value)),
+                  },
+                })
+              }
+            />
+
+            <div className="flex justify-end gap-2">
+              <button
+                className="px-4 py-2 bg-gray-300 rounded"
+                onClick={() => setEditingLesson(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-blue-600 text-white rounded"
+                onClick={handleUpdateLesson}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
