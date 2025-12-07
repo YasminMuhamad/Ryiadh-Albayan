@@ -337,73 +337,83 @@ const Home = () => {
         </section>
 
 
+        {/* View All Button */}
+        <div className="flex justify-center">
+          <button
+            onClick={() => navigate("/Instructors")}
+            className="px-8 py-3 rounded-full border border-gray-300 bg-white text-gray-800 hover:bg-gray-200 transition"
+          >
+            View All Instractors
+          </button>
 
 
-        {/* Testimonials Section */}
-        <section className="py-16 bg-gray-50 mt-10">
-          <div className="max-w-7xl mx-auto px-4">
-            <h2 className="text-center text-2xl font-semibold text-[#1D1D1F]">Student Testimonials</h2>
-            <p className="text-center text-[#6E6E73] mt-2">
-              Hear what our students say about their learning journey
-            </p>
+        </div>
 
-            <div className="grid md:grid-cols-3 gap-8 mt-12">
-              {reviews.map((review) => (
-                <div
-                  key={review.studentId}
-                  className="bg-white rounded-xl p-6 border shadow-sm hover:shadow-md transition"
-                >
-                  <p className="text-[#0E9F9F] text-4xl">“</p>
+      {/* Testimonials Section */}
+      <section className="py-16 bg-gray-50 mt-10">
+        <div className="max-w-7xl mx-auto px-4">
+          <h2 className="text-center text-2xl font-semibold text-[#1D1D1F]">Student Testimonials</h2>
+          <p className="text-center text-[#6E6E73] mt-2">
+            Hear what our students say about their learning journey
+          </p>
 
-                  <p className="text-gray-700 mt-2 text-sm">
-                    {review.content || "No comment available."}
-                  </p>
-                  {/* ⭐⭐⭐ Display static rating (no half stars) */}
-                  <div className="flex gap-1 mt-1">
-                    {Array.from({ length: 5 }).map((_, index) => (
-                      <span key={index} className="text-yellow-500 text-lg">
-                        {index < review.rating ? "★" : "☆"}
-                      </span>
-                    ))}
-                  </div>
+          <div className="grid md:grid-cols-3 gap-8 mt-12">
+            {reviews.map((review) => (
+              <div
+                key={review.studentId}
+                className="bg-white rounded-xl p-6 border shadow-sm hover:shadow-md transition"
+              >
+                <p className="text-[#0E9F9F] text-4xl">“</p>
 
-                  <div className="flex items-center gap-3 mt-4">
-                    <div>
-                      <p className="font-medium text-[#1D1D1F] text-sm">
-                        {review.name || "Unknown Name"}
-                      </p>
-                      <p className="text-[#6E6E73] text-xs">
-                        {review.country || "Unknown Country"}
-                      </p>
-                    </div>
+                <p className="text-gray-700 mt-2 text-sm">
+                  {review.content || "No comment available."}
+                </p>
+                {/* ⭐⭐⭐ Display static rating (no half stars) */}
+                <div className="flex gap-1 mt-1">
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <span key={index} className="text-yellow-500 text-lg">
+                      {index < review.rating ? "★" : "☆"}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="flex items-center gap-3 mt-4">
+                  <div>
+                    <p className="font-medium text-[#1D1D1F] text-sm">
+                      {review.name || "Unknown Name"}
+                    </p>
+                    <p className="text-[#6E6E73] text-xs">
+                      {review.country || "Unknown Country"}
+                    </p>
                   </div>
                 </div>
-              ))}
-            </div>
-
-
+              </div>
+            ))}
           </div>
 
-          {/* CTA inside the same testimonials section */}
-          <div className="w-full bg-gradient-to-r from-teal-800 to-teal-600 py-14 mt-16 rounded-lg">
-            <div className="max-w-3xl mx-auto text-center px-4">
-              <h2 className="text-white text-lg font-semibold">
-                Begin Your Learning Journey Today
-              </h2>
 
-              <p className="text-white mt-2 text-base">
-                Join our community of dedicated learners and start your path to Islamic knowledge
-              </p>
+        </div>
 
-              <p className="mt-6 text-white text-lg font-medium italic">
-                "Knowledge lights the path to a better tomorrow."
-              </p>
-            </div>
+        {/* CTA inside the same testimonials section */}
+        <div className="w-full bg-gradient-to-r from-teal-800 to-teal-600 py-14 mt-16 rounded-lg">
+          <div className="max-w-3xl mx-auto text-center px-4">
+            <h2 className="text-white text-lg font-semibold">
+              Begin Your Learning Journey Today
+            </h2>
+
+            <p className="text-white mt-2 text-base">
+              Join our community of dedicated learners and start your path to Islamic knowledge
+            </p>
+
+            <p className="mt-6 text-white text-lg font-medium italic">
+              "Knowledge lights the path to a better tomorrow."
+            </p>
           </div>
+        </div>
 
-        </section>
+      </section>
 
-      </div>
+    </div >
 
     </>
   );

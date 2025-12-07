@@ -5,7 +5,7 @@ import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 const embeddings = new GoogleGenerativeAIEmbeddings({
 
 
-  apiKey: "AIzaSyDTduEVxDhS9b-gy80RfHfFPT4bZEcqYmg", 
+  apiKey: "AIzaSyDeoM1VRMCMxa49n4Hj8IZoXJRcF352I9I", 
   model: "text-embedding-004",
 });
 
