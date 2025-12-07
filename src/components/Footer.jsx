@@ -4,6 +4,8 @@ import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaFacebookF, FaTwitter, FaInstagra
 import { useNavigate } from "react-router-dom";
 
 export function Footer() {
+  const navigate = useNavigate(); 
+
   return (
     <footer className="footer">
 
@@ -20,7 +22,7 @@ export function Footer() {
           </p>
 
           <p className="footer-quote">
-            "Seek knowledge from the cradle to the grave" – Prophet Muhammad ﷺ
+            "Seek knowledge from the cradle to the grave" Prophet Muhammad ﷺ
           </p>
         </div>
 
@@ -28,9 +30,15 @@ export function Footer() {
         <div className="footer-col">
           <h4 className="footer-subtitle">Quick Links</h4>
           <ul className="footer-links">
-            <li onClick={() => useNavigate('/about')}>About Us</li>
-            <li>Our Teachers</li>
-            <li>All Courses</li>
+            
+           
+          
+        <li onClick={() => { navigate('/about'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>About Us</li>
+        <li onClick={() => { navigate('/contact'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Contact Us</li>
+        <li onClick={() => { navigate('/courses'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>All Courses</li>
+        <li onClick={() => { navigate('/teachers'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Our Teachers</li>
+
+
           </ul>
         </div>
 
