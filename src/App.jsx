@@ -26,6 +26,8 @@ import TeacherProfile from "./pages/Teacher/Profile";
 import AdminProfile from "./pages/Admin/AdminProfile";
 import NotFound from "./pages/Auth/NotFound";
 import ChatWidget from "./components/Chat";
+import AboutUs from "./pages/AboutUs";
+
 // import { addNotification } from "./services/notificationService";
 import ResetPassword from "./pages/Auth/ResetPassword.jsx";
 import ForgotPassword from "./pages/Auth/ForgotPassword.jsx";
@@ -42,6 +44,15 @@ function Layout({ children }) {
 
   // Show ChatWidget only for students & guests
   const showChat = !isAdminPage && !isTeacherPage;
+
+
+// Send notification once
+//  addNotification({ 
+//    title: "App Started",
+//    message: " Test notification.",
+//   type: "info",
+//  });
+
 
   return (
     <>
@@ -88,6 +99,11 @@ useEffect(() => {
     ) {
       e.preventDefault();
     }
+
+    // Prevent Dev Tools
+    if (e.key === "F12") e.preventDefault();
+    if (e.ctrlKey && e.shiftKey && e.key.toUpperCase() === "I") e.preventDefault();
+    if (e.ctrlKey && e.shiftKey && e.key.toUpperCase() === "J") e.preventDefault();
   });
 
   document.addEventListener("keyup", async (e) => {
@@ -110,6 +126,7 @@ useEffect(() => {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/courses/:id" element={<CourseDetails />} />
+            <Route path="/about" element={<AboutUs />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
 

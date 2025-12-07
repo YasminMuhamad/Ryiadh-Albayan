@@ -13,6 +13,7 @@ import {
   Bell,
   X,
   LayoutDashboard,
+  Menu,
 } from "lucide-react";
 import { Button } from "./Button";
 import { useAuth } from "../context/AuthContext";
@@ -22,9 +23,11 @@ export function Navbar() {
   const location = useLocation();
   const { user, profile, logout } = useAuth();
   const currentPage = location.pathname;
-  const [cartCount, setCartCount] = useState(0);
   const [notifications, setNotifications] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  
+  const [cartCount, setCartCount] = useState(0);
+ 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const displayedToastIds = useRef(new Set());
 
@@ -35,6 +38,8 @@ export function Navbar() {
 
     const unsubscribe = onNotificationsListener(user.uid, (notifs) => {
       setNotifications(notifs);
+
+      // فلتر للإشعارات الغير مقروءة والتي لم يتم عرضها بعد
 
       const unread = notifs.filter(
         (n) => !n.read && !displayedToastIds.current.has(n.id)
@@ -122,6 +127,7 @@ export function Navbar() {
             </span>
             <p className="text-sm text-gray-500">Arabic & Islamic Studies</p>
           </div>
+
         </div>
 
         {/* Desktop Links */}
@@ -152,6 +158,17 @@ export function Navbar() {
               >
                 Contact
               </span>
+
+              <span 
+                onClick={() => navigate("/about")} 
+                className={`cursor-pointer ${
+                 currentPage === "/about" ? "text-[#0E7C7B]" : "text-gray-700" 
+                } hover:text-[#0E7C7B]`}
+              >
+                About Us
+            </span>
+
+
               <div className="relative">
                 <span
                   onClick={() => navigate("/cart")}
@@ -159,6 +176,10 @@ export function Navbar() {
                     currentPage === "/cart" ? "text-[#0E7C7B]" : "text-gray-700"
                   } hover:text-[#0E7C7B]`}
                 >
+
+
+
+
                   <ShoppingCart size={20} />
                   {cartCount > 0 && (
                     <span className="absolute -top-2 -right-2 bg-teal-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
@@ -281,7 +302,7 @@ export function Navbar() {
             onClick={() => setMobileMenuOpen((prev) => !prev)}
             className="p-2 rounded hover:bg-gray-200"
           >
-            {mobileMenuOpen ? <X size={24} /> : <LayoutDashboard size={24} />}
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </div>

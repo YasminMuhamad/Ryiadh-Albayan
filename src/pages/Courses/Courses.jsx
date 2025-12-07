@@ -7,9 +7,26 @@ import CourseRecommendations from "../../components/CourseRecommendations";
 import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 
+const normalizeReviews = (reviews) => {
+  if (Array.isArray(reviews)) return reviews;
+  if (reviews && typeof reviews === "object") return Object.values(reviews);
+  return [];
+};
+
+const computeAverageRating = (rawReviews = []) => {
+  const reviews = normalizeReviews(rawReviews);
+  if (!reviews.length) return 0;
+  const nums = reviews
+    .map((r) => (typeof r?.rating === "number" ? r.rating : parseFloat(r?.rating)))
+    .filter((n) => !Number.isNaN(n));
+  if (!nums.length) return 0;
+  const sum = nums.reduce((acc, n) => acc + n, 0);
+  return Number((sum / nums.length).toFixed(1));
+};
+
 export default function Courses() {
   const navigate = useNavigate();
-  const { uid } = useAuth();
+  const { uid, role, loading: authLoading } = useAuth();
   const [courses, setCourses] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
@@ -19,39 +36,72 @@ export default function Courses() {
   const [cart, setCart] = useState([]);
   const [categories, setCategories] = useState(["All Categories"]);
   const [enrolledIds, setEnrolledIds] = useState([]);
+  const [activeSegment, setActiveSegment] = useState("recorded");
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [coursesSnapshot, teachersSnapshot] = await Promise.all([
+        const [coursesSnapshot, teachersSnapshot, categoriesSnapshot] = await Promise.all([
           getDocs(collection(db, "courses")),
           getDocs(collection(db, "teachers")),
+          getDocs(collection(db, "categories")),
         ]);
 
-        const coursesList = coursesSnapshot.docs.map((doc) => {
+        const categoriesMap = categoriesSnapshot.docs.reduce((acc, doc) => {
           const data = doc.data();
-          const processedData = { ...data };
+          acc[doc.id] = data.title || data.name || doc.id;
+          return acc;
+        }, {});
 
-          if (data.createdAt && typeof data.createdAt === "object" && data.createdAt.toDate) {
-            processedData.createdAt = data.createdAt.toDate().toISOString();
-          }
+        const coursesWithDoc = coursesSnapshot.docs.map((doc) => ({ id: doc.id, data: doc.data() }));
 
-          Object.keys(processedData).forEach((key) => {
-            const value = processedData[key];
-            if (value && typeof value === "object" && !Array.isArray(value)) {
-              if (value.toDate && typeof value.toDate === "function") {
-                processedData[key] = value.toDate().toISOString();
-              } else if (value.toString && typeof value.toString === "function") {
-                processedData[key] = value.toString();
-              }
+        // Fetch subcollection reviews per course (only IDs we have)
+        const reviewsByCourse = {};
+        await Promise.all(
+          coursesWithDoc.map(async ({ id }) => {
+            try {
+              const snap = await getDocs(collection(db, "courses", id, "reviews"));
+              reviewsByCourse[id] = snap.docs.map((d) => d.data()).filter(Boolean);
+            } catch (err) {
+              reviewsByCourse[id] = [];
+              console.error("Failed to fetch reviews for course", id, err);
             }
-          });
+          })
+        );
 
-          return {
-            id: doc.id,
-            ...processedData,
-          };
-        });
+        const coursesList = coursesWithDoc
+          .map(({ id, data }) => {
+            const processedData = { ...data };
+            const reviews = reviewsByCourse[id] || [];
+            processedData.rating = computeAverageRating(reviews);
+            processedData.reviewsCount = reviews.length;
+
+            const categoryId = data.categoryId || data.category;
+            const categoryLabel = categoriesMap[categoryId] || data.category || "Course";
+            processedData.categoryId = categoryId;
+            processedData.category = categoryLabel;
+
+            if (data.createdAt && typeof data.createdAt === "object" && data.createdAt.toDate) {
+              processedData.createdAt = data.createdAt.toDate().toISOString();
+            }
+
+            Object.keys(processedData).forEach((key) => {
+              const value = processedData[key];
+              if (value && typeof value === "object" && !Array.isArray(value)) {
+                if (value.toDate && typeof value.toDate === "function") {
+                  processedData[key] = value.toDate().toISOString();
+                } else if (value.toString && typeof value.toString === "function") {
+                  processedData[key] = value.toString();
+                }
+              }
+            });
+
+            return {
+              id,
+              ...processedData,
+            };
+          })
+          .sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0));
 
         const teachersList = teachersSnapshot.docs.map((doc) => ({
           id: doc.id,
@@ -63,9 +113,7 @@ export default function Courses() {
 
         const uniqueCategories = Array.from(
           new Set(
-            coursesList
-              .map((c) => c.category)
-              .filter(Boolean)
+            coursesList.map((c) => c.category).filter(Boolean)
           )
         );
         setCategories(["All Categories", ...uniqueCategories]);
@@ -124,28 +172,86 @@ export default function Courses() {
   const isInCart = (courseId) => cart.includes(courseId);
 
   const renderStars = (rating = 0) => {
-    const stars = [];
-    const value = Math.max(0, Math.min(5, Math.round(rating)));
-    for (let i = 0; i < 5; i++) {
-      const filled = i < value;
-      stars.push(
-        <svg
-          key={i}
-          className={`w-5 h-5 ${filled ? "text-yellow-400" : "text-gray-300"}`}
-          viewBox="0 0 24 24"
-          fill={filled ? "currentColor" : "none"}
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-          />
-        </svg>
-      );
-    }
-    return stars;
+    const value = Math.max(0, Math.min(5, Number(rating) || 0));
+    const full = Math.floor(value);
+    const hasHalf = value % 1 !== 0;
+    const empty = 5 - full - (hasHalf ? 1 : 0);
+
+    return (
+      <div className="flex items-center space-x-0.5">
+        {Array.from({ length: full }).map((_, i) => (
+          <svg key={`full-${i}`} className="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.785.57-1.84-.197-1.54-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.88 8.72c-.783-.57-.38-1.81.588-1.81H6.93a1 1 0 00.95-.69l1.07-3.292z" />
+          </svg>
+        ))}
+        {hasHalf && (
+          <svg key="half" className="w-5 h-5 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
+            <defs>
+              <linearGradient id="half-star-courses">
+                <stop offset="50%" stopColor="currentColor" />
+                <stop offset="50%" stopColor="transparent" />
+              </linearGradient>
+            </defs>
+            <path
+              fill="url(#half-star-courses)"
+              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.785.57-1.84-.197-1.54-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.88 8.72c-.783-.57-.38-1.81.588-1.81H6.93a1 1 0 00.95-.69l1.07-3.292z"
+            />
+            <path
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1"
+              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.785.57-1.84-.197-1.54-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.88 8.72c-.783-.57-.38-1.81.588-1.81H6.93a1 1 0 00.95-.69l1.07-3.292z"
+            />
+          </svg>
+        )}
+        {Array.from({ length: empty }).map((_, i) => (
+          <svg key={`empty-${i}`} className="w-5 h-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.785.57-1.84-.197-1.54-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.88 8.72c-.783-.57-.38-1.81.588-1.81H6.93a1 1 0 00.95-.69l1.07-3.292z" />
+          </svg>
+        ))}
+      </div>
+    );
+  };
+
+  const filtered = courses.filter((c) => {
+    const matchCategory =
+      selectedCategory === "All Categories" || c.category === selectedCategory;
+    const matchSearch =
+      c.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchCategory && matchSearch;
+  });
+
+  const sortedFiltered = React.useMemo(() => {
+    const isEnrolled = (id) => enrolledIds.includes(id);
+    return [...filtered].sort((a, b) => {
+      const aEn = isEnrolled(a.id);
+      const bEn = isEnrolled(b.id);
+      if (aEn !== bEn) return bEn - aEn; // enrolled first
+      return (Number(b.rating) || 0) - (Number(a.rating) || 0); // then by rating desc
+    });
+  }, [filtered, enrolledIds]);
+
+  const segmentedCourses = React.useMemo(() => {
+    const recorded = [];
+    const interactive = [];
+    sortedFiltered.forEach((course) => {
+      const type = (course.type || "recorded").toLowerCase();
+      if (type === "recorded") recorded.push(course);
+      else interactive.push(course);
+    });
+    return { recorded, interactive };
+  }, [sortedFiltered]);
+
+  const displayedCourses =
+    activeSegment === "interactive"
+      ? segmentedCourses.interactive
+      : segmentedCourses.recorded;
+
+  const formatCourseType = (type) => {
+    const t = (type || "recorded").toString().toLowerCase();
+    if (t.includes("interactive") || t.includes("live")) return "Interactive Session";
+    return "Recorded Course";
   };
 
   if (loading) {
@@ -172,15 +278,6 @@ export default function Courses() {
       </div>
     );
   }
-
-  const filtered = courses.filter((c) => {
-    const matchCategory =
-      selectedCategory === "All Categories" || c.category === selectedCategory;
-    const matchSearch =
-      c.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchCategory && matchSearch;
-  });
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -215,15 +312,40 @@ export default function Courses() {
         </div>
 
         <CategoryDropdown
-          value={selectedCategory}
-          categories={categories}
-          onChange={setSelectedCategory}
-        />
+      value={selectedCategory}
+      categories={categories}
+      onChange={setSelectedCategory}
+    />
+  </div>
+
+      {/* Type Toggle */}
+      <div className="max-w-3xl mx-auto mt-5">
+        <div className="bg-[#f6f0e6] rounded-full p-[3px] flex shadow-inner border border-[#e7ddcf]">
+          {[
+            { key: "recorded", label: "Recorded Courses", count: segmentedCourses.recorded.length },
+            { key: "interactive", label: "Interactive Sessions", count: segmentedCourses.interactive.length },
+          ].map((opt) => {
+            const isActive = activeSegment === opt.key;
+            return (
+              <button
+                key={opt.key}
+                onClick={() => setActiveSegment(opt.key)}
+                className={`flex-1 px-3.5 py-2 rounded-full text-xs md:text-sm font-semibold transition-all ${
+                  isActive
+                    ? "bg-white text-gray-900 shadow-sm border border-[#e9e0d2]"
+                    : "text-gray-600 hover:text-gray-900 border border-transparent"
+                }`}
+              >
+                {opt.label} ({opt.count})
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Courses Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto mt-8">
-        {filtered.map((course, idx) => (
+        {displayedCourses.map((course, idx) => (
           <div
             key={course.id}
             className="animate-fadeIn"
@@ -232,7 +354,7 @@ export default function Courses() {
             <div className="bg-white rounded-3xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 ease-in-out relative flex flex-col h-full hover:scale-105 hover:transform cursor-pointer">
               <div className="absolute top-4 right-4 z-10">
                 <span className="bg-teal-600 text-white px-4 py-2 rounded-full text-sm font-medium">
-                  Recorded
+                  {formatCourseType(course.type)}
                 </span>
               </div>
 
@@ -270,7 +392,9 @@ export default function Courses() {
                   <div className="flex items-center gap-1">
                     {renderStars(Number(course.rating) || 0)}
                   </div>
-                  <span className="font-semibold text-gray-900">{Number(course.rating) || 0}</span>
+                  <span className="font-semibold text-gray-900">
+                    {Number(course.rating) ? Number(course.rating).toFixed(1) : "0.0"}
+                  </span>
                   <span className="text-gray-500 text-sm">({course.reviewsCount || 0} reviews)</span>
                 </div>
 
@@ -295,23 +419,48 @@ export default function Courses() {
                   </div>
                   <div className="flex gap-3">
                     <button
-                      onClick={() => navigate(`/courses/${course.id}`)}
-                      className="px-8 py-3 bg-white hover:bg-amber-200 text-black hover:text-black rounded-full text-base font-medium transition-colors border border-gray-200 hover:border-amber-300"
-                    >
-                      Details
-                    </button>
-                    <button
-                      onClick={() => toggleCart(course.id)}
-                      className={`p-3 rounded-full transition-colors ${
-                        isInCart(course.id)
-                          ? "bg-teal-600 hover:bg-teal-700 text-white"
-                          : "bg-white hover:bg-gray-100 text-teal-600 border-2 border-teal-600"
+                      onClick={() =>
+                        navigate(`/courses/${course.id}`, {
+                          state: enrolledIds.includes(course.id) ? { fromPaymentSuccess: true } : {},
+                        })
+                      }
+                      className={`px-8 py-3 rounded-full text-base font-medium transition-colors border ${
+                        enrolledIds.includes(course.id)
+                          ? "bg-teal-600 text-white hover:bg-teal-700 border-teal-600"
+                          : "bg-white hover:bg-amber-200 text-black hover:text-black border-gray-200 hover:border-amber-300"
                       }`}
                     >
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.293 2.293a1 1 0 00-.293.707v0a1 1 0 001 1h9m-1 0a2 2 0 104 0 2 2 0 00-4 0zm-9-4a2 2 0 100 4 2 2 0 000-4z"/>
-                      </svg>
+                      {enrolledIds.includes(course.id) ? "View Course" : "Details"}
                     </button>
+                    {!enrolledIds.includes(course.id) && (
+                      <button
+                        onClick={() => toggleCart(course.id)}
+                        className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
+                          isInCart(course.id)
+                            ? "bg-teal-600 border-teal-600 text-white shadow-[0_8px_20px_rgba(13,148,136,0.2)] hover:bg-teal-700"
+                            : "border-teal-600 text-teal-700 hover:bg-teal-50 hover:shadow-[0_6px_16px_rgba(13,148,136,0.12)]"
+                        }`}
+                        title="Add to cart"
+                      >
+                        <svg 
+  xmlns="http://www.w3.org/2000/svg" 
+  className="w-6 h-6" 
+  fill="none" 
+  viewBox="0 0 24 24" 
+  stroke="currentColor" 
+  strokeWidth="2"
+>
+  <path 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    d="M2 3h3l3.6 9.59a2 2 0 001.88 1.31H17a2 2 0 001.9-1.4l2.1-7H6" 
+  />
+  <circle cx="9" cy="20" r="1.5" />
+  <circle cx="17" cy="20" r="1.5" />
+</svg>
+
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -337,13 +486,15 @@ export default function Courses() {
       )}
 
       {/* AI Recommendations at bottom */}
-      <div className="mt-12">
-        <CourseRecommendations
-          courses={courses}
-          enrolledIds={enrolledIds}
-          cartIds={cart}
-        />
-      </div>
+      {!authLoading && uid && role === "student" && (
+        <div className="mt-12">
+          <CourseRecommendations
+            courses={courses}
+            enrolledIds={enrolledIds}
+            cartIds={cart}
+          />
+        </div>
+      )}
     </div>
   );
 }

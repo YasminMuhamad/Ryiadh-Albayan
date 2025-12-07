@@ -51,8 +51,8 @@ const Register = () => {
   };
 
   const handleRegister = async () => {
-     if (loading) return;
-     
+    if (loading) return;
+
     let hasError = false;
     if (!validateField("fullname", fullname)) hasError = true;
     if (!validateField("email", email)) hasError = true;
@@ -67,12 +67,21 @@ const Register = () => {
       toast.success("Account created successfully!");
       navigate("/student/profile");
     } catch (err) {
-      if (err.code === "auth/email-already-in-use") {
-        toast.error("This email is already registered. Try logging in.");
-      } else {
-        toast.error(err.message || "Registration failed!");
-      }
       console.error("Registration failed:", err);
+
+      switch (err.code) {
+        case "auth/email-already-in-use":
+          toast.error("This email is already registered. Try logging in.");
+          break;
+        case "auth/invalid-email":
+          toast.error("Invalid email format");
+          break;
+        case "auth/weak-password":
+          toast.error("Password must be at least 6 characters");
+          break;
+        default:
+          toast.error("Registration failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }

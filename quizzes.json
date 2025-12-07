@@ -1,0 +1,50 @@
+[
+  {
+    "courseId": "HE8CnBjRhmiuEZcKhkyE",
+    "moduleId": "ylYmZUunXEQK6m0j49jl",
+    "quizId": "7ZZ2xtk4xRNo5P9DA1gQ",
+    "title": "General Understanding Quiz",
+    "teacherId": "qLuUZB3pKTeWvy9fR8S5Ao4uKci1",
+    "createdAt": "SERVER_TIMESTAMP",
+    "questions": [
+      {
+        "question": "Q1. What is the main purpose of this lesson?",
+        "options": [
+          "A. To confuse the student",
+          "B. To review basic knowledge",
+          "C. To skip learning",
+          "D. To test speed only"
+        ],
+        "correct": "B. To review basic knowledge",
+        "type": "mcq"
+      },
+      {
+        "question": "Q4. Reviewing previous lessons helps you understand new ones.",
+        "correct": true,
+        "type": "true_false"
+      },
+      {
+        "question": "Q6. Write one thing you can do to improve your understanding of any topic.",
+        "acceptableAnswers": ["practice more", "ask questions", "review notes", "watch explanation videos"],
+        "type": "short_answer"
+      }
+    ]
+  },
+
+  {
+    "courseId": "HE8CnBjRhmiuEZcKhkyE",
+    "moduleId": "ylYmZUunXEQK6m0j49jl",
+    "quizId": "8Aa3xx8YzExampleId2",
+    "title": "Core Concepts Quiz",
+    "teacherId": "qLuUZB3pKTeWvy9fR8S5Ao4uKci1",
+    "createdAt": "SERVER_TIMESTAMP",
+    "questions": [
+      {
+        "question": "Q1. Which step is important in problem solving?",
+        "options": ["A. Guess", "B. Identify the problem", "C. Ignore instructions", "D. Skip checking"],
+        "correct": "B. Identify the problem",
+        "type": "mcq"
+      }
+    ]
+  }
+]

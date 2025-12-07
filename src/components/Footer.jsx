@@ -1,8 +1,11 @@
 import React from "react";
 import "../styles/footer.css";
 import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaFacebookF, FaTwitter, FaInstagram, FaYoutube } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 export function Footer() {
+  const navigate = useNavigate(); 
+
   return (
     <footer className="footer">
 
@@ -19,7 +22,7 @@ export function Footer() {
           </p>
 
           <p className="footer-quote">
-            "Seek knowledge from the cradle to the grave" – Prophet Muhammad ﷺ
+            "Seek knowledge from the cradle to the grave" Prophet Muhammad ﷺ
           </p>
         </div>
 
@@ -27,11 +30,15 @@ export function Footer() {
         <div className="footer-col">
           <h4 className="footer-subtitle">Quick Links</h4>
           <ul className="footer-links">
-            <li>About Us</li>
-            <li>Our Teachers</li>
-            <li>All Courses</li>
-            <li>Testimonials</li>
-            <li>FAQs</li>
+            
+           
+          
+        <li onClick={() => { navigate('/about'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>About Us</li>
+        <li onClick={() => { navigate('/contact'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Contact Us</li>
+        <li onClick={() => { navigate('/courses'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>All Courses</li>
+        <li onClick={() => { navigate('/teachers'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Our Teachers</li>
+
+
           </ul>
         </div>
 
@@ -54,13 +61,23 @@ export function Footer() {
       <div className="footer-bottom">
         <p className="footer-copy">© 2025 Riyad Al-Bayan Center. All rights reserved.</p>
 
-        <div className="footer-social">
-          <span className="icon"><FaFacebookF /></span>
-          <span className="icon"><FaTwitter /></span>
-          <span className="icon"><FaInstagram /></span>
-          <span className="icon"><FaYoutube /></span>
-        </div>
+       <div className="footer-social">
+  <a href="https://www.facebook.com/yourpage" target="_blank" rel="noopener noreferrer" className="icon">
+    <FaFacebookF />
+  </a>
+  <a href="https://twitter.com/yourhandle" target="_blank" rel="noopener noreferrer" className="icon">
+    <FaTwitter />
+  </a>
+  <a href="https://www.instagram.com/shabaan1770?igsh=ZzhieTJlZjhvZmV6&utm_source=qr" target="_blank" rel="noopener noreferrer" className="icon">
+    <FaInstagram />
+  </a>
+  <a href="https://youtube.com/channel/UCKOVvwGoqIfy0ffh9gWDexQ?si=JBQ70C6PlgGYDPpY" target="_blank" rel="noopener noreferrer" className="icon">
+    <FaYoutube />
+  </a>
+</div>
+
       </div>
+
 
     </footer>
   );
