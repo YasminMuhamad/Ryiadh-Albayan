@@ -422,7 +422,7 @@ input:focus {
   animation-fill-mode: both;
 }
 
-* {
+/* * {
   user-select: none;
   -webkit-user-select: none;
-}
+} */

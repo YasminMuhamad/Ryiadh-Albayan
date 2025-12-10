@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { getFirestore, collection, getDocs } from "firebase/firestore";
-import { app } from "../../firebase.config"; // عدلي المسار حسب مكان ملف الكونفيج
+import { app } from "../../firebase.config";
 
 export default function CoursePerformanceChart() {
   const [data, setData] = useState([]);
@@ -17,7 +17,9 @@ export default function CoursePerformanceChart() {
         return {
           course: course.title || "Unknown",
           completion: course.avgCompletion || 0,
-          satisfaction: course.avgSatisfaction || 0,
+          satisfaction: course.avgSatisfaction
+            ? (course.avgSatisfaction / 5) * 100
+            : 0,
         };
       });
 

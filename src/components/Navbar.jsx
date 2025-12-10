@@ -146,20 +146,20 @@ export function Navbar() {
                 Courses
               </span>
               <span
+                onClick={() => navigate("/about")}
+                className={`cursor-pointer ${
+                  currentPage === "/about" ? "text-[#0E7C7B]" : "text-gray-700"
+                } hover:text-[#0E7C7B]`}
+              >
+                About Us
+              </span>
+              <span
                 onClick={() => navigate("/contact")}
                 className={`cursor-pointer ${
                   currentPage === "/contact" ? "text-[#0E7C7B]" : "text-gray-700"
                 } hover:text-[#0E7C7B]`}
               >
                 Contact
-              </span>
-              <span
-                onClick={() => navigate("/about")}
-                className={`cursor-pointer ${
-                  currentPage === "/contact" ? "text-[#0E7C7B]" : "text-gray-700"
-                } hover:text-[#0E7C7B]`}
-              >
-                About Us
               </span>
               <div className="relative">
                 <span

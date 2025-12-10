@@ -172,31 +172,31 @@ export default function App() {
   // -------------------------
   // Protection Layer for Entire Application
   // -------------------------
-  useEffect(() => {
-    document.addEventListener("contextmenu", (e) => e.preventDefault());
+  // useEffect(() => {
+  //   document.addEventListener("contextmenu", (e) => e.preventDefault());
 
-    document.addEventListener("keydown", (e) => {
-      if (
-        (e.ctrlKey &&
-          ["c", "s", "u", "p"].includes(e.key.toLowerCase())) ||
-        e.key === "PrintScreen"
-      ) {
-        e.preventDefault();
-      }
+  //   document.addEventListener("keydown", (e) => {
+  //     if (
+  //       (e.ctrlKey &&
+  //         ["c", "s", "u", "p"].includes(e.key.toLowerCase())) ||
+  //       e.key === "PrintScreen"
+  //     ) {
+  //       e.preventDefault();
+  //     }
 
-      // Prevent Dev Tools
-      if (e.key === "F12") e.preventDefault();
-      if (e.ctrlKey && e.shiftKey && e.key.toUpperCase() === "I") e.preventDefault();
-      if (e.ctrlKey && e.shiftKey && e.key.toUpperCase() === "J") e.preventDefault();
-    });
+  //     // Prevent Dev Tools
+  //     if (e.key === "F12") e.preventDefault();
+  //     if (e.ctrlKey && e.shiftKey && e.key.toUpperCase() === "I") e.preventDefault();
+  //     if (e.ctrlKey && e.shiftKey && e.key.toUpperCase() === "J") e.preventDefault();
+  //   });
 
-    document.addEventListener("keyup", async (e) => {
-      if (e.key === "PrintScreen") {
-        await navigator.clipboard.writeText("");
-        alert("Screenshot disabled!");
-      }
-    });
-  }, []);
+  //   document.addEventListener("keyup", async (e) => {
+  //     if (e.key === "PrintScreen") {
+  //       await navigator.clipboard.writeText("");
+  //       alert("Screenshot disabled!");
+  //     }
+  //   });
+  // }, []);
 
 
   return (
